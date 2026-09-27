@@ -53,8 +53,7 @@ def all_samples():
         query = query.filter_by(user_id=user_filter)
     if search_filter:
         query = query.filter(
-            Sample.reference.ilike(f'%{search_filter}%') |
-            Sample.name.ilike(f'%{search_filter}%')
+            Sample.reference.ilike(f'%{search_filter}%')
         )
 
     sort_by = request.args.get('sort', 'created_at')
