@@ -1,22 +1,16 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, send_from_directory
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_from_directory, current_app
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
 
 from ..models import db, Sample
-from ..config import Config
 
 main_bp = Blueprint('main', __name__)
 
-UPLOAD_FOLDER = Config.UPLOAD_FOLDER
-ALLOWED_EXTENSIONS = Config.ALLOWED_EXTENSIONS
-
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
 def allowed_file(filename):
     """Vérifier si le fichier a une extension autorisée"""
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
 
 @main_bp.route('/')
 def index():
@@ -29,6 +23,9 @@ def index():
 @login_required
 def form():
     """Formulaire de soumission d'échantillon"""
+    
+    os.makedirs(current_app.config['UPLOAD_FOLDER'], exist_ok=True)
+    
     if request.method == 'POST':
         team = request.form.get('team')  # Équipe sélectionnée pour cette analyse
         reference = request.form.get('reference')
@@ -52,7 +49,7 @@ def form():
             filename = secure_filename(file.filename)
             timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
             unique_filename = f"{current_user.username}_{timestamp}_{filename}"
-            filepath = os.path.join(UPLOAD_FOLDER, unique_filename)
+            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename)
             file.save(filepath)
         else:
             flash('Type de fichier non autorisé. Formats acceptés: .cdx, .cdxml, .mol, .sdf', 'error')

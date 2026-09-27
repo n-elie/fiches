@@ -219,3 +219,6 @@ __marimo__/
 
 # Upload folder
 uploads/
+
+# SQLite DB files
+*.db

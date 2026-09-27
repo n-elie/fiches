@@ -36,10 +36,6 @@ def create_app(config_class=Config):
     # Initialiser l'authentification LDAP
     dap_auth.init_app(app)
 
-    # Créer les tables de la base de données
-    with app.app_context():
-        db.create_all()
-
     # Enregistrer les blueprints
     from .routes.main_routes import main_bp
     from .routes.auth_routes import auth_bp

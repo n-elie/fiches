@@ -25,7 +25,9 @@ class User(db.Model, UserMixin):
         return f'<User {self.username}>'
         
     def get_teams(self):
-        return self.teams.split(',') if self.teams else [self.teams]
+        if not self.teams:
+            return []
+        return self.teams.split(',') if ',' in self.teams else [self.teams]
 
 class Sample(db.Model):
     """Modèle échantillon pour stocker les informations des analyses"""
