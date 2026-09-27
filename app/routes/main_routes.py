@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_from_directory, current_app
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
+from sqlalchemy import desc
 import os
 from datetime import datetime
 
@@ -91,8 +92,35 @@ def success(sample_id):
 @login_required
 def user_samples():
     """Liste des échantillons de l'utilisateur"""
-    samples = Sample.query.filter_by(user_id=current_user.id).order_by(Sample.created_at.desc()).all()
-    return render_template('samples.html', samples=samples, user=current_user)
+    
+    search_filter = request.args.get('search', '')
+    status_filter = request.args.get('status', '')
+    
+    query = Sample.query
+    if status_filter:
+        query = query.filter_by(status=status_filter)
+    if search_filter:
+        query = query.filter(
+            Sample.reference.ilike(f'%{search_filter}%')
+        )
+
+    sort_by = request.args.get('sort', 'created_at')
+    sort_order = request.args.get('order', 'desc')
+
+    if sort_order == 'desc':
+        query = query.order_by(desc(getattr(Sample, sort_by)))
+    else:
+        query = query.order_by(getattr(Sample, sort_by))
+        
+    samples = query.all()
+
+    return render_template('samples.html',
+                         samples=samples,
+                         user=current_user,
+                         status_filter=status_filter,
+                         search_filter=search_filter,
+                         sort_by=sort_by,
+                         sort_order=sort_order)
 
 @main_bp.route('/sample/<uuid:sample_id>')
 @login_required

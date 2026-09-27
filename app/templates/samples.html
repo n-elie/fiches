@@ -15,28 +15,67 @@
         </div>
     </div>
 
-    {% if samples %}
     <div class="samples-filter">
         <form method="GET" action="" class="filter-form">
-            <div class="filter-group">
-                <input type="text" name="search" placeholder="Rechercher par référence ou nom..."
-                       value="{{ request.args.get('search', '') }}">
+            <div class="filter-row">
+				<div class="filter-group">
+                    <label for="status">Statut:</label>
+                    <select id="status" name="status">
+                        <option value="">Tous les statuts</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>En attente</option>
+                        <option value="processing" {% if status_filter == 'processing' %}selected{% endif %}>En cours</option>
+                        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Terminé</option>
+                        <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Annulé</option>
+                    </select>
+                </div>
+				
+                <div class="filter-group">
+                    <input type="text" name="search" placeholder="Rechercher..."
+                           value="{{ search_filter }}">
+                </div>
+
                 <button type="submit" class="btn btn-secondary">
-                    <i class="fas fa-search"></i>
+                    <i class="fas fa-filter"></i> Filtrer
                 </button>
+
+                <a href="{{ url_for('main.user_samples') }}" class="btn btn-tertiary">
+					<i class="fas fa-times"></i> Réinitialiser
+				</a>
             </div>
         </form>
     </div>
 
+    {% if samples %}
     <div class="samples-table-container">
         <table class="samples-table">
             <thead>
                 <tr>
-                    <th>Référence</th>
+                    <th>
+						<a href="?sort=reference&order={% if sort_by == 'reference' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
+                            Référence
+                            {% if sort_by == 'reference' %}
+                                <i class="fas fa-sort-{{ sort_order }}"></i>
+                            {% endif %}
+                        </a>
+					</th>
 					<th>Formule</th>
                     <th>Quantité</th>
-                    <th>Statut</th>
-                    <th>Date de soumission</th>
+                    <th>
+                        <a href="?sort=status&order={% if sort_by == 'status' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
+                            Statut
+                            {% if sort_by == 'status' %}
+                                <i class="fas fa-sort-{{ sort_order }}"></i>
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th>
+                        <a href="?sort=created_at&order={% if sort_by == 'created_at' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
+                            Date de soumission
+                            {% if sort_by == 'created_at' %}
+                                <i class="fas fa-sort-{{ sort_order }}"></i>
+                            {% endif %}
+                        </a>
+                    </th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -67,9 +106,9 @@
     <div class="no-samples">
         <i class="fas fa-inbox"></i>
         <h3>Aucun échantillon trouvé</h3>
-        <p>Vous n'avez pas encore soumis d'échantillon.</p>
+        <p>Aucun échantillon ne correspond à vos critères de recherche.</p>
         <a href="{{ url_for('main.form') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Soumettre mon premier échantillon
+            <i class="fas fa-plus"></i> Soumettre un échantillon
         </a>
     </div>
     {% endif %}
