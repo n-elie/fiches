@@ -170,8 +170,7 @@ class LDAPAuth:
             user.full_name = user_info.get('full_name', user.full_name)
             user.teams = ', '.join(user_info['teams']) if isinstance(user_info['teams'], list) else user.teams
             user.ldap_dn = user_dn
-            user.is_admin = user_info['username'] in self.config.get('ADMIN_USERS', [])
-            print(user_info['username'], self.config.get('ADMIN_USERS', []))
+            user.is_admin = username in self.config.get('ADMIN_USERS', [])
             user.last_login = db.func.now()
         else:
             # Créer un nouvel utilisateur
@@ -181,7 +180,7 @@ class LDAPAuth:
                 full_name=user_info.get('full_name', username),
                 teams=', '.join(user_info.get('teams', [])) if isinstance(user_info.get('teams'), list) else user_info.get('teams', ''),
                 ldap_dn=user_dn,
-                is_admin=user_info['username'] in self.config.get('ADMIN_USERS', []),
+                is_admin=username in self.config.get('ADMIN_USERS', []),
                 last_login=db.func.now()
             )
             db.session.add(user)

@@ -5,12 +5,12 @@ import os
 from datetime import datetime
 
 from ..models import db, Sample
-from .. import config
+from ..config import Config
 
 main_bp = Blueprint('main', __name__)
 
-UPLOAD_FOLDER = config.Config.UPLOAD_FOLDER
-ALLOWED_EXTENSIONS = config.Config.ALLOWED_EXTENSIONS
+UPLOAD_FOLDER = Config.UPLOAD_FOLDER
+ALLOWED_EXTENSIONS = Config.ALLOWED_EXTENSIONS
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
