@@ -75,8 +75,18 @@
         </div>
         {% endif %}
 
-        <div class="admin-sample-detail-section">
-            <h3>Fichier joint</h3>
+        <div class="sample-detail-section">
+            <h3>Structure chimique</h3>
+			{% if sample.formula %}
+			<div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Formule brute :</span>
+                    <span class="detail-value">{{ sample.formula }}</span>
+                </div>
+            </div>
+			{% endif %}
+			
+			{% if sample.structure_file %}
             <div class="file-info">
                 <div class="file-icon">
                     <i class="fas fa-file-alt"></i>
@@ -88,6 +98,7 @@
                     <i class="fas fa-download"></i> Télécharger
                 </a>
             </div>
+			{% endif %}
         </div>
 
         <div class="admin-sample-detail-section">

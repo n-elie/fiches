@@ -31,6 +31,7 @@ def form():
         reference = request.form.get('reference')
         quantity = request.form.get('quantity')
         notes = request.form.get('notes')
+        formula = request.form.get('formula')
 
         if not reference or not quantity:
             flash('Veuillez remplir tous les champs obligatoires', 'error')
@@ -40,20 +41,19 @@ def form():
             flash('Aucun fichier de structure fourni', 'error')
             return redirect(url_for('main.form'))
 
-        file = request.files['structure_file']
-        if file.filename == '':
-            flash('Aucun fichier sélectionné', 'error')
-            return redirect(url_for('main.form'))
-
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-            unique_filename = f"{current_user.username}_{timestamp}_{filename}"
-            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename)
-            file.save(filepath)
-        else:
-            flash('Type de fichier non autorisé. Formats acceptés: .cdx, .cdxml, .mol, .sdf', 'error')
-            return redirect(url_for('main.form'))
+        unique_filename = None
+        if 'structure_file' in request.files:
+            file = request.files['structure_file']
+            if file.filename != '':
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+                    unique_filename = f"{current_user.username}_{timestamp}_{filename}"
+                    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename)
+                    file.save(filepath)
+                else:
+                    flash('Type de fichier non autorisé. Formats acceptés: .cdx, .cdxml, .mol, .sdf', 'error')
+                    return redirect(url_for('main.form'))
 
         try:
             sample = Sample(
@@ -61,6 +61,7 @@ def form():
                 reference=reference,
                 quantity=float(quantity),
                 structure_file=unique_filename,
+                formula=formula,
                 notes=notes,
                 user_id=current_user.id
             )
@@ -121,6 +122,7 @@ def edit_sample(sample_id):
         reference = request.form.get('reference')
         quantity = request.form.get('quantity')
         notes = request.form.get('notes')
+        formula = request.form.get('formula')
         
         if not reference or not quantity:
             flash('Veuillez remplir tous les champs obligatoires', 'error')
@@ -149,6 +151,7 @@ def edit_sample(sample_id):
         sample.reference = reference
         sample.quantity = float(quantity)
         sample.notes = notes
+        sample.formula = formula
         
         try:
             db.session.commit()
@@ -167,7 +170,7 @@ def edit_sample(sample_id):
 def download_file(filename):
     """Télécharger un fichier de structure"""
     sample = Sample.query.filter_by(structure_file=filename).first()
-    if not sample or sample.user_id != current_user.id:
+    if not sample or (sample.user_id != current_user.id and not current_user.is_admin):
         flash('Accès non autorisé', 'error')
         return redirect(url_for('main.index'))
-    return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename, as_attachment=True)

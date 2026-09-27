@@ -77,12 +77,20 @@
         <div class="form-section">
             <h3>Structure chimique</h3>
 
-            <div class="form-group required">
-                <label for="structure_file">Fichier de structure <span class="required-star">*</span></label>
-                <input type="file" id="structure_file" name="structure_file" required
-                       accept=".cdx,.cdxml,.mol,.sdf">
-                <span class="help-text">Formats acceptés: .cdx, .cdxml, .mol, .sdf</span>
-            </div>
+			<div class="form-row">
+				<div class="form-group">
+					<label for="structure_file">Fichier de structure</label>
+					<input type="file" id="structure_file" name="structure_file"
+						   accept=".cdx,.cdxml,.mol,.sdf">
+					<span class="help-text">Formats acceptés: .cdx, .cdxml, .mol, .sdf (optionnel)</span>
+				</div>
+				<div class="form-group">
+					<label for="formula">Formule brute</label>
+					<input type="text" id="formula" name="formula"
+						   placeholder="Ex: C8H10N4O2">
+					<span class="help-text">Formule chimique de l'échantillon (optionnel)</span>
+				</div>
+			</div>
         </div>
 
         <div class="form-section">

@@ -25,16 +25,20 @@
                 <span class="detail-label">Date de soumission :</span>
                 <span class="detail-value">{{ sample.created_at.strftime('%d/%m/%Y à %H:%M') }}</span>
             </div>
+			{% if sample.structure_file %}
             <div class="detail-row">
                 <span class="detail-label">Fichier :</span>
                 <span class="detail-value">{{ sample.structure_file }}</span>
             </div>
+			{% endif %}
         </div>
 
         <div class="success-actions">
+			{% if sample.structure_file %}
             <a href="{{ url_for('main.download_file', filename=sample.structure_file) }}" class="btn btn-primary">
                 <i class="fas fa-download"></i> Télécharger le fichier
             </a>
+			{% endif %}
             <a href="{{ url_for('main.form') }}" class="btn btn-secondary">
                 <i class="fas fa-plus"></i> Soumettre un autre échantillon
             </a>
