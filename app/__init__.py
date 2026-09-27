@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from .config import Config
@@ -48,5 +48,10 @@ def create_app(config_class=Config):
     # Configuration des uploads
     app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'uploads')
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    
+    # Gestionnaire d'erreur 404
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template('404.html'), 404
 
     return app

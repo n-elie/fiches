@@ -469,3 +469,50 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+.error-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.error-content {
+    max-width: 600px;
+    width: 100%;
+}
+
+.error-icon {
+    font-size: 80px;
+    color: #e74c3c;
+    margin-bottom: 20px;
+}
+
+.error-content h1 {
+    font-size: 120px;
+    font-weight: 700;
+    color: #e74c3c;
+    margin: 0 0 10px 0;
+    line-height: 1;
+}
+
+.error-content h2 {
+    font-size: 28px;
+    margin: 0 0 15px 0;
+    color: #333;
+}
+
+.error-content p {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.error-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
