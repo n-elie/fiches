@@ -55,11 +55,11 @@ function initFormValidation() {
                 }
             });
 
-            const $fileInput = $('#structure_file');
+            const $fileInput = $('#structure_file[required]');
             if ($fileInput.length && $fileInput.val() === '') {
                 isValid = false;
                 $fileInput.addClass('error');
-                $fileInput.after('<span class="error-message">Veuillez sélectionner un fichier ChemDraw</span>');
+                $fileInput.after('<span class="error-message">Veuillez sélectionner un fichier de structure</span>');
             } else {
                 $fileInput.removeClass('error');
                 $fileInput.next('.error-message').remove();
