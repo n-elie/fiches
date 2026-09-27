@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Éditer - {{ sample.reference }}{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h2>Éditer l'échantillon</h2>
+        <p>Modifiez les informations de l'échantillon <strong>{{ sample.reference }}</strong></p>
+    </div>
+
+    <form method="POST" action="{{ url_for('main.edit_sample', sample_id=sample.id) }}" class="sample-form" enctype="multipart/form-data">
+        <div class="form-section">
+            <h3>Informations de l'utilisateur</h3>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="username">Nom d'utilisateur</label>
+                    <input type="text" id="username" name="username"
+                           value="{{ user.full_name }}" readonly disabled>
+                </div>
+
+                {% set user_teams = user.get_teams() %}
+                {% if user_teams and user_teams|length > 1 %}
+                <div class="form-group required">
+                    <label for="team">Équipe <span class="required-star">*</span></label>
+                    <select id="team" name="team" required>
+                        {% for team in user_teams %}
+                        <option value="{{ team }}" {% if sample.team == team %}selected{% endif %}>{{ team }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% elif user.teams and user_teams|length == 1 %}
+				<div class="form-group">
+					<label for="team">Équipe</label>
+					<input type="text" id="team" name="team" 
+						   value="{{ user_teams[0] }}" readonly disabled>
+					<input type="hidden" name="team" value="{{ user_teams[0] }}">
+				</div>
+				{% else %}
+				<div class="form-group">
+					<label for="team">Équipe</label>
+					<input type="text" id="team" name="team" 
+						   value="{{ user_teams }}" readonly disabled>
+				</div>
+				{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="email">Adresse Email</label>
+                <input type="email" id="email" name="email"
+                       value="{{ user.email }}" readonly disabled>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Informations de l'échantillon</h3>
+
+            <div class="form-row">
+                <div class="form-group required">
+                    <label for="reference">Référence de l'échantillon <span class="required-star">*</span></label>
+                    <input type="text" id="reference" name="reference" required
+                           value="{{ sample.reference }}" placeholder="Ex: SAM-2024-001">
+                </div>
+
+                <div class="form-group required">
+                    <label for="quantity">Quantité déposée (mg) <span class="required-star">*</span></label>
+                    <input type="number" id="quantity" name="quantity" step="0.1" required
+                           value="{{ sample.quantity }}" placeholder="Ex: 1.5" min="0.1">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Structure chimique</h3>
+
+            <div class="form-group">
+                <label for="structure_file">Fichier de structure (laisser vide pour conserver l'ancien)</label>
+                <input type="file" id="structure_file" name="structure_file"
+                       accept=".cdx,.cdxml,.mol,.sdf">
+                <span class="help-text">Fichier actuel: {{ sample.structure_file }}</span>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Informations supplémentaires</h3>
+
+            <div class="form-group">
+                <label for="notes">Notes</label>
+                <textarea id="notes" name="notes" rows="4"
+                          placeholder="Ajoutez des notes ou commentaires...">{{ sample.notes or '' }}</textarea>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Sauvegarder
+            </button>
+            <a href="{{ url_for('main.sample_detail', sample_id=sample.id) }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Annuler
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -102,6 +102,65 @@ def sample_detail(sample_id):
         flash('Accès non autorisé', 'error')
         return redirect(url_for('main.index'))
     return render_template('sample_detail.html', sample=sample, user=current_user)
+    
+@main_bp.route('/sample/<uuid:sample_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_sample(sample_id):
+    """Éditer un échantillon existant"""
+    
+    sample = Sample.query.get_or_404(sample_id)
+    
+    # Vérifier que l'utilisateur est le propriétaire ou admin
+    if sample.user_id != current_user.id and not current_user.is_admin:
+        flash('Accès non autorisé', 'error')
+        return redirect(url_for('main.index'))
+    
+    if request.method == 'POST':
+        # Récupérer les nouvelles valeurs
+        team = request.form.get('team')
+        reference = request.form.get('reference')
+        quantity = request.form.get('quantity')
+        notes = request.form.get('notes')
+        
+        if not reference or not quantity:
+            flash('Veuillez remplir tous les champs obligatoires', 'error')
+            return redirect(url_for('main.edit_sample', sample_id=sample_id))
+        
+        # Gestion du fichier (optionnel)
+        if 'structure_file' in request.files:
+            file = request.files['structure_file']
+            if file.filename != '':
+                if file and allowed_file(file.filename):
+                    # Supprimer l'ancien fichier si nécessaire
+                    old_filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], sample.structure_file)
+                    if os.path.exists(old_filepath):
+                        os.remove(old_filepath)
+                    
+                    # Sauvegarder le nouveau fichier
+                    filename = secure_filename(file.filename)
+                    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+                    unique_filename = f"{current_user.username}_{timestamp}_{filename}"
+                    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename)
+                    file.save(filepath)
+                    sample.structure_file = unique_filename
+        
+        # Mettre à jour les champs
+        sample.team = team
+        sample.reference = reference
+        sample.quantity = float(quantity)
+        sample.notes = notes
+        
+        try:
+            db.session.commit()
+            flash('Échantillon mis à jour avec succès!', 'success')
+            return redirect(url_for('main.sample_detail', sample_id=sample_id))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Erreur lors de la mise à jour: {str(e)}', 'error')
+            return redirect(url_for('main.edit_sample', sample_id=sample_id))
+    
+    # GET: Afficher le formulaire pré-rempli
+    return render_template('sample_edit.html', sample=sample, user=current_user)
 
 @main_bp.route('/download/<filename>')
 @login_required
