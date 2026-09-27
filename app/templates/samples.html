@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Mes Échantillons{% endblock %}
+
+{% block content %}
+<div class="samples-container">
+    <div class="samples-header">
+        <h2>Mes Échantillons</h2>
+        <p>Liste de tous vos échantillons soumis pour analyse</p>
+
+        <div class="samples-actions">
+            <a href="{{ url_for('main.form') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouveau
+            </a>
+        </div>
+    </div>
+
+    {% if samples %}
+    <div class="samples-filter">
+        <form method="GET" action="" class="filter-form">
+            <div class="filter-group">
+                <input type="text" name="search" placeholder="Rechercher par référence ou nom..."
+                       value="{{ request.args.get('search', '') }}">
+                <button type="submit" class="btn btn-secondary">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="samples-table-container">
+        <table class="samples-table">
+            <thead>
+                <tr>
+                    <th>Référence</th>
+                    <th>Quantité</th>
+                    <th>Statut</th>
+                    <th>Date de soumission</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sample in samples %}
+                <tr>
+                    <td>{{ sample.reference }}</td>
+                    <td>{{ sample.quantity }} mg</td>
+                    <td>
+                        <span class="status-badge status-{{ sample.status }}">
+                            {{ sample.status }}
+                        </span>
+                    </td>
+                    <td>{{ sample.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td>
+                        <a href="{{ url_for('main.sample_detail', sample_id=sample.id) }}" class="btn-icon" title="Voir les détails">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{{ url_for('main.download_file', filename=sample.structure_file) }}" class="btn-icon" title="Télécharger le fichier">
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% else %}
+    <div class="no-samples">
+        <i class="fas fa-inbox"></i>
+        <h3>Aucun échantillon trouvé</h3>
+        <p>Vous n'avez pas encore soumis d'échantillon.</p>
+        <a href="{{ url_for('main.form') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Soumettre mon premier échantillon
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

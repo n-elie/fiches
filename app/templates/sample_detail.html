@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Détails - {{ sample.reference }}{% endblock %}
+
+{% block content %}
+<div class="sample-detail-container">
+    <div class="sample-detail-header">
+        <div class="sample-detail-title">
+            <h2>{{ sample.reference }}</h2>
+            <span class="status-badge status-{{ sample.status }}">{{ sample.status }}</span>
+        </div>
+    </div>
+
+    <div class="sample-detail-content">
+        <div class="sample-detail-section">
+            <h3>Informations générales</h3>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Soumis par :</span>
+                    <span class="detail-value">{{ sample.user.full_name }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Équipe :</span>
+                    <span class="detail-value">{{ sample.team }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email :</span>
+                    <span class="detail-value">{{ sample.user.email }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Date de soumission :</span>
+                    <span class="detail-value">{{ sample.created_at.strftime('%d/%m/%Y à %H:%M:%S') }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sample-detail-section">
+            <h3>Informations de l'échantillon</h3>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Référence :</span>
+                    <span class="detail-value">{{ sample.reference }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Quantité :</span>
+                    <span class="detail-value">{{ sample.quantity }} mg</span>
+                </div>
+            </div>
+        </div>
+
+        {% if sample.notes %}
+        <div class="sample-detail-section">
+            <h3>Notes</h3>
+            <div class="notes-content">
+                <p>{{ sample.notes }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="sample-detail-section">
+            <h3>Fichier joint</h3>
+            <div class="file-info">
+                <div class="file-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="file-details">
+                    <span class="file-name">{{ sample.structure_file }}</span>
+                </div>
+                <a href="{{ url_for('main.download_file', filename=sample.structure_file) }}" class="btn btn-primary">
+                    <i class="fas fa-download"></i> Télécharger
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="sample-detail-footer">
+        <div class="footer-actions">
+            <a href="{{ url_for('main.user_samples') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour à la liste
+            </a>
+            {% if current_user.is_admin %}
+                <a href="{{ url_for('admin.admin_sample_detail', sample_id=sample.id) }}" class="btn btn-tertiary">
+                    <i class="fas fa-cog"></i> Vue Admin
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de bord Admin{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h2>Tableau de bord Administrateur</h2>
+        <p>Gestion des utilisateurs et des échantillons</p>
+    </div>
+
+    <div class="admin-stats">
+        <div class="stat-card">
+            <div class="stat-content">
+				<span class="stat-icon"><i class="fas fa-flask"></i></span>
+                <span class="stat-value">{{ total_samples }}</span>
+                <span class="stat-label">Échantillons totaux</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-content">
+				<span class="stat-icon"><i class="fas fa-users"></i></span>
+                <span class="stat-value">{{ total_users }}</span>
+                <span class="stat-label">Utilisateurs</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-content">
+				<span class="stat-icon"><i class="fas fa-hourglass-half"></i></span>
+                <span class="stat-value">{{ pending_samples }}</span>
+                <span class="stat-label">En attente</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-content">
+				<span class="stat-icon"><i class="fas fa-check-circle"></i></span>
+                <span class="stat-value">{{ completed_samples }}</span>
+                <span class="stat-label">Terminés</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-content">
+        <div class="admin-section">
+            <div class="section-header">
+                <h3>Derniers échantillons</h3>
+                <a href="{{ url_for('admin.all_samples') }}" class="btn btn-secondary">
+                    <i class="fas fa-list"></i> Voir tous
+                </a>
+            </div>
+
+            {% if recent_samples %}
+            <div class="recent-samples-table">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Référence</th>
+                            <th>Utilisateur</th>
+                            <th>Statut</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sample in recent_samples %}
+                        <tr>
+                            <td>{{ sample.reference }}</td>
+                            <td>{{ sample.user.full_name }}</td>
+                            <td>
+                                <span class="status-badge status-{{ sample.status }}">
+                                    {{ sample.status }}
+                                </span>
+                            </td>
+                            <td>{{ sample.created_at.strftime('%d/%m %H:%M') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p>Aucun échantillon récent trouvé.</p>
+            {% endif %}
+        </div>
+
+        <div class="admin-section">
+            <div class="section-header">
+                <h3>Utilisateurs</h3>
+                <a href="{{ url_for('admin.all_users') }}" class="btn btn-secondary">
+                    <i class="fas fa-users"></i> Gérer les utilisateurs
+                </a>
+            </div>
+
+            {% if users %}
+            <div class="users-list">
+                {% for user in users %}
+                <div class="user-card">
+                    <div class="user-info">
+                        <span class="user-username">{{ user.username }}</span>
+                        <span class="user-fullname">{{ user.full_name }}</span>
+                    </div>
+                    <div class="user-details">
+                        <span class="user-team">{{ user.teams }}</span>
+                        <span class="user-email">{{ user.email }}</span>
+                    </div>
+                    <div class="user-status">
+                        {% if user.is_admin %}
+                            <span class="admin-badge">Admin</span>
+                        {% endif %}
+                        <span class="last-login">
+                            Dernière connexion:
+                            {% if user.last_login %}
+                                {{ user.last_login.strftime('%d/%m %H:%M') }}
+                            {% else %}
+                                Jamais
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p>Aucun utilisateur trouvé.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="admin-export">
+        <div class="section-header">
+            <h3>Export des données</h3>
+        </div>
+        <div class="export-buttons">
+            <a href="{{ url_for('admin.export_csv') }}" class="btn btn-primary">
+                <i class="fas fa-file-csv"></i> Exporter en CSV
+            </a>
+            <a href="{{ url_for('admin.export_excel') }}" class="btn btn-primary">
+                <i class="fas fa-file-excel"></i> Exporter en Excel
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

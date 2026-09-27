@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Nouvelle Analyse{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h2>Soumission d'Échantillon</h2>
+        <p>Remplissez le formulaire ci-dessous pour soumettre un nouvel échantillon à l'analyse</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('main.form') }}" class="sample-form" enctype="multipart/form-data">
+        <div class="form-section">
+            <h3>Informations de l'utilisateur</h3>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="username">Nom d'utilisateur</label>
+                    <input type="text" id="username" name="username"
+                           value="{{ user.full_name }}" readonly disabled>
+                </div>
+
+				{% set user_teams = user.get_teams() %}
+				{% if user_teams and user_teams|length > 1 %}
+				<div class="form-group required">
+					<label for="team">Équipe <span class="required-star">*</span></label>
+					<select id="team" name="team" required>
+						{% for team in user_teams %}
+						<option value="{{ team }}" {% if user.last_team_used == team %}selected{% endif %}>{{ team }}</option>
+						{% endfor %}
+					</select>
+					<span class="help-text">Sélectionnez l'équipe associée à cette analyse</span>
+				</div>
+				{% elif user.teams and user_teams|length == 1 %}
+				<div class="form-group">
+					<label for="team">Équipe</label>
+					<input type="text" id="team" name="team" 
+						   value="{{ user_teams[0] }}" readonly disabled>
+					<input type="hidden" name="team" value="{{ user_teams[0] }}">
+				</div>
+				{% else %}
+				<div class="form-group">
+					<label for="team">Équipe</label>
+					<input type="text" id="team" name="team" 
+						   value="{{ user_teams }}" readonly disabled>
+				</div>
+				{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="email">Adresse Email</label>
+                <input type="email" id="email" name="email"
+                       value="{{ user.email }}" readonly disabled>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Informations de l'échantillon</h3>
+			
+			<div class="form-row">
+				<div class="form-group required">
+					<label for="reference">Référence de l'échantillon <span class="required-star">*</span></label>
+					<input type="text" id="reference" name="reference" required
+						   placeholder="Ex: SAM-2024-001">
+					<span class="help-text">Référence unique pour identifier votre échantillon</span>
+				</div>
+
+				<div class="form-group required">
+					<label for="quantity">Quantité déposée (mg) <span class="required-star">*</span></label>
+					<input type="number" id="quantity" name="quantity" step="0.1" required
+						   placeholder="Ex: 1.5" min="0.1" inputmode="numeric">
+				   <span class="help-text">Quantité déposée dans le tube (en mg)</span>
+				</div>
+			</div>
+        </div>
+
+        <div class="form-section">
+            <h3>Structure chimique</h3>
+
+            <div class="form-group required">
+                <label for="structure_file">Fichier de structure <span class="required-star">*</span></label>
+                <input type="file" id="structure_file" name="structure_file" required
+                       accept=".cdx,.cdxml,.mol,.sdf">
+                <span class="help-text">Formats acceptés: .cdx, .cdxml, .mol, .sdf</span>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Informations supplémentaires</h3>
+
+            <div class="form-group">
+                <label for="notes">Notes</label>
+                <textarea id="notes" name="notes" rows="4"
+                          placeholder="Ajoutez des notes ou commentaires sur l'échantillon..."></textarea>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-paper-plane"></i> Soumettre
+            </button>
+            <button type="reset" class="btn btn-secondary">
+                <i class="fas fa-undo"></i> Réinitialiser
+            </button>
+            <a href="{{ url_for('main.user_samples') }}" class="btn btn-tertiary">
+                <i class="fas fa-list"></i> Mes Échantillons
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

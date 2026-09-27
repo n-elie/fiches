@@ -1,0 +1,57 @@
+from flask import Flask
+from flask_login import LoginManager
+from flask_migrate import Migrate
+from .config import Config
+from .models import db
+from .auth import dap_auth
+import os
+
+# Initialiser Flask-Login au niveau du module
+login_manager = LoginManager()
+migrate = Migrate()
+
+def create_app(config_class=Config):
+    """Créer et configurer l'application Flask"""
+    app = Flask(__name__)
+
+    # Configuration du dossier des templates (relatif au dossier parent)
+    template_folder = os.path.join(os.path.dirname(__file__), 'templates')
+    static_folder = os.path.join(os.path.dirname(__file__), 'static')
+
+    app = Flask(__name__,
+               template_folder=template_folder,
+               static_folder=static_folder)
+
+    app.config.from_object(config_class)
+
+    # Initialiser les extensions
+    db.init_app(app)
+    login_manager.init_app(app)
+    migrate.init_app(app, db)
+
+    # Configuration de Flask-Login
+    login_manager.login_view = 'auth.login'
+    login_manager.login_message = 'Veuillez vous connecter pour accéder à cette page'
+    login_manager.login_message_category = 'info'
+
+    # Initialiser l'authentification LDAP
+    dap_auth.init_app(app)
+
+    # Créer les tables de la base de données
+    with app.app_context():
+        db.create_all()
+
+    # Enregistrer les blueprints
+    from .routes.main_routes import main_bp
+    from .routes.auth_routes import auth_bp
+    from .routes.admin_routes import admin_bp
+
+    app.register_blueprint(main_bp)
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(admin_bp, url_prefix='/admin')
+
+    # Configuration des uploads
+    app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'uploads')
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+    return app

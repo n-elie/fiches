@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <div class="hero-content">
+        <h2>Bienvenue sur la plateforme d'analyse chimique</h2>
+        <p>Service de spectrométrie de masse pour l'analyse structurale des molécules</p>
+         {% if not current_user.is_authenticated %}
+        <div class="hero-buttons">
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt"></i> Se connecter
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    <div class="hero-image">
+        <i class="fas fa-atom"></i>
+    </div>
+</div>
+
+<div class="features">
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-file-alt"></i>
+        </div>
+        <h3>Soumission de formulaires</h3>
+        <p>Remplissez facilement les informations de vos échantillons avec notre formulaire intuitif</p>
+    </div>
+
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-database"></i>
+        </div>
+        <h3>Stockage sécurisé</h3>
+        <p>Toutes vos données sont stockées en toute sécurité dans notre base de données MySQL</p>
+    </div>
+
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <h3>Analyse complète</h3>
+        <p>Accédez aux résultats détaillés de vos analyses par spectrométrie de masse</p>
+    </div>
+
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-download"></i>
+        </div>
+        <h3>Export des données</h3>
+        <p>Exportez vos données dans différents formats pour une analyse ultérieure</p>
+    </div>
+</div>
+
+<div class="about">
+    <h2>À propos du service</h2>
+    <div class="about-content">
+        <div class="about-text">
+            <p>Notre service de spectrométrie de masse permet d'analyser la composition chimique de vos échantillons avec une grande précision. Que ce soit pour la recherche, le développement ou le contrôle qualité, nous offrons des analyses fiables et rapides.</p>
+            <p>Notre plateforme web simplifie le processus de soumission et de suivi des échantillons, vous permettant de vous concentrer sur votre travail scientifique.</p>
+        </div>
+        <div class="about-image">
+            <i class="fas fa-flask"></i>
+        </div>
+    </div>
+{% endblock %}

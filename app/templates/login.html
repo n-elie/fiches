@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Connexion{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <i class="fas fa-sign-in-alt"></i>
+            <h2>Connexion</h2>
+            <p>Connectez-vous avec vos identifiants LDAP</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('auth.login') }}" class="login-form">
+            <div class="form-group">
+                <label for="username">
+                    <i class="fas fa-user"></i> Nom d'utilisateur
+                </label>
+                <input type="text" id="username" name="username" required
+                       placeholder="Entrez votre nom d'utilisateur"
+                       autocomplete="username">
+            </div>
+
+            <div class="form-group">
+                <label for="password">
+                    <i class="fas fa-lock"></i> Mot de passe
+                </label>
+                <input type="password" id="password" name="password" required
+                       placeholder="Entrez votre mot de passe"
+                       autocomplete="current-password">
+            </div>
+
+            <div class="form-options">
+                <label class="remember-me">
+                    <input type="checkbox" id="remember" name="remember">
+                    <span>Se souvenir de moi</span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">
+                <i class="fas fa-sign-in-alt"></i> Se connecter
+            </button>
+        </form>
+
+        <div class="login-footer">
+            <p>Problème de connexion ? Contactez l'administrateur système.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
