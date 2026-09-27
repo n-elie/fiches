@@ -17,7 +17,7 @@
             </div>
             <nav class="nav">
                 {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('main.form') }}" class="nav-link">
+                    <a href="{{ url_for('main.submit_sample') }}" class="nav-link">
                         <i class="fas fa-plus-circle"></i> Nouveau
                     </a>
                     <a href="{{ url_for('main.user_samples') }}" class="nav-link">

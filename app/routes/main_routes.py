@@ -17,12 +17,12 @@ def allowed_file(filename):
 def index():
     """Page d'accueil"""
     if current_user.is_authenticated:
-        return redirect(url_for('main.form'))
+        return redirect(url_for('main.submit_sample'))
     return render_template('index.html')
 
-@main_bp.route('/form', methods=['GET', 'POST'])
+@main_bp.route('/sample/submit', methods=['GET', 'POST'])
 @login_required
-def form():
+def submit_sample():
     """Formulaire de soumission d'échantillon"""
     
     os.makedirs(current_app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -36,11 +36,11 @@ def form():
 
         if not reference or not quantity:
             flash('Veuillez remplir tous les champs obligatoires', 'error')
-            return redirect(url_for('main.form'))
+            return redirect(url_for('main.submit_sample'))
 
         if 'structure_file' not in request.files:
             flash('Aucun fichier de structure fourni', 'error')
-            return redirect(url_for('main.form'))
+            return redirect(url_for('main.submit_sample'))
 
         unique_filename = None
         if 'structure_file' in request.files:
@@ -54,7 +54,7 @@ def form():
                     file.save(filepath)
                 else:
                     flash('Type de fichier non autorisé. Formats acceptés: .cdx, .cdxml, .mol, .sdf', 'error')
-                    return redirect(url_for('main.form'))
+                    return redirect(url_for('main.submit_sample'))
 
         try:
             sample = Sample(
@@ -74,9 +74,9 @@ def form():
         except Exception as e:
             db.session.rollback()
             flash(f'Erreur lors de la soumission: {str(e)}', 'error')
-            return redirect(url_for('main.form'))
+            return redirect(url_for('main.submit_sample'))
 
-    return render_template('form.html', user=current_user)
+    return render_template('sample_submit.html', user=current_user)
 
 @main_bp.route('/success/<uuid:sample_id>')
 @login_required

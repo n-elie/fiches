@@ -16,7 +16,7 @@ auth_bp = Blueprint('auth', __name__)
 def login():
     """Page de connexion"""
     if current_user.is_authenticated:
-        return redirect(url_for('main.form'))
+        return redirect(url_for('main.submit_sample'))
 
     if request.method == 'POST':
         username = request.form.get('username')
@@ -35,7 +35,7 @@ def login():
             if user.is_admin:
                 return redirect(url_for('admin.dashboard'))
             else:
-                return redirect(url_for('main.form'))
+                return redirect(url_for('main.submit_sample'))
         else:
             flash('Nom d\'utilisateur ou mot de passe incorrect', 'error')
             return redirect(url_for('auth.login'))
