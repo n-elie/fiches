@@ -14,8 +14,8 @@ def create_app(config_class=Config):
     """Créer et configurer l'application Flask"""
 
     # Configuration du dossier des templates (relatif au dossier parent)
-    template_folder = os.path.join(os.path.dirname(__file__), '..', 'templates')
-    static_folder = os.path.join(os.path.dirname(__file__), '..', 'static')
+    template_folder = os.path.join(os.path.dirname(__file__), 'templates')
+    static_folder = os.path.join(os.path.dirname(__file__), 'static')
 
     app = Flask(__name__,
                template_folder=template_folder,
