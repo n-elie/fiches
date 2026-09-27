@@ -151,7 +151,7 @@ def export_excel():
             'Équipe': sample.team,
             'Référence': sample.reference,
             'Quantité (mg)': sample.quantity,
-            'Fichier ChemDraw': sample.structure_file,
+            'Fichier de structure': sample.structure_file,
             'Statut': sample.status,
             'Date': sample.created_at.strftime('%Y-%m-%d %H:%M:%S')
         })

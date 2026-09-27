@@ -165,7 +165,7 @@ def edit_sample(sample_id):
 @main_bp.route('/download/<filename>')
 @login_required
 def download_file(filename):
-    """Télécharger un fichier ChemDraw"""
+    """Télécharger un fichier de structure"""
     sample = Sample.query.filter_by(structure_file=filename).first()
     if not sample or sample.user_id != current_user.id:
         flash('Accès non autorisé', 'error')

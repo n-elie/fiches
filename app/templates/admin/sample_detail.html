@@ -114,6 +114,9 @@
             <a href="{{ url_for('admin.all_samples') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Retour à la liste
             </a>
+			<a href="{{ url_for('main.edit_sample', sample_id=sample.id) }}" class="btn btn-primary">
+				<i class="fas fa-edit"></i> Éditer
+			</a>
             <a href="{{ url_for('admin.dashboard') }}" class="btn btn-tertiary">
                 <i class="fas fa-tachometer-alt"></i> Tableau de bord
             </a>
