@@ -7,6 +7,9 @@ db = SQLAlchemy()
 
 class User(db.Model, UserMixin):
     """Modèle utilisateur pour stocker les informations des utilisateurs LDAP"""
+    
+    __tablename__ = 'users'
+    
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -31,11 +34,15 @@ class User(db.Model, UserMixin):
 
 class Sample(db.Model):
     """Modèle échantillon pour stocker les informations des analyses"""
+    
+    __tablename__ = 'samples'
+    
     id = db.Column(
         db.Uuid, 
         primary_key=True, 
         default=uuid.uuid4
     )
+    analysis_type = db.Column(db.String(10), nullable=False)  # Type d'analyse pour différencier MS/NMR
     team = db.Column(db.String(100), nullable=True)  # Équipe associée à cette analyse
     reference = db.Column(db.String(100), nullable=False)
     quantity = db.Column(db.Float, nullable=False)
@@ -47,15 +54,60 @@ class Sample(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Clé étrangère vers l'utilisateur
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    
+    __mapper_args__ = {
+        'polymorphic_on': analysis_type,
+        'polymorphic_identity': 'base'  # Identifiant pour la classe parente
+    }
 
     def __repr__(self):
         return f'<Sample {self.reference}>'
+        
+    def get_type(self):
+        return 'Unknown'
+        
+class MSSample(Sample):
+    """Héritage pour les échantillons MS"""
+    
+    __tablename__ = 'ms_samples'
+    
+    id = db.Column(db.Uuid, db.ForeignKey('samples.id'), primary_key=True)
+    
+    solvent = db.Column(db.String(100), nullable=True)  # Solvant utilisé
+    
+    __mapper_args__ = {
+        'polymorphic_identity': 'ms'  # Identifiant pour MS
+    }
+    
+    def get_type(self):
+        return 'MS'
+    
+class NMRSample(Sample):
+    """Héritage pour les échantillons RMN"""
+    
+    __tablename__ = 'nmr_samples'
+    
+    id = db.Column(db.Uuid, db.ForeignKey('samples.id'), primary_key=True)
+    
+    solvent = db.Column(db.String(100), nullable=True)  # Solvant utilisé
+    frequency = db.Column(db.Float, nullable=False)  # Fréquence en MHz
+    experiments = db.Column(db.String(100), nullable=False)  # Expériences demandées (1H, 13C, etc.)
+    
+    __mapper_args__ = {
+        'polymorphic_identity': 'nmr'  # Identifiant pour RMN
+    }
+    
+    def get_type(self):
+        return 'RMN'
 
 class Analysis(db.Model):
     """Modèle analyse pour stocker les résultats d'analyse"""
+    
+    __tablename__ = 'analyses'
+    
     id = db.Column(db.Integer, primary_key=True)
-    sample_id = db.Column(db.Integer, db.ForeignKey('sample.id'), nullable=False)
+    sample_id = db.Column(db.Integer, db.ForeignKey('samples.id'), nullable=False)
     mass_spectrum = db.Column(db.String(500), nullable=True)
     molecular_weight = db.Column(db.Float, nullable=True)
     formula = db.Column(db.String(100), nullable=True)
@@ -67,9 +119,3 @@ class Analysis(db.Model):
 
     def __repr__(self):
         return f'<Analysis {self.id}>'
-
-# Fonction pour initialiser la base de données
-def init_db(app):
-    db.init_app(app)
-    with app.app_context():
-        db.create_all()

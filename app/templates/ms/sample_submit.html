@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Nouvelle Analyse - {% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h2>Soumission d'Échantillon</h2>
+        <p>Remplissez le formulaire ci-dessous pour soumettre un nouvel échantillon à l'analyse</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('ms.submit_sample') }}" class="sample-form" enctype="multipart/form-data">
+        {% include "partials/_user_info.html" %}
+
+        <div class="form-section">
+            <h3>Informations de l'échantillon</h3>
+			
+			<div class="form-row">
+				<div class="form-group required">
+					<label for="reference">Référence de l'échantillon <span class="required-star">*</span></label>
+					<input type="text" id="reference" name="reference" required
+						   placeholder="Ex: SAM-2024-001">
+					<span class="help-text">Référence unique pour identifier votre échantillon</span>
+				</div>
+
+				<div class="form-group required">
+					<label for="quantity">Quantité déposée (mg) <span class="required-star">*</span></label>
+					<input type="number" id="quantity" name="quantity" step="0.1" required
+						   placeholder="Ex: 1.5" min="0.1" inputmode="numeric">
+				   <span class="help-text">Quantité déposée dans le tube (en mg)</span>
+				</div>
+			</div>
+        </div>
+
+        <div class="form-section">
+            <h3>Structure chimique</h3>
+
+			<div class="form-row">
+				<div class="form-group">
+					<label for="structure_file">Fichier de structure</label>
+					<input type="file" id="structure_file" name="structure_file"
+						   accept=".cdx,.cdxml,.mol,.sdf">
+					<span class="help-text">Formats acceptés: .cdx, .cdxml, .mol, .sdf (optionnel)</span>
+				</div>
+				<div class="form-group">
+					<label for="formula">Formule brute</label>
+					<input type="text" id="formula" name="formula"
+						   placeholder="Ex: C8H10N4O2">
+					<span class="help-text">Formule chimique de l'échantillon (optionnel)</span>
+				</div>
+			</div>
+        </div>
+
+        <div class="form-section">
+            <h3>Informations supplémentaires</h3>
+
+            <div class="form-group">
+                <label for="notes">Notes</label>
+                <textarea id="notes" name="notes" rows="4"
+                          placeholder="Ajoutez des notes ou commentaires sur l'échantillon..."></textarea>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-paper-plane"></i> Soumettre
+            </button>
+            <button type="reset" class="btn btn-secondary">
+                <i class="fas fa-undo"></i> Réinitialiser
+            </button>
+            <a href="{{ url_for('main.user_samples') }}" class="btn btn-tertiary">
+                <i class="fas fa-list"></i> Mes Échantillons
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

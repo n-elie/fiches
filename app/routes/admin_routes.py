@@ -43,12 +43,15 @@ def all_samples():
 
     status_filter = request.args.get('status', '')
     user_filter = request.args.get('user', '')
+    type_filter = request.args.get('type', '')
     search_filter = request.args.get('search', '')
 
     query = Sample.query
 
     if status_filter:
         query = query.filter_by(status=status_filter)
+    if type_filter:
+        query = query.filter_by(analysis_type=type_filter)
     if user_filter:
         query = query.filter_by(user_id=user_filter)
     if search_filter:
@@ -73,17 +76,10 @@ def all_samples():
                          user=current_user,
                          status_filter=status_filter,
                          user_filter=user_filter,
+                         type_filter=type_filter,
                          search_filter=search_filter,
                          sort_by=sort_by,
                          sort_order=sort_order)
-
-@admin_bp.route('/sample/<uuid:sample_id>')
-@login_required
-def admin_sample_detail(sample_id):
-    """Détails d'un échantillon pour l'admin"""
-
-    sample = Sample.query.get_or_404(sample_id)
-    return render_template('admin/sample_detail.html', sample=sample, user=current_user)
 
 @admin_bp.route('/users')
 @login_required

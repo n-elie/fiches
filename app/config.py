@@ -15,7 +15,7 @@ class Config:
     DB_NAME = os.getenv('DB_NAME', 'spectrometrie_db')
 
     # Configuration SQLite
-    DB_SQLITE_PATH = os.getenv('DB_SQLITE_PATH', 'sqlite:///spectrometrie.db')
+    DB_SQLITE_PATH = os.getenv('DB_SQLITE_PATH', 'sqlite:///analyses.db')
 
     # URL de la base de données
     if DB_TYPE == 'sqlite':

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Nouvelle Analyse{% endblock %}
+{% block title %}Nouvelle Analyse - {% endblock %}
 
 {% block content %}
 <div class="form-container">
@@ -9,51 +9,9 @@
         <p>Remplissez le formulaire ci-dessous pour soumettre un nouvel échantillon à l'analyse</p>
     </div>
 
-    <form method="POST" action="{{ url_for('main.submit_sample') }}" class="sample-form" enctype="multipart/form-data">
-        <div class="form-section">
-            <h3>Informations de l'utilisateur</h3>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="username">Nom d'utilisateur</label>
-                    <input type="text" id="username" name="username"
-                           value="{{ user.full_name }}" readonly disabled>
-                </div>
-
-				{% set user_teams = user.get_teams() %}
-				{% if user_teams and user_teams|length > 1 %}
-				<div class="form-group required">
-					<label for="team">Équipe <span class="required-star">*</span></label>
-					<select id="team" name="team" required>
-						{% for team in user_teams %}
-						<option value="{{ team }}" {% if user.last_team_used == team %}selected{% endif %}>{{ team }}</option>
-						{% endfor %}
-					</select>
-					<span class="help-text">Sélectionnez l'équipe associée à cette analyse</span>
-				</div>
-				{% elif user.teams and user_teams|length == 1 %}
-				<div class="form-group">
-					<label for="team">Équipe</label>
-					<input type="text" id="team" name="team" 
-						   value="{{ user_teams[0] }}" readonly disabled>
-					<input type="hidden" name="team" value="{{ user_teams[0] }}">
-				</div>
-				{% else %}
-				<div class="form-group">
-					<label for="team">Équipe</label>
-					<input type="text" id="team" name="team" 
-						   value="{{ user_teams }}" readonly disabled>
-				</div>
-				{% endif %}
-            </div>
-
-            <div class="form-group">
-                <label for="email">Adresse Email</label>
-                <input type="email" id="email" name="email"
-                       value="{{ user.email }}" readonly disabled>
-            </div>
-        </div>
-
+    <form method="POST" action="{{ url_for('nmr.submit_sample') }}" class="sample-form" enctype="multipart/form-data">
+		{% include "partials/_user_info.html" %}
+		
         <div class="form-section">
             <h3>Informations de l'échantillon</h3>
 			
@@ -72,6 +30,39 @@
 				   <span class="help-text">Quantité déposée dans le tube (en mg)</span>
 				</div>
 			</div>
+			
+			<div class="form-row">
+                <div class="form-group required">
+                    <label for="solvent">Solvant</label>
+					<select id="solvent" name="solvent" required>
+						{% for solvent in solvents %}
+						<option value="{{ solvent }}">{{ solvent }}</option>
+						{% endfor %}
+					</select>
+					<span class="help-text">Sélectionnez le solvant utilisé pour prépaer l'échantillon</span>
+                </div>
+
+                <div class="form-group required">
+                    <label for="frequency">Fréquence de l'instrument <span class="required-star">*</span></label>
+                    <select id="frequency" name="frequency" required>
+						{% for frequency in frequencies %}
+						<option value="{{ frequency }}">{{ frequency }} MHz</option>
+						{% endfor %}
+					</select>
+				    <span class="help-text">Sélectionnez la fréquence de l'instrument</span>
+                </div>
+				
+				<div class="form-group required">
+                    <label for="experiments">Expériences demandées <span class="required-star">*</span></label>
+                    <select id="experiments" name="experiments" required>
+						{% for experiment in experiments %}
+						<option value="{{ experiment }}">{{ experiment }}</option>
+						{% endfor %}
+					</select>
+				    <span class="help-text">Sélectionnez les expériences demandées</span>
+                </div>
+				
+            </div>
         </div>
 
         <div class="form-section">

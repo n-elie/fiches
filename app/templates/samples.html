@@ -1,25 +1,30 @@
 {% extends "base.html" %}
 
-{% block title %}Mes Échantillons{% endblock %}
+{% block title %}Mes Échantillons - {% endblock %}
 
 {% block content %}
 <div class="samples-container">
     <div class="samples-header">
+		{% block header %}
         <h2>Mes Échantillons</h2>
         <p>Liste de tous vos échantillons soumis pour analyse</p>
-
-        <div class="samples-actions">
-            <a href="{{ url_for('main.submit_sample') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Nouveau
-            </a>
-        </div>
+		{% endblock %}
     </div>
 
     <div class="samples-filter">
         <form method="GET" action="" class="filter-form">
             <div class="filter-row">
 				<div class="filter-group">
-                    <label for="status">Statut:</label>
+                    <label for="type">Type :</label>
+                    <select id="type" name="type">
+                        <option value="">Tous les types</option>
+                        <option value="ms" {% if type_filter == 'ms' %}selected{% endif %}>Spectrométrie de masse</option>
+                        <option value="nmr" {% if type_filter == 'nmr' %}selected{% endif %}>RMN</option>
+                    </select>
+                </div>
+				
+				<div class="filter-group">
+                    <label for="status">Statut :</label>
                     <select id="status" name="status">
                         <option value="">Tous les statuts</option>
                         <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>En attente</option>
@@ -29,7 +34,20 @@
                     </select>
                 </div>
 				
+				{% if user.is_admin and users is defined %}
+				<div class="filter-group">
+                    <label for="user">Utilisateur:</label>
+                    <select id="user" name="user">
+                        <option value="">Tous les utilisateurs</option>
+                        {% for user in users %}
+                        <option value="{{ user.id }}" {% if user_filter == user.id|string %}selected{% endif %}>{{ user.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+				{% endif %}
+				
                 <div class="filter-group">
+					<label for="search">Référence :</label>
                     <input type="text" name="search" placeholder="Rechercher..."
                            value="{{ search_filter }}">
                 </div>
@@ -58,6 +76,15 @@
                             {% endif %}
                         </a>
 					</th>
+					<th>
+						<a href="?sort=analysis_type&order={% if sort_by == 'analysis_type' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
+                            Type
+                            {% if sort_by == 'analysis_type' %}
+                                <i class="fas fa-sort-{{ sort_order }}"></i>
+                            {% endif %}
+                        </a>
+					</th>
+					{% if user.is_admin and users is defined %}<th>Utilisateur</th>{% endif %}
 					<th>Formule</th>
                     <th>Quantité</th>
                     <th>
@@ -83,6 +110,8 @@
                 {% for sample in samples %}
                 <tr>
                     <td>{{ sample.reference }}</td>
+					<td>{{ sample.get_type() }}</td>
+					{% if user.is_admin and users is defined %}<td>{{ sample.user.full_name }}</td>{% endif %}
 					<td>{{ sample.formula or '-' }}</td>
                     <td>{{ sample.quantity }} mg</td>
                     <td>
@@ -92,8 +121,8 @@
                     </td>
                     <td>{{ sample.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
                     <td>
-                        <a href="{{ url_for('main.sample_detail', sample_id=sample.id) }}" class="btn-icon" title="Voir les détails"><i class="fas fa-eye"></i></a>
-						<a href="{{ url_for('main.edit_sample', sample_id=sample.id) }}" class="btn-icon" title="Éditer"><i class="fas fa-edit"></i></a>
+                        <a href="{{ url_for(sample.analysis_type + '.sample_detail', sample_id=sample.id) }}" class="btn-icon" title="Voir les détails"><i class="fas fa-eye"></i></a>
+						<a href="{{ url_for(sample.analysis_type + '.edit_sample', sample_id=sample.id) }}" class="btn-icon" title="Éditer"><i class="fas fa-edit"></i></a>
                         {% if sample.structure_file %}<a href="{{ url_for('main.download_file', filename=sample.structure_file) }}" class="btn-icon" title="Télécharger le fichier"><i class="fas fa-download"></i></a>{% endif %}
                     </td>
                 </tr>
@@ -101,15 +130,16 @@
             </tbody>
         </table>
     </div>
+	
+	<div class="pagination-info">
+        <p>Affichage de {{ samples|length }} échantillons</p>
+    </div>
 
     {% else %}
     <div class="no-samples">
         <i class="fas fa-inbox"></i>
         <h3>Aucun échantillon trouvé</h3>
         <p>Aucun échantillon ne correspond à vos critères de recherche.</p>
-        <a href="{{ url_for('main.submit_sample') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Soumettre un échantillon
-        </a>
     </div>
     {% endif %}
 </div>

@@ -9,49 +9,8 @@
         <p>Modifiez les informations de l'échantillon <strong>{{ sample.reference }}</strong></p>
     </div>
 
-    <form method="POST" action="{{ url_for('main.edit_sample', sample_id=sample.id) }}" class="sample-form" enctype="multipart/form-data">
-        <div class="form-section">
-            <h3>Informations de l'utilisateur</h3>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="username">Nom d'utilisateur</label>
-                    <input type="text" id="username" name="username"
-                           value="{{ user.full_name }}" readonly disabled>
-                </div>
-
-                {% set user_teams = user.get_teams() %}
-                {% if user_teams and user_teams|length > 1 %}
-                <div class="form-group required">
-                    <label for="team">Équipe <span class="required-star">*</span></label>
-                    <select id="team" name="team" required>
-                        {% for team in user_teams %}
-                        <option value="{{ team }}" {% if sample.team == team %}selected{% endif %}>{{ team }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                {% elif user.teams and user_teams|length == 1 %}
-				<div class="form-group">
-					<label for="team">Équipe</label>
-					<input type="text" id="team" name="team" 
-						   value="{{ user_teams[0] }}" readonly disabled>
-					<input type="hidden" name="team" value="{{ user_teams[0] }}">
-				</div>
-				{% else %}
-				<div class="form-group">
-					<label for="team">Équipe</label>
-					<input type="text" id="team" name="team" 
-						   value="{{ user_teams }}" readonly disabled>
-				</div>
-				{% endif %}
-            </div>
-
-            <div class="form-group">
-                <label for="email">Adresse Email</label>
-                <input type="email" id="email" name="email"
-                       value="{{ user.email }}" readonly disabled>
-            </div>
-        </div>
+    <form method="POST" action="{{ url_for('nmr.edit_sample', sample_id=sample.id) }}" class="sample-form" enctype="multipart/form-data">
+        {% include "partials/_user_info.html" %}
 
         <div class="form-section">
             <h3>Informations de l'échantillon</h3>
@@ -104,7 +63,7 @@
             <button type="submit" class="btn btn-primary">
                 <i class="fas fa-save"></i> Sauvegarder
             </button>
-            <a href="{{ url_for('main.sample_detail', sample_id=sample.id) }}" class="btn btn-secondary">
+            <a href="{{ url_for('nmr.sample_detail', sample_id=sample.id) }}" class="btn btn-secondary">
                 <i class="fas fa-times"></i> Annuler
             </a>
         </div>

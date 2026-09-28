@@ -38,10 +38,14 @@ def create_app(config_class=Config):
 
     # Enregistrer les blueprints
     from .routes.main_routes import main_bp
+    from .routes.ms_routes import ms_bp
+    from .routes.nmr_routes import nmr_bp
     from .routes.auth_routes import auth_bp
     from .routes.admin_routes import admin_bp
 
     app.register_blueprint(main_bp)
+    app.register_blueprint(ms_bp)
+    app.register_blueprint(nmr_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp, url_prefix='/admin')
 

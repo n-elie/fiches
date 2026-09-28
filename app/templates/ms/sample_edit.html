@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Éditer - {{ sample.reference }}{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h2>Éditer l'échantillon</h2>
+        <p>Modifiez les informations de l'échantillon <strong>{{ sample.reference }}</strong></p>
+    </div>
+
+    <form method="POST" action="{{ url_for('ms.edit_sample', sample_id=sample.id) }}" class="sample-form" enctype="multipart/form-data">
+        {% include "partials/_user_info.html" %}
+
+        <div class="form-section">
+            <h3>Informations de l'échantillon</h3>
+
+            <div class="form-row">
+                <div class="form-group required">
+                    <label for="reference">Référence de l'échantillon <span class="required-star">*</span></label>
+                    <input type="text" id="reference" name="reference" required
+                           value="{{ sample.reference }}" placeholder="Ex: SAM-2024-001">
+                </div>
+
+                <div class="form-group required">
+                    <label for="quantity">Quantité déposée (mg) <span class="required-star">*</span></label>
+                    <input type="number" id="quantity" name="quantity" step="0.1" required
+                           value="{{ sample.quantity }}" placeholder="Ex: 1.5" min="0.1">
+                </div>
+            </div>
+        </div>
+		
+		<div class="form-section">
+            <h3>Structure chimique</h3>
+
+			<div class="form-row">
+				<div class="form-group">
+					<label for="structure_file">Fichier de structure (laisser vide pour conserver l'ancien)</label>
+					<input type="file" id="structure_file" name="structure_file"
+						   accept=".cdx,.cdxml,.mol,.sdf">
+					<span class="help-text">Formats acceptés: .cdx, .cdxml, .mol, .sdf (optionnel)</span>
+				</div>
+				<div class="form-group">
+					<label for="formula">Formule brute</label>
+					<input type="text" id="formula" name="formula"
+						   value="{{ sample.formula }}" placeholder="Ex: C8H10N4O2">
+					<span class="help-text">Formule chimique de l'échantillon (optionnel)</span>
+				</div>
+			</div>
+        </div>
+
+        <div class="form-section">
+            <h3>Informations supplémentaires</h3>
+
+            <div class="form-group">
+                <label for="notes">Notes</label>
+                <textarea id="notes" name="notes" rows="4"
+                          placeholder="Ajoutez des notes ou commentaires...">{{ sample.notes or '' }}</textarea>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Sauvegarder
+            </button>
+            <a href="{{ url_for('ms.sample_detail', sample_id=sample.id) }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Annuler
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
