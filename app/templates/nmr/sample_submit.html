@@ -39,7 +39,7 @@
 						<option value="{{ solvent }}">{{ solvent }}</option>
 						{% endfor %}
 					</select>
-					<span class="help-text">Sélectionnez le solvant utilisé pour prépaer l'échantillon</span>
+					<span class="help-text">Sélectionnez le solvant utilisé pour préparer l'échantillon</span>
                 </div>
 
                 <div class="form-group required">
@@ -51,18 +51,23 @@
 					</select>
 				    <span class="help-text">Sélectionnez la fréquence de l'instrument</span>
                 </div>
-				
-				<div class="form-group required">
-                    <label for="experiments">Expériences demandées <span class="required-star">*</span></label>
-                    <select id="experiments" name="experiments" required>
-						{% for experiment in experiments %}
-						<option value="{{ experiment }}">{{ experiment }}</option>
-						{% endfor %}
-					</select>
-				    <span class="help-text">Sélectionnez les expériences demandées</span>
-                </div>
-				
             </div>
+			
+			<div class="form-row">
+				<div class="form-group required">
+					<label>Expériences demandées <span class="required-star">*</span></label>
+					<div class="checkbox-group">
+						{% for experiment in experiments %}
+						<div class="checkbox-item">
+							<input type="checkbox" id="experiment_{{ loop.index }}" 
+								   name="experiments" value="{{ experiment }}">
+							<label for="experiment_{{ loop.index }}">{{ experiment }}</label>
+						</div>
+						{% endfor %}
+					</div>
+					<span class="help-text">Sélectionnez une ou plusieurs expériences (au moins une obligatoire)</span>
+				</div>
+			</div>
         </div>
 
         <div class="form-section">

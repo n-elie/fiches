@@ -20,14 +20,55 @@
                     <label for="reference">Référence de l'échantillon <span class="required-star">*</span></label>
                     <input type="text" id="reference" name="reference" required
                            value="{{ sample.reference }}" placeholder="Ex: SAM-2024-001">
+				    <span class="help-text">Référence unique pour identifier votre échantillon</span>
                 </div>
 
                 <div class="form-group required">
                     <label for="quantity">Quantité déposée (mg) <span class="required-star">*</span></label>
                     <input type="number" id="quantity" name="quantity" step="0.1" required
                            value="{{ sample.quantity }}" placeholder="Ex: 1.5" min="0.1">
+				    <span class="help-text">Quantité déposée dans le tube (en mg)</span>
                 </div>
             </div>
+			
+			<div class="form-row">
+                <div class="form-group required">
+                    <label for="solvent">Solvant</label>
+					<select id="solvent" name="solvent" required>
+						{% for solvent in solvents %}
+						<option value="{{ solvent }}" {% if sample.solvent == solvent %}selected{% endif %}>{{ solvent }}</option>
+						{% endfor %}
+					</select>
+					<span class="help-text">Sélectionnez le solvant utilisé pour préparer l'échantillon</span>
+                </div>
+
+                <div class="form-group required">
+                    <label for="frequency">Fréquence de l'instrument <span class="required-star">*</span></label>
+                    <select id="frequency" name="frequency" required>
+						{% for frequency in frequencies %}
+						<option value="{{ frequency }}" {% if sample.frequency == frequency %}selected{% endif %}>{{ frequency }} MHz</option>
+						{% endfor %}
+					</select>
+				    <span class="help-text">Sélectionnez la fréquence de l'instrument</span>
+                </div>
+            </div>
+			
+			<div class="form-row">
+				<div class="form-group required">
+					<label>Expériences demandées <span class="required-star">*</span></label>
+					<div class="checkbox-group">
+						{% for experiment in experiments %}
+						<div class="checkbox-item">
+							<input type="checkbox" id="experiment_{{ loop.index }}" 
+								   name="experiments" value="{{ experiment }}"
+								   {% if experiment in sample.experiments.split(', ') %}checked{% endif %}>
+							<label for="experiment_{{ loop.index }}">{{ experiment }}</label>
+						</div>
+						{% endfor %}
+					</div>
+					<span class="help-text">Sélectionnez une ou plusieurs expériences (au moins une obligatoire)</span>
+				</div>
+			</div>
         </div>
 		
 		<div class="form-section">

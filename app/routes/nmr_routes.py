@@ -47,7 +47,11 @@ def submit_sample():
         formula = request.form.get('formula')
         solvent = request.form.get('solvent')
         frequency = request.form.get('frequency')
-        experiments = request.form.get('experiments')
+        experiments = request.form.getlist('experiments')
+
+        if not experiments:
+            flash('Veuillez sélectionner au moins une expérience', 'error')
+            return redirect(url_for('nmr.submit_sample'))
 
         if not reference or not quantity:
             flash('Veuillez remplir tous les champs obligatoires', 'error')
@@ -80,7 +84,7 @@ def submit_sample():
                 formula=formula,
                 solvent=solvent,
                 frequency=frequency,
-                experiments=experiments,
+                experiments=', '.join(experiments),
                 notes=notes,
                 user_id=current_user.id
             )
@@ -139,6 +143,13 @@ def edit_sample(sample_id):
         quantity = request.form.get('quantity')
         notes = request.form.get('notes')
         formula = request.form.get('formula')
+        solvent = request.form.get('solvent')
+        frequency = request.form.get('frequency')
+        experiments = request.form.getlist('experiments')
+
+        if not experiments:
+            flash('Veuillez sélectionner au moins une expérience', 'error')
+            return redirect(url_for('nmr.submit_sample'))
         
         if not reference or not quantity:
             flash('Veuillez remplir tous les champs obligatoires', 'error')
@@ -168,6 +179,9 @@ def edit_sample(sample_id):
         sample.quantity = float(quantity)
         sample.notes = notes
         sample.formula = formula
+        sample.solvent=solvent
+        sample.frequency=frequency
+        sample.experiments=', '.join(experiments)
         
         try:
             db.session.commit()
@@ -179,4 +193,9 @@ def edit_sample(sample_id):
             return redirect(url_for('nmr.edit_sample', sample_id=sample_id))
     
     # GET: Afficher le formulaire pré-rempli
-    return render_template('nmr/sample_edit.html', sample=sample, user=current_user)
+    return render_template('nmr/sample_edit.html',
+                           sample=sample,
+                           user=current_user,
+                           solvents=ALLOWED_SOLVENTS,
+                           frequencies=ALLOWED_FREQUENCIES,
+                           experiments=ALLOWED_EXPERIMENTS)
