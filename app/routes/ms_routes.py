@@ -12,6 +12,7 @@ ms_bp = Blueprint('ms', __name__, url_prefix='/ms')
 SOLVENTS = {"CH2Cl2": "CH<sub>2</sub>Cl<sub>2</sub>",
             "MeOH": "Methanol",
             "ACN": "Acétonitrile",
+            "H2O": "H<sub>2</sub>O"
             }
 
 @ms_bp.route('/sample/submit', methods=['GET', 'POST'])
