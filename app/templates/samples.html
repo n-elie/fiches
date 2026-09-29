@@ -124,6 +124,14 @@
                         <a href="{{ url_for(sample.analysis_type + '.sample_detail', sample_id=sample.id) }}" class="btn-icon" title="Voir les détails"><i class="fas fa-eye"></i></a>
 						<a href="{{ url_for(sample.analysis_type + '.sample_edit', sample_id=sample.id) }}" class="btn-icon" title="Éditer"><i class="fas fa-edit"></i></a>
                         {% if sample.structure_file %}<a href="{{ url_for('main.download_file', filename=sample.structure_file) }}" class="btn-icon" title="Télécharger le fichier"><i class="fas fa-download"></i></a>{% endif %}
+						{% if sample.status == 'pending' %}
+						<form method="POST"
+							action="{{ url_for('main.delete_sample', sample_id=sample.id) }}"
+							onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet échantillon ? Cette action est irréversible.');"
+							class="action-form">
+							<button type="submit" class="btn-icon btn-delete" title="Supprimer"><i class="fas fa-trash"></i></button>
+						</form>
+						{% endif %}
                     </td>
                 </tr>
                 {% endfor %}

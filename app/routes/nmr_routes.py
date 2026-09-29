@@ -229,3 +229,10 @@ def sample_edit(sample_id):
                            solvents=SOLVENTS,
                            stabilities=STABILITIES,
                            experiments_by_frequency=EXPERIMENTS_BY_FREQUENCY)
+                           
+@nmr_bp.route('/sample/<uuid:sample_id>/delete', methods=['POST'])
+@login_required
+def delete_sample(sample_id):
+    """Rediriger vers la route principale de suppression"""
+    from ..routes.main_routes import main_bp
+    return main_bp.delete_sample(sample_id)

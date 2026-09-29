@@ -58,6 +58,40 @@ def user_samples():
                          sort_by=sort_by,
                          sort_order=sort_order)
 
+@main_bp.route('/sample/<uuid:sample_id>/delete', methods=['POST'])
+@login_required
+def delete_sample(sample_id):
+    """Supprimer un échantillon (uniquement si statut = pending)"""
+
+    sample = Sample.query.get_or_404(sample_id)
+
+    # Vérifier que l'utilisateur est le propriétaire ou admin
+    if sample.user_id != current_user.id and not current_user.is_admin:
+        flash('Accès non autorisé', 'error')
+        return redirect(url_for('main.user_samples'))
+
+    # Vérifier que le statut est "pending"
+    if sample.status != 'pending':
+        flash('Seuls les échantillons en attente (pending) peuvent être supprimés', 'error')
+        return redirect(url_for('main.user_samples'))
+
+    # Supprimer le fichier de structure si il existe
+    if sample.structure_file:
+        filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], sample.structure_file)
+        if os.path.exists(filepath):
+            os.remove(filepath)
+
+    # Supprimer l'échantillon de la base de données
+    try:
+        db.session.delete(sample)
+        db.session.commit()
+        flash('Échantillon supprimé avec succès', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erreur lors de la suppression: {str(e)}', 'error')
+
+    return redirect(url_for('main.user_samples'))
+
 @main_bp.route('/download/<filename>')
 @login_required
 def download_file(filename):
