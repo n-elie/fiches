@@ -90,9 +90,10 @@ class NMRSample(Sample):
     
     id = db.Column(db.Uuid, db.ForeignKey('samples.id'), primary_key=True)
     
-    solvent = db.Column(db.String(100), nullable=True)  # Solvant utilisé
-    frequency = db.Column(db.Float, nullable=False)  # Fréquence en MHz
-    experiments = db.Column(db.String(100), nullable=False)  # Expériences demandées (1H, 13C, etc.)
+    stability = db.Column(db.Integer, nullable=True) # Stabilité de l'échantillon
+    solvent = db.Column(db.String(10), nullable=True)  # Solvant utilisé
+    frequency = db.Column(db.Integer, nullable=False)  # Fréquence en MHz
+    experiments = db.Column(db.String(200), nullable=False)  # Expériences demandées (1H, 13C, etc.)
     
     __mapper_args__ = {
         'polymorphic_identity': 'nmr'  # Identifiant pour RMN

@@ -9,7 +9,7 @@
         <p>Modifiez les informations de l'échantillon <strong>{{ sample.reference }}</strong></p>
     </div>
 
-    <form method="POST" action="{{ url_for('ms.edit_sample', sample_id=sample.id) }}" class="sample-form" enctype="multipart/form-data">
+    <form method="POST" action="{{ url_for('ms.sample_edit', sample_id=sample.id) }}" class="sample-form" enctype="multipart/form-data">
         {% include "partials/_user_info.html" %}
 
         <div class="form-section">

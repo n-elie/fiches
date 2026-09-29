@@ -9,7 +9,7 @@
         <p>Modifiez les informations de l'échantillon <strong>{{ sample.reference }}</strong></p>
     </div>
 
-    <form method="POST" action="{{ url_for('nmr.edit_sample', sample_id=sample.id) }}" class="sample-form" enctype="multipart/form-data">
+    <form method="POST" action="{{ url_for('nmr.sample_edit', sample_id=sample.id) }}" class="sample-form" enctype="multipart/form-data">
         {% include "partials/_user_info.html" %}
 
         <div class="form-section">
@@ -32,11 +32,21 @@
             </div>
 			
 			<div class="form-row">
+				<div class="form-group required">
+                    <label for="stability">Stabilité</label>
+					<select id="stability" name="stability" required>
+						{% for code, stability in stabilities.items() %}
+							<option value="{{ code }}" {% if sample.stability == code %}selected{% endif %}>{{ stability }}</option>
+						{% endfor %}
+					</select>
+					<span class="help-text">Sélectionnez la stabilité de l'échantillon</span>
+                </div>
+				
                 <div class="form-group required">
                     <label for="solvent">Solvant</label>
 					<select id="solvent" name="solvent" required>
-						{% for solvent in solvents %}
-						<option value="{{ solvent }}" {% if sample.solvent == solvent %}selected{% endif %}>{{ solvent }}</option>
+						{% for code, solvent in solvents.items() %}
+						<option value="{{ code }}" {% if sample.solvent == code %}selected{% endif %}>{{ solvent }}</option>
 						{% endfor %}
 					</select>
 					<span class="help-text">Sélectionnez le solvant utilisé pour préparer l'échantillon</span>
@@ -45,7 +55,7 @@
                 <div class="form-group required">
                     <label for="frequency">Fréquence de l'instrument <span class="required-star">*</span></label>
                     <select id="frequency" name="frequency" required>
-						{% for frequency in frequencies %}
+						{% for frequency in experiments_by_frequency.keys() %}
 						<option value="{{ frequency }}" {% if sample.frequency == frequency %}selected{% endif %}>{{ frequency }} MHz</option>
 						{% endfor %}
 					</select>
@@ -138,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const label = document.createElement('label');
             label.htmlFor = input.id;
-            label.textContent = exp;
+            label.innerHTML = exp.replace(/^\d+/g, match => `<sup>${match}</sup>`);;
 
             div.appendChild(input);
             div.appendChild(label);

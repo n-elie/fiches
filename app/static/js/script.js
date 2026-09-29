@@ -14,16 +14,16 @@ $(document).ready(function() {
  */
 function initFlashMessages() {
     // Fermer les messages flash après 5 secondes
-    setTimeout(function() {
+    /*setTimeout(function() {
         $('.flash-message').fadeOut(500, function() {
             $(this).remove();
         });
-    }, 5000);
+    }, 5000);*/
 
     // Fermer manuellement les messages flash
     $('.flash-message').each(function() {
         const $message = $(this);
-        const $closeBtn = $('<button class="flash-close"><i class="fas fa-times"></i></button>');
+        const $closeBtn = $('<a href="#" class="flash-close"><i class="fas fa-times"></i></a>');
         $closeBtn.on('click', function() {
             $message.fadeOut(500, function() {
                 $(this).remove();

@@ -131,7 +131,7 @@
             <a href="{% if user.is_admin %}{{ url_for('admin.all_samples') }}{% else %}url_for('main.user_samples') {% endif %}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Retour à la liste
             </a>
-			<a href="{{ url_for(sample.analysis_type + '.edit_sample', sample_id=sample.id) }}" class="btn btn-primary">
+			<a href="{{ url_for(sample.analysis_type + '.sample_edit', sample_id=sample.id) }}" class="btn btn-primary">
 				<i class="fas fa-edit"></i> Éditer
 			</a>
 			{% if user.is_admin %}
