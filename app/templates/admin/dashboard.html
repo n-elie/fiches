@@ -96,13 +96,14 @@
             {% if users %}
             <div class="users-list">
                 {% for user in users %}
+				{% set user_teams = user.get_teams() %}
                 <div class="user-card">
                     <div class="user-info">
                         <span class="user-username">{{ user.username }}</span>
                         <span class="user-fullname">{{ user.full_name }}</span>
                     </div>
                     <div class="user-details">
-                        <span class="user-team">{{ user.teams }}</span>
+                        <span class="user-team">{% if user_teams | length > 1 %}Équipes {{ user.teams }}{% elif user_teams | lenght > 0 %}Équipe {{ user.teams }}{% endif %}</span>
                         <span class="user-email">{{ user.email }}</span>
                     </div>
                     <div class="user-status">
