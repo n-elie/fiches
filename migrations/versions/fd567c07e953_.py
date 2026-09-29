@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 15eac5729a8d
+Revision ID: fd567c07e953
 Revises: 
-Create Date: 2026-09-28 13:05:31.744946
+Create Date: 2026-09-29 14:21:45.682009
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '15eac5729a8d'
+revision = 'fd567c07e953'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -62,15 +62,18 @@ def upgrade():
     )
     op.create_table('ms_samples',
     sa.Column('id', sa.Uuid(), nullable=False),
-    sa.Column('solvent', sa.String(length=100), nullable=True),
+    sa.Column('solvents', sa.String(length=100), nullable=True),
+    sa.Column('other_solvent', sa.String(length=50), nullable=True),
     sa.ForeignKeyConstraint(['id'], ['samples.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('nmr_samples',
     sa.Column('id', sa.Uuid(), nullable=False),
-    sa.Column('solvent', sa.String(length=100), nullable=True),
-    sa.Column('frequency', sa.Float(), nullable=False),
-    sa.Column('experiments', sa.String(length=100), nullable=False),
+    sa.Column('stability', sa.Integer(), nullable=True),
+    sa.Column('solvent', sa.String(length=10), nullable=True),
+    sa.Column('frequency', sa.Integer(), nullable=False),
+    sa.Column('experiments', sa.String(length=200), nullable=True),
+    sa.Column('other_experiment', sa.String(length=50), nullable=True),
     sa.ForeignKeyConstraint(['id'], ['samples.id'], ),
     sa.PrimaryKeyConstraint('id')
     )

@@ -44,7 +44,7 @@
 			
                 <div class="form-group required">
                     <label for="solvent">Solvant</label>
-					<select id="solvent" name="solvent" required>
+					<select id="solvent" name="solvent">
 						{% for code, solvent in solvents.items() %}
 						<option value="{{ code }}">{{ solvent }}</option>
 						{% endfor %}
@@ -161,6 +161,46 @@ document.addEventListener('DOMContentLoaded', function() {
             div.appendChild(input);
             div.appendChild(label);
             experimentsContainer.appendChild(div);
+        });
+		
+		// Ajouter l'option "Autre"
+        const otherDiv = document.createElement('div');
+        otherDiv.className = 'checkbox-item other-experiment';
+		
+		const otherInput = document.createElement('input');
+        otherInput.type = 'checkbox';
+        otherInput.id = 'other_experiment';
+        otherInput.name = 'other_experiment';
+        otherInput.value = 'Autre';
+
+        const otherLabel = document.createElement('label');
+        otherLabel.htmlFor = 'other_experiment';
+        otherLabel.textContent = 'Autre';
+
+        // Champ texte pour l'expérience personnalisée
+        const otherInputText = document.createElement('input');
+        otherInputText.type = 'text';
+        otherInputText.id = 'other_experiment_name';
+        otherInputText.name = 'other_experiment_name';
+        otherInputText.placeholder = 'Précisez l\'expérience...';
+        otherInputText.style.width = '180px';
+        otherInputText.disabled = true;
+
+        otherDiv.appendChild(otherInput);
+        otherDiv.appendChild(otherLabel);
+        otherDiv.appendChild(otherInputText);
+
+        experimentsContainer.appendChild(otherDiv);
+
+        // Écouteur pour afficher/masquer le champ texte
+        otherInput.addEventListener('change', function() {
+            if (this.checked) {
+                otherInputText.disabled = false;
+                otherInputText.focus();
+            } else {
+                otherInputText.disabled = true;
+                otherInputText.value = '';
+            }
         });
     }
 

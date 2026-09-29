@@ -606,3 +606,17 @@ body {
     margin-bottom: 0;
 	white-space: nowrap;
 }
+
+.other-experiment input[type="text"] {
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.other-solvent input[type="text"] {
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}

@@ -56,6 +56,8 @@ def submit_sample():
         solvent = request.form.get('solvent')
         frequency = request.form.get('frequency')
         experiments = request.form.getlist('experiments')
+        other_experiment = request.form.get('other_experiment')
+        other_experiment_name = request.form.get('other_experiment_name')
 
         # Validation : vérifier que toutes les expériences sont valides pour cette fréquence
         valid_experiments = EXPERIMENTS_BY_FREQUENCY.get(frequency, [])
@@ -64,7 +66,7 @@ def submit_sample():
                 flash(f'L\'expérience "{exp}" n\'est pas disponible à {frequency} MHz', 'error')
                 return redirect(url_for('nmr.submit_sample'))
 
-        if not experiments:
+        if not experiments and ((other_experiment and not other_experiment_name) or not other_experiment):
             flash('Veuillez sélectionner au moins une expérience', 'error')
             return redirect(url_for('nmr.submit_sample'))
 
@@ -101,6 +103,7 @@ def submit_sample():
                 solvent=solvent,
                 frequency=frequency,
                 experiments=', '.join(experiments),
+                other_experiment=other_experiment_name if other_experiment and other_experiment_name else None,
                 notes=notes,
                 user_id=current_user.id
             )
@@ -162,6 +165,8 @@ def sample_edit(sample_id):
         solvent = request.form.get('solvent')
         frequency = request.form.get('frequency')
         experiments = request.form.getlist('experiments')
+        other_experiment = request.form.get('other_experiment')
+        other_experiment_name = request.form.get('other_experiment_name')
         
         # Validation : vérifier que toutes les expériences sont valides pour cette fréquence
         valid_experiments = EXPERIMENTS_BY_FREQUENCY.get(frequency, [])
@@ -171,7 +176,7 @@ def sample_edit(sample_id):
                 flash(f'L\'expérience "{exp}" n\'est pas disponible à {frequency} MHz', 'error')
                 return redirect(url_for('nmr.sample_edit', sample_id=sample_id))
 
-        if not experiments:
+        if not experiments and ((other_experiment and not other_experiment_name) or not other_experiment):
             flash('Veuillez sélectionner au moins une expérience', 'error')
             return redirect(url_for('nmr.sample_edit', sample_id=sample_id))
         
@@ -206,6 +211,7 @@ def sample_edit(sample_id):
         sample.solvent=solvent
         sample.frequency=frequency
         sample.experiments=', '.join(experiments)
+        sample.other_experiment=other_experiment_name if other_experiment and other_experiment_name else None,
         
         try:
             db.session.commit()

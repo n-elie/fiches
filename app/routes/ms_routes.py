@@ -9,6 +9,11 @@ from ..models import db, MSSample
 
 ms_bp = Blueprint('ms', __name__, url_prefix='/ms')
 
+SOLVENTS = {"CH2Cl2": "CH<sub>2</sub>Cl<sub>2</sub>",
+            "MeOH": "Methanol",
+            "ACN": "Acétonitrile",
+            }
+
 @ms_bp.route('/sample/submit', methods=['GET', 'POST'])
 @login_required
 def submit_sample():
@@ -22,6 +27,22 @@ def submit_sample():
         quantity = request.form.get('quantity')
         notes = request.form.get('notes')
         formula = request.form.get('formula')
+        solvents = request.form.getlist('solvents')
+        other_solvent = request.form.get('other_solvent')
+        other_solvent_name = request.form.get('other_solvent_name')
+        
+        # Validation : vérifier que tous les solvants sont valides
+        valid_solvents = SOLVENTS.keys()
+        for solvent in solvents:
+            if solvent not in valid_solvents:
+                flash(f'Le solvant n\'est pas disponible.', 'error')
+                return redirect(url_for('ms.submit_sample'))
+                
+        print(solvents, other_solvent, other_solvent_name)
+
+        if not solvents and ((other_solvent and not other_solvent_name) or not other_solvent):
+            flash('Veuillez sélectionner au moins un solvant', 'error')
+            return redirect(url_for('ms.submit_sample'))
 
         if not reference or not quantity:
             flash('Veuillez remplir tous les champs obligatoires', 'error')
@@ -52,6 +73,8 @@ def submit_sample():
                 quantity=float(quantity),
                 structure_file=unique_filename,
                 formula=formula,
+                solvents=', '.join(solvents),
+                other_solvent=other_solvent_name if other_solvent and other_solvent_name else None,
                 notes=notes,
                 user_id=current_user.id
             )
@@ -65,7 +88,9 @@ def submit_sample():
             flash(f'Erreur lors de la soumission: {str(e)}', 'error')
             return redirect(url_for('ms.submit_sample'))
 
-    return render_template('ms/sample_submit.html', user=current_user)
+    return render_template('ms/sample_submit.html',
+                           user=current_user,
+                           solvents=SOLVENTS)
 
 @ms_bp.route('/success/<uuid:sample_id>')
 @login_required
@@ -106,6 +131,20 @@ def sample_edit(sample_id):
         quantity = request.form.get('quantity')
         notes = request.form.get('notes')
         formula = request.form.get('formula')
+        solvents = request.form.getlist('solvents')
+        other_solvent = request.form.get('other_solvent')
+        other_solvent_name = request.form.get('other_solvent_name')
+        
+        # Validation : vérifier que tous les solvants sont valides
+        valid_solvents = SOLVENTS.keys()
+        for solvent in solvents:
+            if solvent not in valid_solvents:
+                flash(f'Le solvant n\'est pas disponible.', 'error')
+                return redirect(url_for('ms.submit_sample'))
+
+        if not solvents and ((other_solvent and not other_solvent_name) or not other_solvent):
+            flash('Veuillez sélectionner au moins un solvant', 'error')
+            return redirect(url_for('ms.submit_sample'))
         
         if not reference or not quantity:
             flash('Veuillez remplir tous les champs obligatoires', 'error')
@@ -135,6 +174,8 @@ def sample_edit(sample_id):
         sample.quantity = float(quantity)
         sample.notes = notes
         sample.formula = formula
+        sample.solvents=', '.join(solvents)
+        sample.other_solvent=other_solvent_name if other_solvent and other_solvent_name else None
         
         try:
             db.session.commit()
@@ -146,4 +187,7 @@ def sample_edit(sample_id):
             return redirect(url_for('ms.sample_edit', sample_id=sample_id))
     
     # GET: Afficher le formulaire pré-rempli
-    return render_template('ms/sample_edit.html', sample=sample, user=current_user)
+    return render_template('ms/sample_edit.html',
+                           sample=sample,
+                           user=current_user,
+                           solvents=SOLVENTS)

@@ -44,7 +44,7 @@
 				
                 <div class="form-group required">
                     <label for="solvent">Solvant</label>
-					<select id="solvent" name="solvent" required>
+					<select id="solvent" name="solvent">
 						{% for code, solvent in solvents.items() %}
 						<option value="{{ code }}" {% if sample.solvent == code %}selected{% endif %}>{{ solvent }}</option>
 						{% endfor %}
@@ -123,6 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const sampleExperiments = "{{ sample.experiments }}".split(', ')
         .map(e => e.trim())
         .filter(e => e);
+	const sampleOtherExperiment = "{{ sample.other_experiment if sample.other_experiment }}"
 
     const frequencySelect = document.getElementById('frequency');
     const experimentsContainer = document.getElementById('experiments-container');
@@ -153,6 +154,55 @@ document.addEventListener('DOMContentLoaded', function() {
             div.appendChild(input);
             div.appendChild(label);
             experimentsContainer.appendChild(div);
+        });
+		
+		// Ajouter l'option "Autre"
+        const otherDiv = document.createElement('div');
+        otherDiv.className = 'checkbox-item other-experiment';
+		
+		const otherInput = document.createElement('input');
+        otherInput.type = 'checkbox';
+        otherInput.id = 'other_experiment';
+        otherInput.name = 'experiments';
+        otherInput.value = 'Autre';
+
+        const otherLabel = document.createElement('label');
+        otherLabel.htmlFor = 'other_experiment';
+        otherLabel.textContent = 'Autre';
+
+        // Champ texte pour l'expérience personnalisée
+        const otherInputText = document.createElement('input');
+        otherInputText.type = 'text';
+        otherInputText.id = 'other_experiment_name';
+        otherInputText.name = 'other_experiment_name';
+        otherInputText.placeholder = 'Précisez l\'expérience...';
+        otherInputText.style.width = '180px';
+		
+		if (sampleOtherExperiment)
+		{
+			otherInputText.value = sampleOtherExperiment;
+			otherInputText.disabled = false;
+			otherInput.checked = true;
+		}
+		else {
+			otherInputText.disabled = true;
+		}
+
+        otherDiv.appendChild(otherInput);
+        otherDiv.appendChild(otherLabel);
+        otherDiv.appendChild(otherInputText);
+
+        experimentsContainer.appendChild(otherDiv);
+
+        // Écouteur pour afficher/masquer le champ texte
+        otherInput.addEventListener('change', function() {
+            if (this.checked) {
+                otherInputText.disabled = false;
+                otherInputText.focus();
+            } else {
+                otherInputText.disabled = true;
+                otherInputText.value = '';
+            }
         });
     }
 

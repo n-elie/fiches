@@ -47,6 +47,32 @@
 					<span class="help-text">Formule chimique de l'échantillon (optionnel)</span>
 				</div>
 			</div>
+			
+			<div class="form-row">
+				<div class="form-group required">
+					<label>Solvant utilisé<span class="required-star">*</span>
+						<div id="solvents-container" class="checkbox-group">
+							{% if sample.solvents %}
+								{% set sample_solvents_list = sample.solvents.split(', ') %}
+							{% else %}
+								{% set sample_solvents_list = [] %}
+							{% endif %}
+							{% for code, solvent in solvents.items() %}
+							<div class="checkbox-item">
+								<input type="checkbox" id="solvent_{{ loop.index }}" 
+								   name="solvents" value="{{ code }}" {% if code in sample_solvents_list %}checked{% endif %}>
+								<label for="solvent_{{ loop.index }}">{{ solvent | safe }}</label>
+							</div>
+							{% endfor %}
+							<div class="checkbox-item">
+								<input type="checkbox" id="other_solvent" name="other_solvent" value="other">
+								<label for="other_solvent">Autre</label>
+								<input type="text" id="other_solvent_name" name="other_solvent_name" placeholder="Précisez..." style="width: 180px;" disabled="">
+							</div>
+						</div>
+					<span class="help-text">Solvant utilisé pour la préparation d'échantillon</span>
+				</div>
+			</div>
         </div>
 
         <div class="form-section">
@@ -69,4 +95,37 @@
         </div>
     </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	const otherCheckBox = document.getElementById('other_solvent');
+	const otherTextBox = document.getElementById('other_solvent_name');
+	
+	const sampleOtherSolvent = "{{ sample.other_solvent if sample.other_solvent }}"
+	
+    // Écouter le changement de fréquence
+    otherCheckBox.addEventListener('change', function() {
+        if (this.checked) {
+                otherTextBox.disabled = false;
+                otherTextBox.focus();
+            } else {
+                otherTextBox.disabled = true;
+                otherTextBox.value = '';
+            }
+    });
+	
+	if (sampleOtherSolvent)
+	{
+		otherTextBox.value = sampleOtherSolvent;
+		otherTextBox.disabled = false;
+		otherCheckBox.checked = true;
+	}
+	else {
+		otherTextBox.disabled = true;
+	}
+});
+</script>
 {% endblock %}
