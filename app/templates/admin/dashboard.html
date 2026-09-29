@@ -6,7 +6,6 @@
 <div class="admin-container">
     <div class="admin-header">
         <h2>Tableau de bord Administrateur</h2>
-        <p>Gestion des utilisateurs et des échantillons</p>
     </div>
 
     <div class="admin-stats">
@@ -53,12 +52,13 @@
             </div>
 
             {% if recent_samples %}
-            <div class="recent-samples-table">
+            <div class="samples-table">
                 <table class="table">
                     <thead>
                         <tr>
                             <th>Référence</th>
                             <th>Utilisateur</th>
+							<th>Type</th>
                             <th>Statut</th>
                             <th>Date</th>
                         </tr>
@@ -66,14 +66,15 @@
                     <tbody>
                         {% for sample in recent_samples %}
                         <tr>
-                            <td>{{ sample.reference }}</td>
-                            <td>{{ sample.user.full_name }}</td>
-                            <td>
+                            <td data-label="Référence">{{ sample.reference }}</td>
+                            <td data-label="Utilisateur">{{ sample.user.full_name }}</td>
+							<td data-label="Type">{{ sample.get_type() }}</td>
+                            <td data-label="Status">
                                 <span class="status-badge status-{{ sample.status }}">
                                     {{ sample.status }}
                                 </span>
                             </td>
-                            <td>{{ sample.created_at.strftime('%d/%m %H:%M') }}</td>
+                            <td data-label="Date">{{ sample.created_at.strftime('%d/%m %H:%M') }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

@@ -109,18 +109,18 @@
             <tbody>
                 {% for sample in samples %}
                 <tr>
-                    <td>{{ sample.reference }}</td>
-					<td>{{ sample.get_type() }}</td>
+                    <td data-label="Référence">{{ sample.reference }}</td>
+					<td data-label="Type">{{ sample.get_type() }}</td>
 					{% if user.is_admin and users is defined %}<td>{{ sample.user.full_name }}</td>{% endif %}
-					<td>{{ sample.formula or '-' }}</td>
-                    <td>{{ sample.quantity }} mg</td>
-                    <td>
+					<td data-label="Formule">{{ sample.formula or '-' }}</td>
+                    <td data-label="Quantité">{{ sample.quantity }} mg</td>
+                    <td data-label="Statut">
                         <span class="status-badge status-{{ sample.status }}">
                             {{ sample.status }}
                         </span>
                     </td>
-                    <td>{{ sample.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
-                    <td>
+                    <td data-label="Date">{{ sample.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td data-label="Actions">
                         <a href="{{ url_for(sample.analysis_type + '.sample_detail', sample_id=sample.id) }}" class="btn-icon" title="Voir les détails"><i class="fas fa-eye"></i></a>
 						<a href="{{ url_for(sample.analysis_type + '.sample_edit', sample_id=sample.id) }}" class="btn-icon" title="Éditer"><i class="fas fa-edit"></i></a>
                         {% if sample.structure_file %}<a href="{{ url_for('main.download_file', filename=sample.structure_file) }}" class="btn-icon" title="Télécharger le fichier"><i class="fas fa-download"></i></a>{% endif %}
