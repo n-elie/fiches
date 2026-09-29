@@ -30,7 +30,15 @@ ALLOWED_SOLVENTS = ["Acide Acétique-d4",
 
 ALLOWED_FREQUENCIES = [500, 700]
 
-ALLOWED_EXPERIMENTS = ["1H", "COSY", "HSQC", "HMBC", "NOESY", "ROESY", "13C", "DEPT135", "TOCSY", "HSQC 15N", "HMBC 15N"]
+EXPERIMENTS_BY_FREQUENCY = {
+    500: ["1H", "COSY", "HSQC", "HMQC", "HMBC", "NOESY", "ROESY", "HMQC-ND", "13C", "DEPT135", "DEPT90", "DEPT45", "P31", "P31-CPD"],
+    700: ["1H", "COSY", "HSQC", "HMBC", "NOESY", "ROESY", "13C", "DEPT135", "TOCSY", "HSQC 15N", "HMBC 15N"]
+}
+
+# Liste complète de toutes les expériences (pour référence)
+ALLOWED_EXPERIMENTS = sorted(set(
+    exp for experiments in EXPERIMENTS_BY_FREQUENCY.values() for exp in experiments
+))
 
 @nmr_bp.route('/sample/submit', methods=['GET', 'POST'])
 @login_required
@@ -48,6 +56,13 @@ def submit_sample():
         solvent = request.form.get('solvent')
         frequency = request.form.get('frequency')
         experiments = request.form.getlist('experiments')
+
+        # Validation : vérifier que toutes les expériences sont valides pour cette fréquence
+        valid_experiments = EXPERIMENTS_BY_FREQUENCY.get(frequency, [])
+        for exp in experiments:
+            if exp not in valid_experiments:
+                flash(f'L\'expérience "{exp}" n\'est pas disponible à {frequency} MHz', 'error')
+                return redirect(url_for('nmr.submit_sample'))
 
         if not experiments:
             flash('Veuillez sélectionner au moins une expérience', 'error')
@@ -102,7 +117,7 @@ def submit_sample():
                            user=current_user,
                            solvents=ALLOWED_SOLVENTS,
                            frequencies=ALLOWED_FREQUENCIES,
-                           experiments=ALLOWED_EXPERIMENTS)
+                           experiments_by_frequency=EXPERIMENTS_BY_FREQUENCY)
 
 @nmr_bp.route('/success/<uuid:sample_id>')
 @login_required
@@ -146,6 +161,13 @@ def edit_sample(sample_id):
         solvent = request.form.get('solvent')
         frequency = request.form.get('frequency')
         experiments = request.form.getlist('experiments')
+        
+        # Validation : vérifier que toutes les expériences sont valides pour cette fréquence
+        valid_experiments = EXPERIMENTS_BY_FREQUENCY.get(frequency, [])
+        for exp in experiments:
+            if exp not in valid_experiments:
+                flash(f'L\'expérience "{exp}" n\'est pas disponible à {frequency} MHz', 'error')
+                return redirect(url_for('nmr.submit_sample'))
 
         if not experiments:
             flash('Veuillez sélectionner au moins une expérience', 'error')
@@ -198,4 +220,4 @@ def edit_sample(sample_id):
                            user=current_user,
                            solvents=ALLOWED_SOLVENTS,
                            frequencies=ALLOWED_FREQUENCIES,
-                           experiments=ALLOWED_EXPERIMENTS)
+                           experiments_by_frequency=EXPERIMENTS_BY_FREQUENCY)

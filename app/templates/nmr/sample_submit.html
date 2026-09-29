@@ -56,14 +56,8 @@
 			<div class="form-row">
 				<div class="form-group required">
 					<label>Expériences demandées <span class="required-star">*</span></label>
-					<div class="checkbox-group">
-						{% for experiment in experiments %}
-						<div class="checkbox-item">
-							<input type="checkbox" id="experiment_{{ loop.index }}" 
-								   name="experiments" value="{{ experiment }}">
-							<label for="experiment_{{ loop.index }}">{{ experiment }}</label>
-						</div>
-						{% endfor %}
+					<div class="checkbox-group" id="experiments-container">
+						{# Les checkboxes sont générées dynamiquement par JavaScript #}
 					</div>
 					<span class="help-text">Sélectionnez une ou plusieurs expériences (au moins une obligatoire)</span>
 				</div>
@@ -112,4 +106,64 @@
         </div>
     </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Données reçues du serveur
+    const experimentsByFrequency = {{ experiments_by_frequency|tojson|safe }};
+
+    const frequencySelect = document.getElementById('frequency');
+    const experimentsContainer = document.getElementById('experiments-container');
+
+    // Générer les checkboxes pour une fréquence donnée
+    function renderExperiments(frequency) {
+        const experiments = experimentsByFrequency[frequency] || [];
+
+        // Vider le conteneur
+        experimentsContainer.innerHTML = '';
+
+        // Créer une checkbox pour chaque expérience
+		{#
+		Exemple:
+		<div class="checkbox-item">
+			<input type="checkbox" id="experiment_0" 
+			   name="experiments" value="1H">
+			<label for="experiment_0">1H</label>
+		</div>
+		#}
+        experiments.forEach(exp => {
+            const div = document.createElement('div');
+            div.className = 'checkbox-item';
+
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.id = `exp_${exp.replace(/\s+/g, '_')}`;
+            input.name = 'experiments';
+            input.value = exp;
+
+            const label = document.createElement('label');
+            label.htmlFor = input.id;
+            label.textContent = exp;
+
+            div.appendChild(input);
+            div.appendChild(label);
+            experimentsContainer.appendChild(div);
+        });
+    }
+
+    // Écouter le changement de fréquence
+    frequencySelect.addEventListener('change', function() {
+        const selectedFrequency = parseInt(this.value);
+        renderExperiments(selectedFrequency);
+    });
+
+    // Initialiser avec la première fréquence par défaut
+    if (frequencySelect.options.length > 0) {
+        renderExperiments(parseInt(frequencySelect.options[0].value));
+    }
+});
+</script>
 {% endblock %}

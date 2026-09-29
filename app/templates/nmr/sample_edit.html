@@ -56,15 +56,8 @@
 			<div class="form-row">
 				<div class="form-group required">
 					<label>Expériences demandées <span class="required-star">*</span></label>
-					<div class="checkbox-group">
-						{% for experiment in experiments %}
-						<div class="checkbox-item">
-							<input type="checkbox" id="experiment_{{ loop.index }}" 
-								   name="experiments" value="{{ experiment }}"
-								   {% if experiment in sample.experiments.split(', ') %}checked{% endif %}>
-							<label for="experiment_{{ loop.index }}">{{ experiment }}</label>
-						</div>
-						{% endfor %}
+					<div class="checkbox-group" id="experiments-container">
+						{# Les checkboxes sont générées dynamiquement par JavaScript #}
 					</div>
 					<span class="help-text">Sélectionnez une ou plusieurs expériences (au moins une obligatoire)</span>
 				</div>
@@ -110,4 +103,60 @@
         </div>
     </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const experimentsByFrequency = {{ experiments_by_frequency|tojson|safe }};
+    const sampleExperiments = "{{ sample.experiments }}".split(', ')
+        .map(e => e.trim())
+        .filter(e => e);
+
+    const frequencySelect = document.getElementById('frequency');
+    const experimentsContainer = document.getElementById('experiments-container');
+
+    function renderExperiments(frequency) {
+        const experiments = experimentsByFrequency[frequency] || [];
+        experimentsContainer.innerHTML = '';
+
+        experiments.forEach(exp => {
+            const div = document.createElement('div');
+            div.className = 'checkbox-item';
+
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.id = `exp_${exp.replace(/\s+/g, '_')}`;
+            input.name = 'experiments';
+            input.value = exp;
+
+            // Pré-cocher si l'expérience fait partie de celles du sample
+            if (sampleExperiments.includes(exp)) {
+                input.checked = true;
+            }
+
+            const label = document.createElement('label');
+            label.htmlFor = input.id;
+            label.textContent = exp;
+
+            div.appendChild(input);
+            div.appendChild(label);
+            experimentsContainer.appendChild(div);
+        });
+    }
+
+    frequencySelect.addEventListener('change', function() {
+        const selectedFrequency = parseInt(this.value);
+        renderExperiments(selectedFrequency);
+    });
+
+    // Initialiser avec la fréquence du sample
+    if (frequencySelect.value) {
+        renderExperiments(parseInt(frequencySelect.value));
+    } else if (frequencySelect.options.length > 0) {
+        renderExperiments(parseInt(frequencySelect.options[0].value));
+    }
+});
+</script>
 {% endblock %}

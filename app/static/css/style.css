@@ -581,10 +581,12 @@ body {
 
 .checkbox-item input[type="checkbox"] {
     cursor: pointer;
+	accent-color: #007bff;
 }
 
 .checkbox-item label {
     cursor: pointer;
     font-weight: normal;
     margin-bottom: 0;
+	white-space: nowrap;
 }
