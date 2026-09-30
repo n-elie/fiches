@@ -37,11 +37,8 @@ class Sample(db.Model):
     
     __tablename__ = 'samples'
     
-    id = db.Column(
-        db.Uuid, 
-        primary_key=True, 
-        default=uuid.uuid4
-    )
+    id = db.Column(db.Integer, primary_key=True)
+    uuid = db.Column(db.Uuid, nullable=False, default=uuid.uuid4)
     analysis_type = db.Column(db.String(10), nullable=False)  # Type d'analyse pour différencier MS/NMR
     team = db.Column(db.String(100), nullable=True)  # Équipe associée à cette analyse
     reference = db.Column(db.String(100), nullable=False)
@@ -72,7 +69,7 @@ class MSSample(Sample):
     
     __tablename__ = 'ms_samples'
     
-    id = db.Column(db.Uuid, db.ForeignKey('samples.id'), primary_key=True)
+    id = db.Column(db.Integer, db.ForeignKey('samples.id'), primary_key=True)
     
     solvents = db.Column(db.String(100), nullable=True)  # Solvants utilisés
     other_solvent = db.Column(db.String(50), nullable=True)  # Solvant personnalisé
@@ -89,7 +86,7 @@ class NMRSample(Sample):
     
     __tablename__ = 'nmr_samples'
     
-    id = db.Column(db.Uuid, db.ForeignKey('samples.id'), primary_key=True)
+    id = db.Column(db.Integer, db.ForeignKey('samples.id'), primary_key=True)
     
     stability = db.Column(db.Integer, nullable=True) # Stabilité de l'échantillon
     solvent = db.Column(db.String(10), nullable=True)  # Solvant utilisé
