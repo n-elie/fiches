@@ -5,7 +5,7 @@ from sqlalchemy import desc
 import os
 from datetime import datetime
 
-from ..models import db, MSSample
+from ..models import db, MSSample, STATUS_NAMES
 
 ms_bp = Blueprint('ms', __name__, url_prefix='/ms')
 
@@ -111,7 +111,10 @@ def sample_detail(sample_id):
     if sample.user_id != current_user.id and not current_user.is_admin:
         flash('Accès non autorisé', 'error')
         return redirect(url_for('main.index'))
-    return render_template('sample_detail.html', sample=sample, user=current_user)
+    return render_template('sample_detail.html',
+                           sample=sample,
+                           user=current_user,
+                           status_names=STATUS_NAMES)
     
 @ms_bp.route('/sample/<int:sample_id>/edit', methods=['GET', 'POST'])
 @login_required

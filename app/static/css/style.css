@@ -1815,7 +1815,7 @@ body {
     font-size: 0.9rem;
 }
 
-.batch-actions .btn-delete {
+.batch-actions .btn-delete i {
     color: var(--danger-color) !important;
 }
 

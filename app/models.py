@@ -5,6 +5,13 @@ from datetime import datetime
 
 db = SQLAlchemy()
 
+STATUS_NAMES = {
+    'pending': 'En attente',
+    'processing': 'En cours',
+    'completed': 'Terminé',
+    'cancelled': 'Annulé'
+}
+
 class User(db.Model, UserMixin):
     """Modèle utilisateur pour stocker les informations des utilisateurs LDAP"""
     
@@ -63,6 +70,9 @@ class Sample(db.Model):
         
     def get_type(self):
         return 'Unknown'
+        
+    def get_status(self):
+        return STATUS_NAMES.get(self.status, self.status)
         
 class MSSample(Sample):
     """Héritage pour les échantillons MS"""

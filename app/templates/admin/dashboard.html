@@ -71,7 +71,7 @@
 							<td data-label="Type">{{ sample.get_type() }}</td>
                             <td data-label="Status">
                                 <span class="status-badge status-{{ sample.status }}">
-                                    {{ sample.status }}
+                                    {{ sample.get_status() }}
                                 </span>
                             </td>
                             <td data-label="Date">{{ sample.created_at.strftime('%d/%m %H:%M') }}</td>

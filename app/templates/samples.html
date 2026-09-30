@@ -31,10 +31,9 @@
                     <label for="status"><i class="fas fa-circle"></i> Statut :</label>
                     <select id="status" name="status">
                         <option value="">Tous les statuts</option>
-                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>En attente</option>
-                        <option value="processing" {% if status_filter == 'processing' %}selected{% endif %}>En cours</option>
-                        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Terminé</option>
-                        <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Annulé</option>
+						{% for status, name in status_names.items() %}
+                        <option value="{{ status }}" {% if status_filter == status %}selected{% endif %}>{{ name }}</option>
+						{% endfor %}
                     </select>
                 </div>
 				
@@ -128,7 +127,7 @@
                     <td data-label="Quantité">{{ sample.quantity }} mg</td>
                     <td data-label="Statut">
                         <span class="status-badge status-{{ sample.status }}">
-                            {{ sample.status }}
+                            {{ sample.get_status() }}
                         </span>
                     </td>
                     <td data-label="Date">{{ sample.created_at.strftime('%d/%m/%Y %H:%M') }}</td>

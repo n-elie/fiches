@@ -5,7 +5,7 @@ from sqlalchemy import desc
 import os
 from datetime import datetime
 
-from ..models import db, Sample
+from ..models import db, Sample, STATUS_NAMES
 
 main_bp = Blueprint('main', __name__)
 
@@ -52,7 +52,8 @@ def samples(template='samples.html', users='current'):
                          user_filter=user_filter if current_user.is_admin else '',
                          search_filter=search_filter,
                          sort_by=sort_by,
-                         sort_order=sort_order)
+                         sort_order=sort_order,
+                         status_names=STATUS_NAMES)
 
 @main_bp.route('/')
 def index():

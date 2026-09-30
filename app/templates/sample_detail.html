@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Détails - {{ sample.reference }}{% endblock %}
+{% block title %}{{ sample.reference }} - {% endblock %}
 
 {% block content %}
 <div class="sample-detail-container">
@@ -33,7 +33,7 @@
             </div>
             <div class="title-actions">
                 <span class="status-badge status-{{ sample.status }}">
-                    <i class="fas fa-circle"></i> {{ sample.status|capitalize }}
+                    <i class="fas fa-circle"></i> {{ sample.get_status()|capitalize }}
                 </span>
             </div>
         </div>
@@ -52,10 +52,9 @@
                         <div class="form-group">
                             <label for="status">Statut</label>
                             <select id="status" name="status" class="form-control">
-                                <option value="pending" {% if sample.status == 'pending' %}selected{% endif %}>En attente</option>
-                                <option value="processing" {% if sample.status == 'processing' %}selected{% endif %}>En cours</option>
-                                <option value="completed" {% if sample.status == 'completed' %}selected{% endif %}>Terminé</option>
-                                <option value="cancelled" {% if sample.status == 'cancelled' %}selected{% endif %}>Annulé</option>
+								{% for status, name in status_names.items() %}
+								<option value="{{ status }}" {% if status_filter == status %}selected{% endif %}>{{ name }}</option>
+								{% endfor %}
                             </select>
                         </div>
                         <button type="submit" class="btn btn-primary">
