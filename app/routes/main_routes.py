@@ -5,7 +5,7 @@ from sqlalchemy import desc
 import os
 from datetime import datetime
 
-from ..models import db, Sample, STATUS_NAMES
+from ..models import db, Sample, User, STATUS_NAMES
 
 main_bp = Blueprint('main', __name__)
 
@@ -43,10 +43,12 @@ def samples(template='samples.html', users='current'):
         query = query.order_by(getattr(Sample, sort_by))
         
     samples = query.all()
+    users = User.query.order_by(User.username).all() if current_user.is_admin else None
 
     return render_template(template,
                          samples=samples,
                          user=current_user,
+                         users=users,
                          status_filter=status_filter,
                          type_filter=type_filter,
                          user_filter=user_filter if current_user.is_admin else '',

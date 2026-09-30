@@ -74,14 +74,6 @@
 					<th style="width: 30px;">
 						<input type="checkbox" id="select-all" title="Sélectionner tout">
 					</th>
-                    <th>
-						<a href="?sort=reference&order={% if sort_by == 'reference' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
-                            Référence
-                            {% if sort_by == 'reference' %}
-                                <i class="fas fa-sort-{{ sort_order }}"></i>
-                            {% endif %}
-                        </a>
-					</th>
 					<th>
 						<a href="?sort=analysis_type&order={% if sort_by == 'analysis_type' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
                             Type
@@ -91,6 +83,14 @@
                         </a>
 					</th>
 					{% if user.is_admin and users is defined %}<th>Utilisateur</th>{% endif %}
+                    <th>
+						<a href="?sort=reference&order={% if sort_by == 'reference' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
+                            Référence
+                            {% if sort_by == 'reference' %}
+                                <i class="fas fa-sort-{{ sort_order }}"></i>
+                            {% endif %}
+                        </a>
+					</th>
 					<th>Formule</th>
                     <th>Quantité</th>
                     <th>
@@ -120,9 +120,9 @@
 							   class="sample-checkbox"
 							   {% if sample.status != 'pending' %}disabled title="Seuls les échantillons 'pending' peuvent être supprimés"{% endif %}>
 					</td>
-                    <td data-label="Référence">{{ sample.reference }}</td>
 					<td data-label="Type">{{ sample.get_type() }}</td>
 					{% if user.is_admin and users is defined %}<td>{{ sample.user.full_name }}</td>{% endif %}
+                    <td data-label="Référence">{{ sample.reference }}</td>
 					<td data-label="Formule">{{ sample.formula or '-' }}</td>
                     <td data-label="Quantité">{{ sample.quantity }} mg</td>
                     <td data-label="Statut">
