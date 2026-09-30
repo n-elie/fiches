@@ -12,21 +12,11 @@ main_bp = Blueprint('main', __name__)
 def allowed_file(filename):
     """Vérifier si le fichier a une extension autorisée"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
-
-@main_bp.route('/')
-def index():
-    """Page d'accueil"""
-    if current_user.is_authenticated:
-        return redirect(url_for('main.user_samples'))
-    return render_template('index.html')
-
-@main_bp.route('/samples')
-@login_required
-def user_samples():
-    """Liste des échantillons de l'utilisateur"""
     
+def samples(template='samples.html', users='current'):
     status_filter = request.args.get('status', '')
     type_filter = request.args.get('type', '')
+    user_filter = request.args.get('user', '')
     search_filter = request.args.get('search', '')
     
     query = Sample.query
@@ -34,6 +24,11 @@ def user_samples():
         query = query.filter_by(status=status_filter)
     if type_filter:
         query = query.filter_by(analysis_type=type_filter)
+    if users == 'current':
+        query = query.filter_by(user_id=current_user.id)
+    elif current_user.is_admin and user_filter:
+        query = query.filter_by(user_id=user_filter)
+        
     if search_filter:
         query = query.filter(
             Sample.reference.ilike(f'%{search_filter}%')
@@ -49,14 +44,29 @@ def user_samples():
         
     samples = query.all()
 
-    return render_template('samples.html',
+    return render_template(template,
                          samples=samples,
                          user=current_user,
                          status_filter=status_filter,
                          type_filter=type_filter,
+                         user_filter=user_filter if current_user.is_admin else '',
                          search_filter=search_filter,
                          sort_by=sort_by,
                          sort_order=sort_order)
+
+@main_bp.route('/')
+def index():
+    """Page d'accueil"""
+    if current_user.is_authenticated:
+        return redirect(url_for('main.user_samples'))
+    return render_template('index.html')
+
+@main_bp.route('/samples')
+@login_required
+def user_samples():
+    """Liste des échantillons de l'utilisateur"""
+    
+    return samples(users='current')
 
 @main_bp.route('/sample/<uuid:sample_id>/delete', methods=['POST'])
 @login_required

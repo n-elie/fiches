@@ -40,46 +40,9 @@ def dashboard():
 @login_required
 def all_samples():
     """Liste de tous les échantillons"""
-
-    status_filter = request.args.get('status', '')
-    user_filter = request.args.get('user', '')
-    type_filter = request.args.get('type', '')
-    search_filter = request.args.get('search', '')
-
-    query = Sample.query
-
-    if status_filter:
-        query = query.filter_by(status=status_filter)
-    if type_filter:
-        query = query.filter_by(analysis_type=type_filter)
-    if user_filter:
-        query = query.filter_by(user_id=user_filter)
-    if search_filter:
-        query = query.filter(
-            Sample.reference.ilike(f'%{search_filter}%')
-        )
-
-    sort_by = request.args.get('sort', 'created_at')
-    sort_order = request.args.get('order', 'desc')
-
-    if sort_order == 'desc':
-        query = query.order_by(desc(getattr(Sample, sort_by)))
-    else:
-        query = query.order_by(getattr(Sample, sort_by))
-
-    samples = query.all()
-    users = User.query.order_by(User.username).all()
-
-    return render_template('admin/samples.html',
-                         samples=samples,
-                         users=users,
-                         user=current_user,
-                         status_filter=status_filter,
-                         user_filter=user_filter,
-                         type_filter=type_filter,
-                         search_filter=search_filter,
-                         sort_by=sort_by,
-                         sort_order=sort_order)
+    
+    from ..routes.main_routes import samples
+    return samples(template='admin/samples.html', users='all')
 
 @admin_bp.route('/users')
 @login_required

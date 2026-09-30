@@ -140,7 +140,7 @@
     </div>
 	
 	<div class="pagination-info">
-        <p>Affichage de {{ samples|length }} échantillons</p>
+        <p>Affichage de {{ samples|length }} échantillon{% if samples|length >1 %}s{% endif %}</p>
     </div>
 
     {% else %}
