@@ -652,6 +652,18 @@ body {
     padding: 1.5rem 2rem;
     background-color: var(--light-color);
     border-bottom: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.filter-title {
+    color: var(--primary-color);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .filter-form {
@@ -1769,4 +1781,62 @@ body {
     .status-update-form .form-group {
         width: 100%;
     }
+}
+
+/* Batch actions */
+.batch-actions {
+    padding: 1.5rem 2rem;
+    background-color: var(--light-color);
+    border-top: 1px solid var(--border-color);
+	border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.batch-title {
+    color: var(--primary-color);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.batch-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.batch-actions .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+.batch-actions .btn-delete {
+    color: var(--danger-color) !important;
+}
+
+.batch-actions .btn-delete:hover {
+    background-color: rgba(231, 76, 60, 0.1) !important;
+    color: var(--danger-color) !important;
+}
+
+.samples-table th:first-child,
+.samples-table td:first-child {
+    width: 30px;
+    text-align: center;
+}
+
+.samples-table input[type="checkbox"] {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
+.samples-table input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
 }

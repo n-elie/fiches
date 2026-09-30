@@ -162,27 +162,3 @@ function initFileUpload() {
         });
     });
 }
-
-// Highlight row on hover for better UX
-document.querySelectorAll('.samples-table tbody tr').forEach(row => {
-    row.addEventListener('mouseenter', function() {
-        this.style.transform = 'translateY(-1px)';
-        this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
-    });
-
-    row.addEventListener('mouseleave', function() {
-        this.style.transform = '';
-        this.style.boxShadow = '';
-    });
-});
-
-// Add loading state for filters
-const filterForm = document.querySelector('.filter-form');
-if (filterForm) {
-    filterForm.addEventListener('submit', function() {
-        this.style.opacity = '0.7';
-        setTimeout(() => {
-            this.style.opacity = '';
-        }, 500);
-    });
-}

@@ -126,7 +126,7 @@ def export_excel():
         download_name=f'samples_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
     )
 
-@admin_bp.route('/sample/<uuid:sample_id>/update', methods=['POST'])
+@admin_bp.route('/sample/<int:sample_id>/update', methods=['POST'])
 @login_required
 def update_sample_status(sample_id):
     """Mettre à jour le statut d'un échantillon"""

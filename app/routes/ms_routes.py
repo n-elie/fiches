@@ -93,7 +93,7 @@ def submit_sample():
                            user=current_user,
                            solvents=SOLVENTS)
 
-@ms_bp.route('/success/<uuid:sample_id>')
+@ms_bp.route('/success/<int:sample_id>')
 @login_required
 def success(sample_id):
     """Page de confirmation de soumission"""
@@ -103,7 +103,7 @@ def success(sample_id):
         return redirect(url_for('main.index'))
     return render_template('ms/success.html', sample=sample, user=current_user)
     
-@ms_bp.route('/sample/<uuid:sample_id>')
+@ms_bp.route('/sample/<int:sample_id>')
 @login_required
 def sample_detail(sample_id):
     """Détails d'un échantillon"""
@@ -113,7 +113,7 @@ def sample_detail(sample_id):
         return redirect(url_for('main.index'))
     return render_template('sample_detail.html', sample=sample, user=current_user)
     
-@ms_bp.route('/sample/<uuid:sample_id>/edit', methods=['GET', 'POST'])
+@ms_bp.route('/sample/<int:sample_id>/edit', methods=['GET', 'POST'])
 @login_required
 def sample_edit(sample_id):
     """Éditer un échantillon existant"""

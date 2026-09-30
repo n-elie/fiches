@@ -68,37 +68,89 @@ def user_samples():
     
     return samples(users='current')
 
-@main_bp.route('/sample/<uuid:sample_id>/delete', methods=['POST'])
+def _delete_samples(samples):
+    # Vérifier les permissions et le statut
+    deleted_count = 0
+    errors = []
+
+    for sample in samples:
+        # Vérifier que l'utilisateur est le propriétaire ou admin
+        if sample.user_id != current_user.id and not current_user.is_admin:
+            errors.append(f"{sample.reference} : Accès non autorisé")
+            continue
+        
+        # Vérifier que le statut est "pending"
+        if sample.status != 'pending':
+            errors.append(f"{sample.reference} : Seuls les échantillons en attente peuvent être supprimés")
+            continue
+
+        # Supprimer le fichier de structure si il existe
+        if sample.structure_file:
+            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], sample.structure_file)
+            if os.path.exists(filepath):
+                try:
+                    os.remove(filepath)
+                except Exception as e:
+                    errors.append(f"{sample.reference} : Erreur suppression fichier - {str(e)}")
+                    continue
+
+        # Supprimer l'échantillon de la base
+        try:
+            db.session.delete(sample)
+            deleted_count += 1
+        except Exception as e:
+            db.session.rollback()
+            errors.append(f"{sample.reference} : Erreur suppression BD - {str(e)}")
+            continue
+
+    db.session.commit()
+
+    if deleted_count > 0:
+        flash(f'{deleted_count} échantillon{"s" if deleted_count > 1 else ""} supprimé{"s" if deleted_count > 1 else ""} avec succès', 'success')
+
+    for error in errors:
+        flash(error, 'error')
+
+@main_bp.route('/sample/<int:sample_id>/delete', methods=['POST'])
 @login_required
 def delete_sample(sample_id):
     """Supprimer un échantillon (uniquement si statut = pending)"""
 
     sample = Sample.query.get_or_404(sample_id)
 
-    # Vérifier que l'utilisateur est le propriétaire ou admin
-    if sample.user_id != current_user.id and not current_user.is_admin:
-        flash('Accès non autorisé', 'error')
+    redirection = _delete_samples([sample])
+    if redirection is not None:
+        return redirection
+
+    return redirect(url_for('main.user_samples'))
+    
+@main_bp.route('/samples/batch-delete', methods=['POST'])
+@login_required
+def batch_delete_samples():
+    """Supprimer plusieurs échantillons en une seule action (uniquement si statut = pending)"""
+
+    sample_ids = request.form.get('sample_ids', '')
+    if not sample_ids:
+        flash('Aucun échantillon sélectionné', 'error')
         return redirect(url_for('main.user_samples'))
 
-    # Vérifier que le statut est "pending"
-    if sample.status != 'pending':
-        flash('Seuls les échantillons en attente (pending) peuvent être supprimés', 'error')
+    sample_ids = [int(sid.strip()) for sid in sample_ids.split(',') if sid.strip()]
+    if not sample_ids:
+        flash('Aucun échantillon valide sélectionné', 'error')
         return redirect(url_for('main.user_samples'))
 
-    # Supprimer le fichier de structure si il existe
-    if sample.structure_file:
-        filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], sample.structure_file)
-        if os.path.exists(filepath):
-            os.remove(filepath)
+    # Récupérer les échantillons
+    samples = Sample.query.filter(
+        Sample.id.in_(sample_ids)
+    ).all()
 
-    # Supprimer l'échantillon de la base de données
-    try:
-        db.session.delete(sample)
-        db.session.commit()
-        flash('Échantillon supprimé avec succès', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Erreur lors de la suppression: {str(e)}', 'error')
+    if not samples:
+        flash('Aucun échantillon trouvé', 'error')
+        return redirect(url_for('main.user_samples'))
+
+    redirection = _delete_samples(samples)
+    if redirection is not None:
+        return redirection
 
     return redirect(url_for('main.user_samples'))
 

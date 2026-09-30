@@ -14,8 +14,12 @@
     <div class="samples-filter">
         <form method="GET" action="" class="filter-form">
             <div class="filter-row">
+				<h3 class="filter-title">
+					<i class="fas fa-filter"></i> Filtrer les échantillons
+				</h3>
+				
 				<div class="filter-group">
-                    <label for="type">Type :</label>
+                    <label for="type"> <i class="fas fa-tag"></i> Type :</label>
                     <select id="type" name="type">
                         <option value="">Tous les types</option>
                         <option value="ms" {% if type_filter == 'ms' %}selected{% endif %}>Spectrométrie de masse</option>
@@ -24,7 +28,7 @@
                 </div>
 				
 				<div class="filter-group">
-                    <label for="status">Statut :</label>
+                    <label for="status"><i class="fas fa-circle"></i> Statut :</label>
                     <select id="status" name="status">
                         <option value="">Tous les statuts</option>
                         <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>En attente</option>
@@ -36,7 +40,7 @@
 				
 				{% if user.is_admin and users is defined %}
 				<div class="filter-group">
-                    <label for="user">Utilisateur:</label>
+                    <label for="user"><i class="fas fa-user"></i> Utilisateur:</label>
                     <select id="user" name="user">
                         <option value="">Tous les utilisateurs</option>
                         {% for user in users %}
@@ -47,27 +51,30 @@
 				{% endif %}
 				
                 <div class="filter-group">
-					<label for="search">Référence :</label>
+					<label for="search"><i class="fas fa-search"></i> Référence :</label>
                     <input type="text" name="search" placeholder="Rechercher..."
                            value="{{ search_filter }}">
                 </div>
 
-                <button type="submit" class="btn btn-secondary">
-                    <i class="fas fa-filter"></i> Filtrer
-                </button>
+                <button type="submit" class="btn btn-primary">
+					<i class="fas fa-check"></i> Appliquer les filtres
+				</button>
 
-                <a href="{{ url_for('main.user_samples') }}" class="btn btn-tertiary">
+                <a href="{{ url_for('main.user_samples') }}" class="btn btn-secondary">
 					<i class="fas fa-times"></i> Réinitialiser
 				</a>
             </div>
         </form>
     </div>
-
+	
     {% if samples %}
     <div class="samples-table-container">
         <table class="samples-table">
             <thead>
                 <tr>
+					<th style="width: 30px;">
+						<input type="checkbox" id="select-all" title="Sélectionner tout">
+					</th>
                     <th>
 						<a href="?sort=reference&order={% if sort_by == 'reference' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
                             Référence
@@ -109,6 +116,11 @@
             <tbody>
                 {% for sample in samples %}
                 <tr>
+					<td>
+						<input type="checkbox" name="sample_ids" value="{{ sample.id }}"
+							   class="sample-checkbox"
+							   {% if sample.status != 'pending' %}disabled title="Seuls les échantillons 'pending' peuvent être supprimés"{% endif %}>
+					</td>
                     <td data-label="Référence">{{ sample.reference }}</td>
 					<td data-label="Type">{{ sample.get_type() }}</td>
 					{% if user.is_admin and users is defined %}<td>{{ sample.user.full_name }}</td>{% endif %}
@@ -139,6 +151,24 @@
         </table>
     </div>
 	
+	{% if samples %}
+	<div class="batch-actions">
+		<div class="batch-row">
+			<h3 class="filter-title">
+				<i class="fas fa-gear"></i> Actions par lot
+			</h3>
+			
+			<form method="POST" action="{{ url_for('main.batch_delete_samples') }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ces échantillons ? Cette action est irréversible.');" class="batch-form">
+				<button type="submit" class="btn btn-delete" disabled id="batch-delete-btn">
+					<i class="fas fa-trash"></i> Supprimer la sélection
+				</button>
+				<input type="hidden" name="sample_ids" id="selected-sample-ids">
+			</form>
+		</div>
+	</div>
+	{% endif %}
+
+	
 	<div class="pagination-info">
         <p>Affichage de {{ samples|length }} échantillon{% if samples|length >1 %}s{% endif %}</p>
     </div>
@@ -151,4 +181,65 @@
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+// Highlight row on hover for better UX
+document.querySelectorAll('.samples-table tbody tr').forEach(row => {
+    row.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-1px)';
+        this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
+    });
+
+    row.addEventListener('mouseleave', function() {
+        this.style.transform = '';
+        this.style.boxShadow = '';
+    });
+});
+
+// Add loading state for filters
+const filterForm = document.querySelector('.filter-form');
+if (filterForm) {
+    filterForm.addEventListener('submit', function() {
+        this.style.opacity = '0.7';
+        setTimeout(() => {
+            this.style.opacity = '';
+        }, 500);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('select-all');
+    const sampleCheckboxes = document.querySelectorAll('.sample-checkbox:not([disabled])');
+    const batchDeleteBtn = document.getElementById('batch-delete-btn');
+    const selectedIdsInput = document.getElementById('selected-sample-ids');
+
+    // Sélectionner/Désélectionner tout
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            sampleCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateBatchButton();
+        });
+    }
+
+    // Mettre à jour le bouton de suppression par lot
+    function updateBatchButton() {
+        const selectedIds = Array.from(sampleCheckboxes)
+            .filter(checkbox => checkbox.checked)
+            .map(checkbox => checkbox.value);
+
+        selectedIdsInput.value = selectedIds.join(',');
+        batchDeleteBtn.disabled = selectedIds.length === 0;
+    }
+
+    // Écouter les changements sur chaque checkbox
+    sampleCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateBatchButton);
+    });
+});
+</script>
 {% endblock %}
