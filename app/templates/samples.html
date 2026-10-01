@@ -150,6 +150,7 @@
         </table>
     </div>
 	
+	{% block batch_actions %}
 	{% if samples %}
 	<div class="batch-actions">
 		<div class="batch-row">
@@ -166,10 +167,72 @@
 		</div>
 	</div>
 	{% endif %}
+	{% endblock %}
 
+	{% if pagination.pages > 1 %}
+	<div class="pagination-container">
+		<ul class="pagination">
+			<!-- Lien "Précédent" -->
+			<li class="pagination-item {% if not pagination.has_prev %}disabled{% endif %}">
+				<a href="{{ url_for('main.user_samples',
+						page=pagination.prev_num if pagination.has_prev else 1,
+						status=status_filter,
+						type=type_filter,
+						user=user_filter if user.is_admin else '',
+						search=search_filter,
+						sort=sort_by,
+						order=sort_order) }}"
+				   class="pagination-link"
+				   {% if not pagination.has_prev %}aria-disabled="true"{% endif %}>
+					<i class="fas fa-chevron-left"></i>
+				</a>
+			</li>
+
+			<!-- Numéros de page -->
+			{% for page_num in pagination.iter_pages() %}
+				{% if page_num %}
+					<li class="pagination-item {% if page_num == pagination.page %}active{% endif %}">
+						<a href="{{ url_for('main.user_samples',
+								page=page_num,
+								status=status_filter,
+								type=type_filter,
+								user=user_filter if user.is_admin else '',
+								search=search_filter,
+								sort=sort_by,
+								order=sort_order) }}"
+						   class="pagination-link">
+							{{ page_num }}
+						</a>
+					</li>
+				{% else %}
+					<!-- Séparateur pour les pages omises (ex: 1 ... 4 5 6 ... 10) -->
+					<li class="pagination-item disabled">
+						<span class="pagination-link">...</span>
+					</li>
+				{% endif %}
+			{% endfor %}
+
+			<!-- Lien "Suivant" -->
+			<li class="pagination-item {% if not pagination.has_next %}disabled{% endif %}">
+				<a href="{{ url_for('main.user_samples',
+						page=pagination.next_num if pagination.has_next else pagination.pages,
+						status=status_filter,
+						type=type_filter,
+						user=user_filter if user.is_admin else '',
+						search=search_filter,
+						sort=sort_by,
+						order=sort_order) }}"
+				   class="pagination-link"
+				   {% if not pagination.has_next %}aria-disabled="true"{% endif %}>
+					<i class="fas fa-chevron-right"></i>
+				</a>
+			</li>
+		</ul>
+	</div>
+	{% endif %}
 	
 	<div class="pagination-info">
-        <p>Affichage de {{ samples|length }} échantillon{% if samples|length >1 %}s{% endif %}</p>
+        <p>Affichage de {{ samples|length }} échantillon{% if samples|length > 1 %}s{% endif %}	(total : {{ pagination.total }})</p>
     </div>
 
     {% else %}
@@ -213,7 +276,30 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectAllCheckbox = document.getElementById('select-all');
     const sampleCheckboxes = document.querySelectorAll('.sample-checkbox:not([disabled])');
     const batchDeleteBtn = document.getElementById('batch-delete-btn');
-    const selectedIdsInput = document.getElementById('selected-sample-ids');
+    const batchExportBtn = document.getElementById('batch-export-btn');
+
+    // Mettre à jour les champs hidden et les boutons
+    function updateBatchActions() {
+        const selectedIds = Array.from(sampleCheckboxes)
+            .filter(checkbox => checkbox.checked)
+            .map(checkbox => checkbox.value);
+
+        // Mettre à jour tous les champs hidden sample_ids
+        document.querySelectorAll('input[name="sample_ids"]').forEach(input => {
+            input.value = selectedIds.join(',');
+        });
+
+        // Activer/désactiver les boutons
+        const hasSelection = selectedIds.length > 0;
+
+        if (batchDeleteBtn) {
+            batchDeleteBtn.disabled = !hasSelection;
+        }
+
+        if (batchExportBtn) {
+            batchExportBtn.disabled = !hasSelection;
+        }
+    }
 
     // Sélectionner/Désélectionner tout
     if (selectAllCheckbox) {
@@ -221,23 +307,13 @@ document.addEventListener('DOMContentLoaded', function() {
             sampleCheckboxes.forEach(checkbox => {
                 checkbox.checked = this.checked;
             });
-            updateBatchButton();
+            updateBatchActions();
         });
-    }
-
-    // Mettre à jour le bouton de suppression par lot
-    function updateBatchButton() {
-        const selectedIds = Array.from(sampleCheckboxes)
-            .filter(checkbox => checkbox.checked)
-            .map(checkbox => checkbox.value);
-
-        selectedIdsInput.value = selectedIds.join(',');
-        batchDeleteBtn.disabled = selectedIds.length === 0;
     }
 
     // Écouter les changements sur chaque checkbox
     sampleCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', updateBatchButton);
+        checkbox.addEventListener('change', updateBatchActions);
     });
 });
 </script>

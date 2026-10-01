@@ -19,6 +19,10 @@ def samples(template='samples.html', users='current'):
     user_filter = request.args.get('user', '')
     search_filter = request.args.get('search', '')
     
+    # Paramètres de pagination
+    page = request.args.get('page', 1, type=int)
+    per_page = 10  # Nombre d'échantillons par page (ajustable)
+    
     query = Sample.query
     if status_filter:
         query = query.filter_by(status=status_filter)
@@ -34,6 +38,7 @@ def samples(template='samples.html', users='current'):
             Sample.reference.ilike(f'%{search_filter}%')
         )
 
+    # Tri
     sort_by = request.args.get('sort', 'created_at')
     sort_order = request.args.get('order', 'desc')
 
@@ -42,11 +47,14 @@ def samples(template='samples.html', users='current'):
     else:
         query = query.order_by(getattr(Sample, sort_by))
         
-    samples = query.all()
+    # Pagination
+    paginated_samples = query.paginate(page=page, per_page=per_page, error_out=False)
+    
     users = User.query.order_by(User.username).all() if current_user.is_admin else None
 
     return render_template(template,
-                         samples=samples,
+                         samples=paginated_samples.items,  # Liste des échantillons pour la page courante
+                         pagination=paginated_samples,     # Objet de pagination
                          user=current_user,
                          users=users,
                          status_filter=status_filter,

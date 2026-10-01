@@ -6,3 +6,29 @@
 	<h2>Gestion des Échantillons</h2>
 	<p>Liste complète de tous les échantillons soumis</p>
 {% endblock %}
+
+{% block batch_actions %}
+    {% if samples %}
+	<div class="batch-actions">
+		<div class="batch-row">
+			<h3 class="filter-title">
+				<i class="fas fa-gear"></i> Actions par lot
+			</h3>
+			
+			<form method="POST" action="{{ url_for('admin.export_sample_list') }}" class="batch-form batch-form-margin-auto">
+				<input type="hidden" name="sample_ids" id="batch-sample-ids-export">
+				<button type="submit" class="btn btn-primary" disabled id="batch-export-btn">
+					<i class="fas fa-file-csv"></i> Créer une sample list
+				</button>
+			</form>
+			
+			<form method="POST" action="{{ url_for('main.batch_delete_samples') }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ces échantillons ? Cette action est irréversible.');" class="batch-form">
+				<button type="submit" class="btn btn-delete" disabled id="batch-delete-btn">
+					<i class="fas fa-trash"></i> Supprimer la sélection
+				</button>
+				<input type="hidden" name="sample_ids" id="selected-sample-ids">
+			</form>
+		</div>
+	</div>
+    {% endif %}
+{% endblock %}

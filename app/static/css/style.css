@@ -208,8 +208,6 @@ body {
 
 .btn-primary:hover {
     background-color: #2980b9;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px var(--shadow-color);
 }
 
 .btn-secondary {
@@ -735,6 +733,23 @@ body {
     font-size: 0.8rem;
     letter-spacing: 0.5px;
     position: relative;
+}
+
+.samples-table th:first-child,
+.samples-table td:first-child {
+    width: 30px;
+    text-align: center;
+}
+
+.samples-table input[type="checkbox"] {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
+.samples-table input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
 }
 
 .samples-table th a {
@@ -1790,9 +1805,17 @@ body {
     border-top: 1px solid var(--border-color);
 	border-bottom: 1px solid var(--border-color);
     margin-bottom: 1rem;
-    display: flex;
+    /*display: flex;*/
     gap: 0.5rem;
     align-items: center;
+}
+
+.batch-form {
+    margin: 0;
+}
+
+.batch-form-margin-auto {
+	margin-right: auto;
 }
 
 .batch-title {
@@ -1813,6 +1836,9 @@ body {
 .batch-actions .btn {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .batch-actions .btn-delete i {
@@ -1824,19 +1850,58 @@ body {
     color: var(--danger-color) !important;
 }
 
-.samples-table th:first-child,
-.samples-table td:first-child {
-    width: 30px;
-    text-align: center;
+/* ===== Pagination ===== */
+.pagination-container {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
 }
 
-.samples-table input[type="checkbox"] {
-    cursor: pointer;
-    width: 16px;
-    height: 16px;
+.pagination {
+    display: flex;
+    list-style: none;
+    gap: 0.25rem;
+    align-items: center;
 }
 
-.samples-table input[type="checkbox"]:disabled {
+.pagination-item {
+    margin: 0;
+}
+
+.pagination-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.pagination-link:hover:not([aria-disabled="true"]) {
+    background-color: var(--secondary-color);
+    color: var(--white);
+    border-color: var(--secondary-color);
+}
+
+.pagination-item.active .pagination-link {
+    background-color: var(--secondary-color);
+    color: var(--white);
+    border-color: var(--secondary-color);
+}
+
+.pagination-item.disabled .pagination-link {
+    color: var(--text-light);
     cursor: not-allowed;
-    opacity: 0.5;
+    background-color: var(--light-color);
+    border-color: var(--border-color);
+}
+
+.pagination-link i {
+    font-size: 0.8rem;
 }
