@@ -18,6 +18,7 @@
 					<i class="fas fa-filter"></i> Filtrer les échantillons
 				</h3>
 				
+				{% if show_type %}
 				<div class="filter-group">
                     <label for="type"> <i class="fas fa-tag"></i> Type :</label>
                     <select id="type" name="type">
@@ -26,6 +27,7 @@
                         <option value="nmr" {% if type_filter == 'nmr' %}selected{% endif %}>RMN</option>
                     </select>
                 </div>
+				{% endif %}
 				
 				<div class="filter-group">
                     <label for="status"><i class="fas fa-circle"></i> Statut :</label>
@@ -74,6 +76,7 @@
 					<th style="width: 30px;">
 						<input type="checkbox" id="select-all" title="Sélectionner tout">
 					</th>
+					{% if show_type %}
 					<th>
 						<a href="?sort=analysis_type&order={% if sort_by == 'analysis_type' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
                             Type
@@ -82,6 +85,7 @@
                             {% endif %}
                         </a>
 					</th>
+					{% endif %}
 					{% if user.is_admin and users is defined %}<th>Utilisateur</th>{% endif %}
                     <th>
 						<a href="?sort=reference&order={% if sort_by == 'reference' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
@@ -120,7 +124,7 @@
 							   class="sample-checkbox"
 							   {% if sample.status != 'pending' %}disabled title="Seuls les échantillons 'pending' peuvent être supprimés"{% endif %}>
 					</td>
-					<td data-label="Type">{{ sample.get_type() }}</td>
+					{% if show_type %} <td data-label="Type">{{ sample.get_type() }}</td>{% endif %}
 					{% if user.is_admin and users is defined %}<td>{{ sample.user.full_name }}</td>{% endif %}
                     <td data-label="Référence">{{ sample.reference }}</td>
 					<td data-label="Formule">{{ sample.formula or '-' }}</td>

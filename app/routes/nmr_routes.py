@@ -145,6 +145,14 @@ def sample_detail(sample_id):
                            sample=sample,
                            user=current_user,
                            status_names=STATUS_NAMES)
+                           
+@nmr_bp.route('/samples')
+@login_required
+def user_samples():
+    """Liste des échantillons RMN de l'utilisateur"""
+    
+    from ..routes.main_routes import samples
+    return samples(template='samples.html', users='current', sample_type=NMRSample)
     
 @nmr_bp.route('/sample/<int:sample_id>/edit', methods=['GET', 'POST'])
 @login_required

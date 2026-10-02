@@ -48,7 +48,7 @@
         </div>
 
         <div class="success-info">
-            <p><strong>Statut actuel :</strong> <span class="status-badge status-{{ sample.status }}">{{ sample.status }}</span></p>
+            <p><strong>Statut actuel :</strong> <span class="status-badge status-{{ sample.status }}">{{ sample.get_status() }}</span></p>
             <p>Vous recevrez une notification par email lorsque l'analyse sera terminée.</p>
         </div>
     </div>

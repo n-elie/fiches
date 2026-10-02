@@ -13,17 +13,18 @@ def allowed_file(filename):
     """Vérifier si le fichier a une extension autorisée"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
     
-def samples(template='samples.html', users='current'):
+def samples(template='samples.html', users='current', sample_type=Sample):
     status_filter = request.args.get('status', '')
     type_filter = request.args.get('type', '')
     user_filter = request.args.get('user', '')
     search_filter = request.args.get('search', '')
+    show_type = (sample_type==Sample)
     
     # Paramètres de pagination
     page = request.args.get('page', 1, type=int)
     per_page = 10  # Nombre d'échantillons par page (ajustable)
     
-    query = Sample.query
+    query = sample_type.query
     if status_filter:
         query = query.filter_by(status=status_filter)
     if type_filter:
@@ -35,7 +36,7 @@ def samples(template='samples.html', users='current'):
         
     if search_filter:
         query = query.filter(
-            Sample.reference.ilike(f'%{search_filter}%')
+            sample_type.reference.ilike(f'%{search_filter}%')
         )
 
     # Tri
@@ -43,9 +44,9 @@ def samples(template='samples.html', users='current'):
     sort_order = request.args.get('order', 'desc')
 
     if sort_order == 'desc':
-        query = query.order_by(desc(getattr(Sample, sort_by)))
+        query = query.order_by(desc(getattr(sample_type, sort_by)))
     else:
-        query = query.order_by(getattr(Sample, sort_by))
+        query = query.order_by(getattr(sample_type, sort_by))
         
     # Pagination
     paginated_samples = query.paginate(page=page, per_page=per_page, error_out=False)
@@ -57,6 +58,7 @@ def samples(template='samples.html', users='current'):
                          pagination=paginated_samples,     # Objet de pagination
                          user=current_user,
                          users=users,
+                         show_type=show_type,
                          status_filter=status_filter,
                          type_filter=type_filter,
                          user_filter=user_filter if current_user.is_admin else '',

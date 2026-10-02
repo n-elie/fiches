@@ -115,6 +115,14 @@ def sample_detail(sample_id):
                            sample=sample,
                            user=current_user,
                            status_names=STATUS_NAMES)
+                           
+@ms_bp.route('/samples')
+@login_required
+def user_samples():
+    """Liste des échantillons MS de l'utilisateur"""
+    
+    from ..routes.main_routes import samples
+    return samples(template='samples.html', users='current', sample_type=MSSample)
     
 @ms_bp.route('/sample/<int:sample_id>/edit', methods=['GET', 'POST'])
 @login_required
