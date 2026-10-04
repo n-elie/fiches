@@ -1512,8 +1512,8 @@ body {
     font-size: 0.9rem;
 }
 
-/* Formula Display */
-.formula-display {
+/* Formula and Mass Display */
+.mol-display {
     display: flex;
     gap: 1rem;
     padding: 1rem;
@@ -1522,7 +1522,7 @@ body {
     margin-bottom: 1rem;
 }
 
-.formula-icon {
+.mol-icon {
     width: 40px;
     height: 40px;
     background-color: var(--success-color);
@@ -1535,11 +1535,11 @@ body {
     flex-shrink: 0;
 }
 
-.formula-content {
+.mol-content {
     flex: 1;
 }
 
-.formula-label {
+.mol-label {
     display: block;
     font-size: 0.85rem;
     color: var(--text-light);
@@ -1548,11 +1548,25 @@ body {
     letter-spacing: 0.5px;
 }
 
-.formula-value {
+.mol-value {
     font-size: 1.25rem;
     color: var(--primary-color);
     font-weight: 600;
     font-family: 'Courier New', monospace;
+}
+
+/* Smiles */
+.smiles-display {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background-color: var(--light-color);
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+}
+
+.smiles-content {
+    flex: 1;
 }
 
 /* File Info */

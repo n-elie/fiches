@@ -52,6 +52,8 @@ class Sample(db.Model):
     quantity = db.Column(db.Float, nullable=False)
     structure_file = db.Column(db.String(500), nullable=True)
     formula = db.Column(db.String(100), nullable=True)
+    smiles = db.Column(db.Text, nullable=True)
+    mass = db.Column(db.Float, nullable=True)
     status = db.Column(db.String(50), default='pending')
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

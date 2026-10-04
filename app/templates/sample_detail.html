@@ -44,7 +44,7 @@
         {% if user.is_admin %}
         <div class="detail-card admin-actions-card">
             <div class="card-header">
-                <h2><i class="fas fa-tools"></i> Actions administratives</h2>
+                <h2><i class="fas fa-tools"></i> Actions</h2>
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('admin.update_sample_status', sample_id=sample.id) }}" class="status-update-form">
@@ -62,6 +62,14 @@
                         </button>
                     </div>
                 </form>
+            </div>
+			<div class="card-body">
+                <div class="action-buttons">
+                    <a href="{{ url_for('main.generate_pdf', sample_id=sample.id) }}"
+                       class="btn btn-success" title="Générer la fiche PDF">
+                        <i class="fas fa-file-pdf"></i> Générer fiche PDF
+                    </a>
+                </div>
             </div>
         </div>
         {% endif %}
@@ -198,18 +206,38 @@
         {% endif %}
 
         <!-- Section Structure chimique -->
-        {% if sample.formula or sample.structure_file %}
+        {% if sample.formula or sample.mass or sample.smiles or sample.structure_file %}
         <div class="detail-card">
             <div class="card-header">
                 <h2><i class="fas fa-molecule"></i> Structure chimique</h2>
             </div>
             <div class="card-body">
-                {% if sample.formula %}
-                <div class="formula-display">
-                    <div class="formula-icon"><i class="fas fa-atom"></i></div>
-                    <div class="formula-content">
-                        <span class="formula-label">Formule brute</span>
-                        <code class="formula-value">{{ sample.formula }}</code>
+				{% if sample.formula %}
+				<div class="mol-display">
+                    <div class="mol-icon"><i class="fas fa-atom"></i></div>
+                    <div class="mol-content">
+                        <span class="mol-label">Formule brute</span>
+                        <code class="mol-value">{{ sample.formula }}</code>
+                    </div>
+				</div>
+				{% endif %}
+				
+				{% if sample.mass %}
+				<div class="mol-display">
+					<div class="mol-icon"><i class="fas fa-balance-scale"></i></div>
+                    <div class="mol-content">
+                        <span class="mol-label">Masse exacte</span>
+                        <code class="mol-value">{{ "%.4f"|format(sample.mass) }}</code>
+                    </div>
+				</div>
+				{% endif %}
+				
+				{% if sample.smiles %}
+                <div class="smiles-display">
+                    <div class="mol-icon"><i class="fas fa-align-justify"></i></div>
+                    <div class="mol-content">
+                        <span class="mol-label">SMILES</span>
+                        <code class="mol-value">{{ sample.smiles }}</code>
                     </div>
                 </div>
                 {% endif %}
@@ -233,8 +261,8 @@
             </div>
         </div>
         {% endif %}
-
-        <!-- Section Notes -->
+		
+		<!-- Section Notes -->
         {% if sample.notes %}
         <div class="detail-card">
             <div class="card-header">

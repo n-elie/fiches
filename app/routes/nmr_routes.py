@@ -6,6 +6,7 @@ import os
 from datetime import datetime
 
 from ..models import db, NMRSample, STATUS_NAMES
+from .main_routes import allowed_file
 
 nmr_bp = Blueprint('nmr', __name__, url_prefix='/nmr')
 

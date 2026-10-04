@@ -1,11 +1,14 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, send_from_directory, current_app
+from flask import (Blueprint, render_template, request, redirect,
+                   url_for, flash, send_from_directory, current_app,
+                   make_response)
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from sqlalchemy import desc
 import os
 from datetime import datetime
 
-from ..models import db, Sample, User, STATUS_NAMES
+from ..models import db, Sample, User, STATUS_NAMES, MSSample, NMRSample
+from ..utils.pdf_utils import create_analysis_sheet_pdf
 
 main_bp = Blueprint('main', __name__)
 
@@ -176,3 +179,29 @@ def download_file(filename):
         flash('Accès non autorisé', 'error')
         return redirect(url_for('main.index'))
     return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+    
+@main_bp.route('/sample/<int:sample_id>/pdf')
+@login_required
+def generate_pdf(sample_id):
+    """Générer une fiche d'analyse PDF pour un échantillon"""
+    # Récupérer l'échantillon (peut être Sample, MSSample ou NMRSample)
+    sample = Sample.query.get_or_404(sample_id)
+    
+    # Vérifier les permissions
+    if sample.user_id != current_user.id and not current_user.is_admin:
+        flash('Accès non autorisé', 'error')
+        return redirect(url_for('main.index'))
+    
+    try:
+        # Générer le PDF
+        pdf_buffer = create_analysis_sheet_pdf(sample, current_app.config['UPLOAD_FOLDER'])
+        
+        # Créer la réponse
+        response = make_response(pdf_buffer.getvalue())
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename=fiche_analyse_{sample.reference}.pdf'
+        
+        return response
+    except Exception as e:
+        flash(f'Erreur lors de la génération du PDF: {str(e)}', 'error')
+        return redirect(request.referrer)

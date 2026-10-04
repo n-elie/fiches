@@ -6,6 +6,8 @@ import os
 from datetime import datetime
 
 from ..models import db, MSSample, STATUS_NAMES
+from .main_routes import allowed_file
+from ..utils.mol import read_mol, mol_to_smiles, mol_to_formula, formula_to_mass
 
 ms_bp = Blueprint('ms', __name__, url_prefix='/ms')
 
@@ -54,6 +56,8 @@ def submit_sample():
             return redirect(url_for('ms.submit_sample'))
 
         unique_filename = None
+        mass = None
+        smiles = None
         if 'structure_file' in request.files:
             file = request.files['structure_file']
             if file.filename != '':
@@ -63,9 +67,23 @@ def submit_sample():
                     unique_filename = f"{current_user.username}_{timestamp}_{filename}"
                     filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename)
                     file.save(filepath)
+                    
+                    try:
+                        mol = read_mol(filepath)
+                        smiles = mol_to_smiles(mol)
+                        formula = mol_to_formula(mol)
+                    except (OSError, RuntimeError) as e:
+                        flash(str(e), 'error')
+                        return redirect(url_for('ms.submit_sample'))
                 else:
                     flash('Type de fichier non autorisé. Formats acceptés: .cdx, .cdxml, .mol, .sdf', 'error')
                     return redirect(url_for('ms.submit_sample'))
+                    
+        if formula is not None:
+            mass = formula_to_mass(formula)
+        else:
+            flash('Veuillez sélectionner un fichier de structure ou entrer une formule brute')
+            return redirect(url_for('ms.submit_sample'))
 
         try:
             sample = MSSample(
@@ -74,6 +92,8 @@ def submit_sample():
                 quantity=float(quantity),
                 structure_file=unique_filename,
                 formula=formula,
+                mass=mass,
+                smiles=smiles,
                 solvents=', '.join(solvents),
                 other_solvent=other_solvent_name if other_solvent and other_solvent_name else None,
                 notes=notes,

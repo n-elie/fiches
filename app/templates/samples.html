@@ -138,6 +138,7 @@
                     <td data-label="Actions">
                         <a href="{{ url_for(sample.analysis_type + '.sample_detail', sample_id=sample.id) }}" class="btn-icon" title="Voir les détails"><i class="fas fa-eye"></i></a>
 						<a href="{{ url_for(sample.analysis_type + '.sample_edit', sample_id=sample.id) }}" class="btn-icon" title="Éditer"><i class="fas fa-edit"></i></a>
+						<a href="{{ url_for('main.generate_pdf', sample_id=sample.id) }}" class="btn-icon" title="Générer PDF"><i class="fas fa-file-pdf"></i></a>
                         {% if sample.structure_file %}<a href="{{ url_for('main.download_file', filename=sample.structure_file) }}" class="btn-icon" title="Télécharger le fichier"><i class="fas fa-download"></i></a>{% endif %}
 						{% if sample.status == 'pending' %}
 						<form method="POST"

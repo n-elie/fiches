@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: fd567c07e953
+Revision ID: 522250902ec6
 Revises: 
-Create Date: 2026-09-29 14:21:45.682009
+Create Date: 2026-09-30 18:16:25.741897
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'fd567c07e953'
+revision = '522250902ec6'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -34,7 +34,8 @@ def upgrade():
     sa.UniqueConstraint('username')
     )
     op.create_table('samples',
-    sa.Column('id', sa.Uuid(), nullable=False),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('uuid', sa.Uuid(), nullable=False),
     sa.Column('analysis_type', sa.String(length=10), nullable=False),
     sa.Column('team', sa.String(length=100), nullable=True),
     sa.Column('reference', sa.String(length=100), nullable=False),
@@ -61,14 +62,14 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('ms_samples',
-    sa.Column('id', sa.Uuid(), nullable=False),
+    sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('solvents', sa.String(length=100), nullable=True),
     sa.Column('other_solvent', sa.String(length=50), nullable=True),
     sa.ForeignKeyConstraint(['id'], ['samples.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('nmr_samples',
-    sa.Column('id', sa.Uuid(), nullable=False),
+    sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('stability', sa.Integer(), nullable=True),
     sa.Column('solvent', sa.String(length=10), nullable=True),
     sa.Column('frequency', sa.Integer(), nullable=False),
