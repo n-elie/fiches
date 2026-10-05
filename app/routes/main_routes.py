@@ -12,6 +12,11 @@ from ..utils.pdf_utils import create_analysis_sheet_pdf
 
 main_bp = Blueprint('main', __name__)
 
+SERVICES = {
+    'ms': ('Service HRMS', 'Nicolas Elie', '3016'),
+    'nmr': ('Service RMN', 'Jean-François Gallard', '3125')
+}
+
 def allowed_file(filename):
     """Vérifier si le fichier a une extension autorisée"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
@@ -194,7 +199,10 @@ def generate_pdf(sample_id):
     
     try:
         # Générer le PDF
-        pdf_buffer = create_analysis_sheet_pdf(sample, current_app.config['UPLOAD_FOLDER'])
+        pdf_buffer = create_analysis_sheet_pdf(
+            sample, current_app.config['UPLOAD_FOLDER'],
+            *SERVICES.get(sample.analysis_type, [None, None, None])
+        )
         
         # Créer la réponse
         response = make_response(pdf_buffer.getvalue())
