@@ -184,6 +184,7 @@ def download_file(filename):
 @login_required
 def generate_pdf(sample_id):
     """Générer une fiche d'analyse PDF pour un échantillon"""
+    
     # Récupérer l'échantillon (peut être Sample, MSSample ou NMRSample)
     sample = Sample.query.get_or_404(sample_id)
     
@@ -202,7 +203,7 @@ def generate_pdf(sample_id):
         if not os.path.exists(logo_path):
             logo_path = None
         pdf_buffer = create_analysis_sheet_pdf(
-            sample, current_app.config['UPLOAD_FOLDER'],
+            [sample], current_app.config['UPLOAD_FOLDER'],
             service_name=service_name, responsible_name=responsible_name, phone_number=phone_number,
             logo_path=logo_path,
             base_url=request.host_url
@@ -217,3 +218,65 @@ def generate_pdf(sample_id):
     except Exception as e:
         flash(f'Erreur lors de la génération du PDF: {str(e)}', 'error')
         return redirect(request.referrer)
+        
+@main_bp.route('/samples/batch-pdf', methods=['POST'])
+@login_required
+def batch_generate_pdf():
+    """
+    Générer un PDF avec une page par échantillon
+    pour les échantillons sélectionnés.
+    """
+    sample_ids = request.form.get('sample_ids', '')
+    print(sample_ids)
+    if not sample_ids:
+        flash('Aucun échantillon sélectionné', 'error')
+        return redirect(url_for('main.user_samples'))
+
+    sample_ids = [int(sid.strip()) for sid in sample_ids.split(',') if sid.strip()]
+    if not sample_ids:
+        flash('Aucun échantillon valide sélectionné', 'error')
+        return redirect(url_for('main.user_samples'))
+
+    # Récupérer les échantillons (filtrer par utilisateur si non-admin)
+    query = Sample.query.filter(Sample.id.in_(sample_ids))
+    if not current_user.is_admin:
+        query = query.filter_by(user_id=current_user.id)
+
+    samples = query.all()
+    if not samples:
+        flash('Aucun échantillon trouvé', 'error')
+        return redirect(url_for('main.user_samples'))
+
+    # Vérifier que tous les échantillons appartiennent à l'utilisateur ou que l'utilisateur est admin
+    for sample in samples:
+        if sample.user_id != current_user.id and not current_user.is_admin:
+            flash(f"Accès non autorisé pour l'échantillon {sample.reference}", 'error')
+            return redirect(url_for('main.user_samples'))
+
+    try:
+        # Générer le PDF pour tous les échantillons
+        service_infos = current_app.config['SERVICES'].get(sample.analysis_type, {})
+        service_name = service_infos.get('name', None)
+        responsible_name = service_infos.get('responsible', None)
+        phone_number = service_infos.get('phone', None)
+        logo_path = os.path.join(current_app.static_folder, 'images', current_app.config['LOGO'])
+        if not os.path.exists(logo_path):
+            logo_path = None
+        pdf_buffer = create_analysis_sheet_pdf(
+            samples, current_app.config['UPLOAD_FOLDER'],
+            service_name=service_name, responsible_name=responsible_name, phone_number=phone_number,
+            logo_path=logo_path,
+            base_url=request.host_url
+        )
+
+        # Créer la réponse
+        response = make_response(pdf_buffer.getvalue())
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = 'attachment; filename=batch_analyses.pdf'
+
+        return response
+
+    except Exception as e:
+        flash(f'Erreur lors de la génération du PDF par lot: {str(e)}', 'error')
+        raise 1/0
+        return redirect(url_for('main.user_samples'))
