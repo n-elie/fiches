@@ -127,7 +127,7 @@
 					{% if show_type %} <td data-label="Type">{{ sample.get_type() }}</td>{% endif %}
 					{% if user.is_admin and users is defined %}<td>{{ sample.user.full_name }}</td>{% endif %}
                     <td data-label="Référence">{{ sample.reference }}</td>
-					<td data-label="Formule">{{ sample.formula or '-' }}</td>
+					<td data-label="Formule">{{ sample.get_html_formula()|safe or '-' }}</td>
                     <td data-label="Quantité">{{ sample.quantity }} mg</td>
                     <td data-label="Statut">
                         <span class="status-badge status-{{ sample.status }}">

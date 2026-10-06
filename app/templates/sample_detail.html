@@ -217,7 +217,7 @@
                     <div class="mol-icon"><i class="fas fa-atom"></i></div>
                     <div class="mol-content">
                         <span class="mol-label">Formule brute</span>
-                        <code class="mol-value">{{ sample.formula }}</code>
+                        <code class="mol-value">{{ sample.get_html_formula()|safe }}</code>
                     </div>
 				</div>
 				{% endif %}
@@ -246,11 +246,11 @@
                 <div class="file-info">
                     <div class="file-preview">
                         <i class="fas fa-file-code"></i>
-                        <div class="file-type">Fichier de structure</div>
+                        <div class="file-type">Struct</div>
                     </div>
                     <div class="file-details">
                         <span class="file-name">{{ sample.structure_file }}</span>
-                        <span class="file-meta">Fichier chimique</span>
+                        <span class="file-meta">Fichier de structure chimique</span>
                     </div>
                     <a href="{{ url_for('main.download_file', filename=sample.structure_file) }}"
                        class="btn btn-primary" title="Télécharger le fichier">

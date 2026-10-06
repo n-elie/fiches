@@ -3,6 +3,8 @@ from flask_login import UserMixin
 import uuid
 from datetime import datetime
 
+from .utils.mol import html_formula
+
 db = SQLAlchemy()
 
 STATUS_NAMES = {
@@ -75,6 +77,9 @@ class Sample(db.Model):
         
     def get_status(self):
         return STATUS_NAMES.get(self.status, self.status)
+        
+    def get_html_formula(self):
+        return html_formula(self.formula)
         
 class MSSample(Sample):
     """Héritage pour les échantillons MS"""
