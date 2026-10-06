@@ -31,7 +31,7 @@ class LDAPAuth:
 
             # Attributs LDAP à récupérer
             user_attrs_config = self.config.get('LDAP_USER_ATTRIBUTES')
-            self.user_attributes = user_attrs_config.split(',') if user_attrs_config else DEFAULT_LDAP_USER_ATTRIBUTES
+            self.user_attributes = user_attrs_config if user_attrs_config else DEFAULT_LDAP_USER_ATTRIBUTES
             
             # Attribut pour l'équipe
             self.team_attribute = self.config.get('LDAP_TEAM_ATTRIBUTE', 'ou')

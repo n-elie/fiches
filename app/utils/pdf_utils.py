@@ -86,7 +86,7 @@ def generate_qr_code(url: str, size: int = 100) -> io.BytesIO:
 
     qr = qrcode.QRCode(
         version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
         box_size=10,
         border=2,
     )
@@ -410,7 +410,7 @@ def create_analysis_sheet_pdf(sample, upload_folder, service_name=None, responsi
     # Générer le QR code (si base_url est fourni)
     qr_image = None
     if QRCODE_AVAILABLE and base_url:
-        sample_url = urljoin(base_url, f"{sample.analysis_type}/sample/{sample.id}")
+        sample_url = urljoin(base_url, sample.analysis_type, "sample", sample.id)
         qr_image = ImageReader(generate_qr_code(sample_url, size=200))
 
     # Configuration du document en A4 landscape

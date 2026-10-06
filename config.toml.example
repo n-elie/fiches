@@ -1,0 +1,51 @@
+# =============================================================================
+# Configuration de l'application Fiches
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Base de données
+# -----------------------------------------------------------------------------
+[database]
+type = "mysql"             # Type de base de données : "mysql" ou "sqlite"
+path = "analyses.db"       # Configuration SQLite (optionnelle, par défaut : analyses.db)
+host = "localhost"         # Hôte MySQL
+user = "root"              # Utilisateur MySQL
+password = ""              # Mot de passe MySQL
+name = "spectrometrie_db"  # Nom de la base de données
+
+# -----------------------------------------------------------------------------
+# LDAP
+# -----------------------------------------------------------------------------
+[ldap]
+server = "ldap://localhost:389"
+base_dn = "dc=example,dc=com"
+bind_dn = "cn=admin,dc=example,dc=com"
+bind_password = ""
+user_search_base = "ou=users,dc=example,dc=com"
+user_attributes = ["cn", "mail", "uid", "ou"]
+team_attribute = "icsnEquipeNum"
+
+# -----------------------------------------------------------------------------
+# Application Flask
+# -----------------------------------------------------------------------------
+[app]
+secret_key = "your-secret-key-here"  # Clé secrète pour Flask
+upload_folder = "uploads"        # Dossier pour les uploads
+allowed_extensions = ["cdx", "cdxml", "mol", "sdf"]  # Extensions autorisées
+max_content_length = 16777216        # Taille max des uploads (16 Mo en octets)
+port = 5000                            # Port de l'application
+debug = true                           # Mode debug
+admin_users = ["admin"]               # Utilisateurs administrateurs
+
+# -----------------------------------------------------------------------------
+# Services d'analyse (utilisés pour les fiches PDF)
+# -----------------------------------------------------------------------------
+[services.ms]
+name = "Service HRMS"
+responsible = "Someone"
+phone = "1234"
+
+[services.nmr]
+name = "Service RMN"
+responsible = "Otherone"
+phone = "5678"

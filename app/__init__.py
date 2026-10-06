@@ -1,7 +1,7 @@
 from flask import Flask, render_template
 from flask_login import LoginManager
 from flask_migrate import Migrate
-from .config import Config
+from .config import config
 from .models import db
 from .auth import dap_auth
 import os
@@ -10,7 +10,7 @@ import os
 login_manager = LoginManager()
 migrate = Migrate()
 
-def create_app(config_class=Config):
+def create_app():
     """Créer et configurer l'application Flask"""
 
     # Configuration du dossier des templates (relatif au dossier parent)
@@ -21,7 +21,7 @@ def create_app(config_class=Config):
                template_folder=template_folder,
                static_folder=static_folder)
 
-    app.config.from_object(config_class)
+    app.config.from_object(config)
 
     # Initialiser les extensions
     db.init_app(app)
