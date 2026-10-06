@@ -202,7 +202,8 @@ def generate_pdf(sample_id):
         pdf_buffer = create_analysis_sheet_pdf(
             sample, current_app.config['UPLOAD_FOLDER'],
             *SERVICES.get(sample.analysis_type, [None, None, None]),
-            logo_path=os.path.join(current_app.static_folder, 'images', 'logo_icsn_transparent.png')
+            logo_path=os.path.join(current_app.static_folder, 'images', 'logo_icsn_transparent.png'),
+            base_url=request.host_url
         )
         
         # Créer la réponse

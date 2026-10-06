@@ -5,6 +5,7 @@ import os
 import tempfile
 import io
 from datetime import datetime
+from urllib.parse import urljoin
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, A5, landscape
@@ -28,21 +29,79 @@ try:
     pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', 'DejaVuSans-Bold.ttf'))
 except:
     pass
+    
+# QR Code
+try:
+    import qrcode
+    QRCODE_AVAILABLE = True
+except ImportError:
+    QRCODE_AVAILABLE = False
 
 class TwoA5DocTemplate(BaseDocTemplate):
-    def __init__(self, filename, frames, **kwargs):
+    def __init__(self, filename, frames, qr_image=None, **kwargs):
         BaseDocTemplate.__init__(self, filename, **kwargs)
+        self.qr_image = qr_image
         self.addPageTemplates([
-            PageTemplate(id='TwoA5', frames=frames, onPage=self.draw_separator)
+            PageTemplate(id='TwoA5', frames=frames, onPage=self.draw_page)
         ])
 
-    def draw_separator(self, canvas, doc):
+    def draw_page(self, canvas, doc):
+        # 1. Ligne verticale entre les deux frames
         x_position = 2.5*mm + 148*mm
         canvas.setStrokeColor(colors.HexColor('#bdc3c7'))
         canvas.setLineWidth(0.5)
         canvas.line(x_position, 5*mm, x_position, 205*mm)
+        
+        # 2. Dessiner le QR code dans chaque frame (bas à droite)
+        if self.qr_image:
+            qr_size = 25*mm
+            qr_y = 5*mm + 20*mm  # 20mm au-dessus du bas
 
-def create_analysis_sheet_pdf(sample, upload_folder, service_name=None, responsible_name=None, phone_number=None, logo_path=None):
+            # Frame de gauche
+            qr_x_left = 5*mm + 143*mm - qr_size - 3*mm
+            canvas.drawImage(
+                self.qr_image,
+                qr_x_left, qr_y,
+                width=qr_size,
+                height=qr_size,
+                mask='auto'
+            )
+
+            # Frame de droite
+            qr_x_right = 5*mm + 148*mm + 143*mm - qr_size - 3*mm
+            canvas.drawImage(
+                self.qr_image,
+                qr_x_right, qr_y,
+                width=qr_size,
+                height=qr_size,
+                mask='auto'
+            )
+
+def generate_qr_code(url: str, size: int = 100) -> io.BytesIO:
+    """
+    Génère un QR code comme image PNG dans un BytesIO
+    """
+    if not QRCODE_AVAILABLE:
+        return None
+
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=2,
+    )
+    qr.add_data(url)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+    img = img.resize((size, size), resample=0)
+
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG")
+    buffer.seek(0)
+    return buffer
+
+def create_analysis_sheet_pdf(sample, upload_folder, service_name=None, responsible_name=None, phone_number=None, logo_path=None, base_url=None):
     """
     Créer une fiche d'analyse PDF pour un echantillon avec deux copies A5 sur une page A4 landscape
 
@@ -52,6 +111,7 @@ def create_analysis_sheet_pdf(sample, upload_folder, service_name=None, responsi
         service_name: Nom du service d'analyse (optionnel)
         responsible_name: Nom du responsable (optionnel)
         phone_number: Numero de telephone du responsable (optionnel)
+        base_url: URL de base de l'application (ex: "http://localhost:5000")
 
     Returns:
         BytesIO: Contenu du PDF
@@ -105,9 +165,31 @@ def create_analysis_sheet_pdf(sample, upload_folder, service_name=None, responsi
     
     # Style pour le pied de page
     footer_style = ParagraphStyle(
-        name='Footer',
+        name='FooterStyle',
         fontSize=8,
         textColor=colors.grey)
+    
+    # Style pour URL
+    url_style = ParagraphStyle(
+        name = 'URLStyle',
+        fontSize=6,
+        textColor=colors.grey,
+        alignment=TA_CENTER,
+        leading=8,
+        spaceAfter=4
+    )
+    
+    # Style pour les tableaux
+    table_style = TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#ecf0f1')),
+        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#bdc3c7')),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 2),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 2),
+        ('TOPPADDING', (0, 0), (-1, -1), 1),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 1),
+    ])
     
     hr = HRFlowable(
         width="100%",
@@ -143,7 +225,7 @@ def create_analysis_sheet_pdf(sample, upload_folder, service_name=None, responsi
         
         elements.append("{{placeholder}}")  # {{placeholder}} sera remplacé par le sous-titre de la fiche
         elements.append(hr)
-        
+
         # INFORMATIONS PRINCIPALES
         elements.append(Paragraph("INFORMATIONS PRINCIPALES", subtitle_style))
         elements.append(Spacer(1, 0.5*mm))
@@ -168,16 +250,7 @@ def create_analysis_sheet_pdf(sample, upload_folder, service_name=None, responsi
 
         # Créer le tableau
         table = Table(data, colWidths=[40*mm, 55*mm])
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#ecf0f1')),
-            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#bdc3c7')),
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
-            ('LEFTPADDING', (0, 0), (-1, -1), 2),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 2),
-            ('TOPPADDING', (0, 0), (-1, -1), 1),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 1),
-        ]))
+        table.setStyle(table_style)
 
         elements.append(table)
         elements.append(Spacer(1, 2*mm))
@@ -212,16 +285,7 @@ def create_analysis_sheet_pdf(sample, upload_folder, service_name=None, responsi
 
         # Créer le tableau
         table = Table(data, colWidths=[40*mm, 55*mm])
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#ecf0f1')),
-            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#bdc3c7')),
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
-            ('LEFTPADDING', (0, 0), (-1, -1), 2),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 2),
-            ('TOPPADDING', (0, 0), (-1, -1), 1),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 1),
-        ]))
+        table.setStyle(table_style)
 
         elements.append(table)
         elements.append(Spacer(1, 2*mm))
@@ -258,16 +322,7 @@ def create_analysis_sheet_pdf(sample, upload_folder, service_name=None, responsi
             nmr_data.append([Paragraph("Experiences", label_style), Paragraph(experiments_text, value_style)])
 
             nmr_table = Table(nmr_data, colWidths=[40*mm, 55*mm])
-            nmr_table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#ecf0f1')),
-                ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#bdc3c7')),
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
-                ('LEFTPADDING', (0, 0), (-1, -1), 2),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 2),
-                ('TOPPADDING', (0, 0), (-1, -1), 1),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 1),
-            ]))
+            nmr_table.setStyle(table_style)
             elements.append(nmr_table)
             elements.append(Spacer(1, 2*mm))
 
@@ -290,16 +345,7 @@ def create_analysis_sheet_pdf(sample, upload_folder, service_name=None, responsi
             ms_data.append([Paragraph("Solvants", label_style), Paragraph(solvents_text, value_style)])
 
             ms_table = Table(ms_data, colWidths=[40*mm, 55*mm])
-            ms_table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#ecf0f1')),
-                ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#bdc3c7')),
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
-                ('LEFTPADDING', (0, 0), (-1, -1), 2),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 2),
-                ('TOPPADDING', (0, 0), (-1, -1), 1),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 1),
-            ]))
+            ms_table.setStyle(table_style)
             elements.append(ms_table)
             elements.append(Spacer(1, 2*mm))
 
@@ -342,7 +388,7 @@ def create_analysis_sheet_pdf(sample, upload_folder, service_name=None, responsi
         width=143*mm,
         height=200*mm,
         leftPadding=20*mm,
-        bottomPadding=10*mm,
+        bottomPadding=0,
         rightPadding=10*mm,
         topPadding=20*mm,
         id='left'
@@ -350,16 +396,22 @@ def create_analysis_sheet_pdf(sample, upload_folder, service_name=None, responsi
 
     # Frame droite (deuxieme copie A5)
     frame_right = Frame(
-        x1=5*mm + 148*mm,  # Position apres la premiere A5
-        y1=5*mm,
-        width=143*mm,
-        height=200*mm,
-        leftPadding=10*mm,
-        bottomPadding=10*mm,
-        rightPadding=20*mm,
-        topPadding=20*mm,
+        x1=frame_left.x1 + 148*mm,  # Position apres la premiere A5
+        y1=frame_left.y1,
+        width=frame_left.width,
+        height=frame_left.height,
+        leftPadding=frame_left.rightPadding,
+        bottomPadding=frame_left.bottomPadding,
+        rightPadding=frame_left.leftPadding,
+        topPadding=frame_left.topPadding,
         id='right'
     )
+
+    # Générer le QR code (si base_url est fourni)
+    qr_image = None
+    if QRCODE_AVAILABLE and base_url:
+        sample_url = urljoin(base_url, f"{sample.analysis_type}/sample/{sample.id}")
+        qr_image = ImageReader(generate_qr_code(sample_url, size=200))
 
     # Configuration du document en A4 landscape
     doc = TwoA5DocTemplate(
@@ -370,7 +422,8 @@ def create_analysis_sheet_pdf(sample, upload_folder, service_name=None, responsi
         topMargin=0,
         bottomMargin=0,
         title=f"Fiche de depot - {sample.reference}",
-        frames=[frame_left, frame_right]  # Passer les frames ici
+        frames=[frame_left, frame_right],
+        qr_image=qr_image
     )
 
     # Créer un PageTemplate avec les deux frames
