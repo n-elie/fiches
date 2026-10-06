@@ -29,7 +29,6 @@ try:
 except:
     pass
 
-
 class TwoA5DocTemplate(BaseDocTemplate):
     def __init__(self, filename, frames, **kwargs):
         BaseDocTemplate.__init__(self, filename, **kwargs)
@@ -43,7 +42,7 @@ class TwoA5DocTemplate(BaseDocTemplate):
         canvas.setLineWidth(0.5)
         canvas.line(x_position, 5*mm, x_position, 205*mm)
 
-def create_analysis_sheet_pdf(sample, upload_folder, service_name=None, responsible_name=None, phone_number=None):
+def create_analysis_sheet_pdf(sample, upload_folder, service_name=None, responsible_name=None, phone_number=None, logo_path=None):
     """
     Créer une fiche d'analyse PDF pour un echantillon avec deux copies A5 sur une page A4 landscape
 
@@ -104,6 +103,12 @@ def create_analysis_sheet_pdf(sample, upload_folder, service_name=None, responsi
         spaceAfter=1.5
     )
     
+    # Style pour le pied de page
+    footer_style = ParagraphStyle(
+        name='Footer',
+        fontSize=8,
+        textColor=colors.grey)
+    
     hr = HRFlowable(
         width="100%",
         thickness=1,
@@ -115,6 +120,19 @@ def create_analysis_sheet_pdf(sample, upload_folder, service_name=None, responsi
     def create_sheet_content():
         """Cree le contenu d'une fiche individuelle"""
         elements = []
+
+        if logo_path and os.path.exists(logo_path):
+            try:
+                img = ImageReader(logo_path)
+                iw, ih = img.getSize()
+                aspect = ih / float(iw)
+                width = 15*mm
+                img = Image(logo_path, width=width, height=(width*aspect))
+                img.hAlign = 'CENTER'
+                elements.append(img)
+                elements.append(Spacer(1, 2*mm))
+            except:
+                pass
 
         # Titre avec informations du service
         elements.append(Paragraph(service_name, title_style))
@@ -288,7 +306,6 @@ def create_analysis_sheet_pdf(sample, upload_folder, service_name=None, responsi
         # STRUCTURE CHIMIQUE
         if sample.structure_file:
             elements.append(Paragraph("STRUCTURE CHIMIQUE", subtitle_style))
-            elements.append(Spacer(1, 0.5*mm))
 
             # Chemin complet du fichier
             file_path = os.path.join(upload_folder, sample.structure_file)
@@ -307,8 +324,7 @@ def create_analysis_sheet_pdf(sample, upload_folder, service_name=None, responsi
 
         # Pied de page
         elements.append(Spacer(1, 0.5*mm))
-        elements.append(Paragraph("Généré le " + datetime.now().strftime('%d/%m/%Y a %H:%M'),
-                                 ParagraphStyle(name='Footer', fontSize=8, textColor=colors.grey)))
+        elements.append(Paragraph("Généré le " + datetime.now().strftime('%d/%m/%Y a %H:%M'), footer_style))
 
         return elements
 
