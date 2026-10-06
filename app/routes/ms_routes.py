@@ -4,10 +4,11 @@ from werkzeug.utils import secure_filename
 from sqlalchemy import desc
 import os
 from datetime import datetime
+import pandas as pd
 
 from ..models import db, MSSample, STATUS_NAMES
 from .main_routes import allowed_file
-from ..utils.mol import read_mol, mol_to_smiles, mol_to_formula, formula_to_mass
+from ..utils.mol import read_mol, mol_from_smiles, mol_to_smiles, mol_to_formula, formula_to_mass
 
 ms_bp = Blueprint('ms', __name__, url_prefix='/ms')
 
@@ -223,3 +224,125 @@ def sample_edit(sample_id):
                            sample=sample,
                            user=current_user,
                            solvents=SOLVENTS)
+                           
+@ms_bp.route('/samples/import', methods=['GET', 'POST'])
+@login_required
+def import_samples():
+    """Importer plusieurs échantillons depuis un fichier Excel ou CSV"""
+
+    if request.method == 'POST':
+        # Verifier qu'un fichier est fourni
+        if 'excel_file' not in request.files:
+            flash('Aucun fichier Excel fourni', 'error')
+            return redirect(url_for('ms.import_samples'))
+
+        file = request.files['excel_file']
+        if file.filename == '':
+            flash('Veuillez selectionner un fichier Excel', 'error')
+            return redirect(url_for('ms.import_samples'))
+
+        match file.mimetype:
+            case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+                filetype = 'excel'
+            case 'text/csv' | 'application/csv' | 'application/vnd.ms-excel':
+                filetype = 'csv'
+            case _:
+                flash('Type de fichier non autorisé. Formats acceptés: .xlsx, .xls, .csv', 'error')
+                return redirect(url_for('ms.import_samples'))
+
+        # Lire le fichier Excel avec pandas
+        try:
+            match filetype:
+                case 'excel':
+                    df = pd.read_excel(file)
+                case 'csv':
+                    df = pd.read_csv(file, sep=';')
+            
+            df.columns = df.columns.str.lower()  # Normaliser les noms de colonnes
+            df = df.replace(float('nan'), None)
+
+            # Vérifier que les colonnes requises sont présentes
+            required_columns = ['reference', 'quantity']
+            missing_columns = [col for col in required_columns if col not in df.columns]
+            if missing_columns:
+                flash(f'Colonnes manquantes dans le fichier: {", ".join(missing_columns)}', 'error')
+                return redirect(url_for('ms.import_samples'))
+
+            # Convertir en liste de dictionnaires
+            samples_data = df.to_dict('records')
+
+            # Créer les échantillons
+            created_count = 0
+            errors = []
+            team = request.form.get('team')
+
+            if not team:
+                flash('Veuillez selectionner une équipe', 'error')
+                return redirect(url_for('ms.import_samples'))
+
+            os.makedirs(current_app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+            for sample_data in samples_data:
+                try:
+                    reference = sample_data.get('reference')
+                    quantity = sample_data.get('quantity')
+                    solvent = sample_data.get('solvent')
+                    formula = sample_data.get('formula')
+                    smiles = sample_data.get('smiles')
+                    notes = sample_data.get('notes')
+
+                    # Validation
+                    if not reference or not quantity:
+                        errors.append(f"Ligne {samples_data.index(sample_data) + 2}: Référence et quantité sont obligatoires")
+                        continue
+
+                    # Calculer la formule si le SMILES est fourni
+                    if smiles:
+                        mol = mol_from_smiles(smiles)
+                        formula = mol_to_formula(mol)
+
+                    # Calculer la masse si formule est fournie
+                    mass = None
+                    if formula:
+                        try:
+                            mass = formula_to_mass(formula)
+                        except Exception as e:
+                            errors.append(f"Ligne {samples_data.index(sample_data) + 2}: Erreur calcul masse - {str(e)}")
+                            continue
+
+                    # Créer l'échantillon
+                    sample = MSSample(
+                        team=team,
+                        reference=str(reference),
+                        quantity=float(quantity),
+                        formula=str(formula) if formula else None,
+                        mass=mass,
+                        smiles=str(smiles) if smiles else None,
+                        solvents=str(solvent) if solvent else None,
+                        notes=str(notes) if notes else None,
+                        user_id=current_user.id
+                    )
+                    db.session.add(sample)
+                    created_count += 1
+
+                except Exception as e:
+                    errors.append(f"Ligne {samples_data.index(sample_data) + 2}: {str(e)}")
+                    db.session.rollback()
+                    continue
+
+            if created_count > 0:
+                db.session.commit()
+                flash(f'{created_count} échantillon{"s" if created_count > 1 else ""} importé{"s" if created_count > 1 else ""} avec succès!', 'success')
+
+            for error in errors:
+                flash(error, 'error')
+
+            return redirect(url_for('ms.user_samples'))
+
+        except Exception as e:
+            flash(f'Erreur lors de la lecture du fichier Excel: {str(e)}', 'error')
+            return redirect(url_for('ms.import_samples'))
+
+    # GET: Afficher le formulaire d'import
+    return render_template('ms/import_samples.html',
+                           user=current_user)

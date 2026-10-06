@@ -133,6 +133,8 @@ def text_charge(charge) -> str:
 
 def html_formula(formula: str):
     """Returns an HTML representation of the chemical formula (including charge information) as a string."""
+    if formula is None:
+        return '-'
     html_formula = formula     # start with original formula
     html_charge = text_charge(molmass.Formula(formula).charge)  # start with original text_charge
     # replace all numbers (0 - 9) by subscript numbers (for elemental frequencies)
