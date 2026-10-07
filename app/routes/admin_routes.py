@@ -297,11 +297,7 @@ def delete_user(user_id):
         flash('Impossible de supprimer un utilisateur LDAP. Modifiez-le via LDAP.', 'error')
         return redirect(url_for('admin.all_users'))
 
-    # Supprimer les échantillons de l'utilisateur ou les réattribuer
-    # Option 1: Supprimer les échantillons (attention !)
-    # Sample.query.filter_by(user_id=user_id).delete()
-
-    # Option 2: Réattribuer à l'admin courant (recommandé)
+    # Réattribuer les échantillons de l'utilisateur
     Sample.query.filter_by(user_id=user_id).update({'user_id': current_user.id})
 
     db.session.delete(user)

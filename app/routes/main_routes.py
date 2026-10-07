@@ -278,5 +278,4 @@ def batch_generate_pdf():
 
     except Exception as e:
         flash(f'Erreur lors de la génération du PDF par lot: {str(e)}', 'error')
-        raise 1/0
         return redirect(url_for('main.user_samples'))

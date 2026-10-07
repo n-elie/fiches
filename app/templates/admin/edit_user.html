@@ -85,14 +85,21 @@
             <a href="{{ url_for('admin.all_users') }}" class="btn btn-secondary">
                 <i class="fas fa-times"></i> Annuler
             </a>
-            {% if not user.is_ldap %}
-            <a href="{{ url_for('admin.delete_user', user_id=user.id) }}"
-               class="btn btn-delete"
-               onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.');">
-                <i class="fas fa-trash"></i> Supprimer
-            </a>
-            {% endif %}
+			{% if not user.is_ldap %}
+			<button type="button" class="btn btn-delete"
+					onclick="if(confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.')) { document.getElementById('delete-form-{{ user.id }}').submit(); }">
+				<i class="fas fa-trash"></i> Supprimer
+			</button>
+			{% endif %}
         </div>
     </form>
+	
+	{% if not user.is_ldap %}
+	<form id="delete-form-{{ user.id }}" method="POST"
+		  action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+		  style="display: none;">
+		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+	</form>
+	{% endif %}
 </div>
 {% endblock %}

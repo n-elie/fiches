@@ -860,12 +860,12 @@ body {
     border-color: var(--border-color);
 }
 
-.samples-table .btn-delete {
+.btn-delete {
     color: var(--danger-color) !important;
 }
 
-.samples-table .btn-delete:hover {
-    background-color: rgba(231, 76, 60, 0.1) !important;
+.btn-delete:hover {
+    background-color: color-mix(in srgb-linear, var(--danger-color), white) !important;
     color: var(--danger-color) !important;
 }
 
@@ -1875,15 +1875,6 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-}
-
-.batch-actions .btn-delete i {
-    color: var(--danger-color) !important;
-}
-
-.batch-actions .btn-delete:hover {
-    background-color: rgba(231, 76, 60, 0.1) !important;
-    color: var(--danger-color) !important;
 }
 
 /* ===== Pagination ===== */
