@@ -251,7 +251,6 @@ def create_sheet_content(sample, upload_folder, service_name=None, responsible_n
 
     # Champs communs a tous les echantillons
     structural_fields = [
-        ("SMILES", sample.smiles or "Non précisé"),
         ("Formule", html_formula(sample.formula) or "Non précisée"),
     ]
     match sample.analysis_type:
@@ -350,7 +349,6 @@ def create_sheet_content(sample, upload_folder, service_name=None, responsible_n
             elements.append(Image(mol_to_img(mol), width=50*mm, height=50*mm))
             elements.append(Spacer(1, 1*mm))
         else:
-            print(f"Erreur lors de l'ajout de la structure.")
             elements.append(Paragraph("Structure: Impossible de charger la structure", value_style))
 
         elements.append(Spacer(1, 1*mm))
@@ -376,8 +374,6 @@ def create_analysis_sheet_pdf(samples: list[Sample], upload_folder: str, service
     Returns:
         BytesIO: Contenu du PDF
     """
-    print(samples)
-    print(len(samples))
 
     # Créer un buffer pour le PDF
     buffer = io.BytesIO()
@@ -435,7 +431,6 @@ def create_analysis_sheet_pdf(samples: list[Sample], upload_folder: str, service
             responsible_name=responsible_name, phone_number=phone_number,
             logo_path=logo_path
         )
-        print(sample.reference, len(sheet_content))
         
         # Construire le PDF avec FrameBreak
         # Chaque frame va recevoir son propre contenu
