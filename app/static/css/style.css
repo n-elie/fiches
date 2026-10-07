@@ -107,6 +107,11 @@ body {
     font-size: 1rem;
 }
 
+.user-info .user-picture {
+	font-size: 3rem;
+	color: var(--dark-color);
+}
+
 .user-info span {
     font-weight: 400;
 }
