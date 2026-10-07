@@ -3,27 +3,30 @@
 {% block title %}Gestion des Utilisateurs{% endblock %}
 
 {% block content %}
-<div class="admin-users-container">
-    <div class="admin-users-header">
+<div class="samples-container">
+    <div class="samples-header">
         <h2>Gestion des Utilisateurs</h2>
         <p>Liste de tous les utilisateurs enregistrés</p>
     </div>
 
-    <div class="admin-users-filter">
+    <div class="samples-filter">
         <form method="GET" action="" class="filter-form">
-            <div class="filter-group">
-                <input type="text" name="search" placeholder="Rechercher un utilisateur..."
-                       value="{{ request.args.get('search', '') }}">
-                <button type="submit" class="btn btn-secondary">
-                    <i class="fas fa-search"></i>
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="search"><i class="fas fa-search"></i> Rechercher :</label>
+                    <input type="text" id="search" name="search" placeholder="Rechercher un utilisateur..."
+                           value="{{ request.args.get('search', '') }}">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Rechercher
                 </button>
             </div>
         </form>
     </div>
 
     {% if users %}
-    <div class="admin-users-table-container">
-        <table class="users-table">
+    <div class="samples-table-container">
+        <table class="samples-table">
             <thead>
                 <tr>
                     <th>Nom d'utilisateur</th>
@@ -39,26 +42,26 @@
             <tbody>
                 {% for user in users %}
                 <tr>
-                    <td>{{ user.username }}</td>
-                    <td>{{ user.full_name }}</td>
-                    <td>{{ user.teams }}</td>
-                    <td>{{ user.email }}</td>
-                    <td>
+                    <td data-label="Nom d'utilisateur">{{ user.username }}</td>
+                    <td data-label="Nom complet">{{ user.full_name }}</td>
+                    <td data-label="Équipes">{{ user.teams }}</td>
+                    <td data-label="Email">{{ user.email }}</td>
+                    <td data-label="Rôle">
                         {% if user.is_admin %}
                             <span class="admin-badge">Administrateur</span>
                         {% else %}
-                            <span class="user-badge">Utilisateur</span>
+                            <span class="status-badge status-processing">Utilisateur</span>
                         {% endif %}
                     </td>
-                    <td>
+                    <td data-label="Dernière connexion">
                         {% if user.last_login %}
                             {{ user.last_login.strftime('%d/%m/%Y %H:%M') }}
                         {% else %}
                             Jamais
                         {% endif %}
                     </td>
-                    <td>{{ user.samples|length }}</td>
-                    <td>
+                    <td data-label="Échantillons">{{ user.samples|length }}</td>
+                    <td data-label="Actions">
                         <a href="{{ url_for('admin.all_samples') }}?user={{ user.id }}" class="btn-icon" title="Voir les échantillons">
                             <i class="fas fa-flask"></i>
                         </a>
@@ -70,11 +73,11 @@
     </div>
 
     <div class="pagination-info">
-        <p>Affichage de {{ users|length }} utilisateurs</p>
+        <p>Affichage de {{ users|length }} utilisateur{% if users|length > 1 %}s{% endif %}</p>
     </div>
 
     {% else %}
-    <div class="no-users">
+    <div class="no-samples">
         <i class="fas fa-users"></i>
         <h3>Aucun utilisateur trouvé</h3>
         <p>Aucun utilisateur ne correspond à vos critères de recherche.</p>
