@@ -256,6 +256,14 @@ body {
     margin-bottom: 1.5rem;
 }
 
+.form-header a {
+    color: var(--secondary-color);
+}
+
+.form-header a:visited {
+    color: color-mix(in srgb-linear, var(--secondary-color), black);
+}
+
 .form-section ul {
 	margin-left: 2rem;
 	margin-bottom: 1rem;
