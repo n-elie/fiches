@@ -64,12 +64,17 @@
                 </form>
             </div>
 			<div class="card-body">
-                <div class="action-buttons">
-                    <a href="{{ url_for('main.generate_pdf', sample_id=sample.id) }}"
-                       class="btn btn-success" title="Générer la fiche PDF">
-                        <i class="fas fa-file-pdf"></i> Générer fiche PDF
-                    </a>
-                </div>
+				<div class="form-row">
+					<div class="form-group">
+						<label for="status">Fiche d'analyse</label>
+						<div class="action-buttons">
+							<a href="{{ url_for('main.generate_pdf', sample_id=sample.id) }}"
+							   class="btn btn-primary" title="Générer la fiche PDF">
+								<i class="fas fa-file-pdf"></i> Générer fiche PDF
+							</a>
+						</div>
+					</div>
+				</div>
             </div>
         </div>
         {% endif %}
