@@ -13,7 +13,7 @@
             <div class="stat-content">
 				<span class="stat-icon"><i class="fas fa-flask"></i></span>
                 <span class="stat-value">{{ total_samples }}</span>
-                <span class="stat-label">Échantillons totaux</span>
+                <span class="stat-label">Échantillon{{ 's' if total_samples>1 }}</span>
             </div>
         </div>
 
@@ -21,7 +21,7 @@
             <div class="stat-content">
 				<span class="stat-icon"><i class="fas fa-users"></i></span>
                 <span class="stat-value">{{ total_users }}</span>
-                <span class="stat-label">Utilisateurs</span>
+                <span class="stat-label">Utilisateur{{ 's' if total_users>1 }}</span>
             </div>
         </div>
 
@@ -37,7 +37,7 @@
             <div class="stat-content">
 				<span class="stat-icon"><i class="fas fa-check-circle"></i></span>
                 <span class="stat-value">{{ completed_samples }}</span>
-                <span class="stat-label">Terminés</span>
+                <span class="stat-label">Terminé{{ 's' if completed_samples>1 }}</span>
             </div>
         </div>
     </div>
