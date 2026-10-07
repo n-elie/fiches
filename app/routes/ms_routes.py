@@ -246,14 +246,16 @@ def import_samples():
                 filetype = 'excel'
             case 'text/csv' | 'application/csv' | 'application/vnd.ms-excel':
                 filetype = 'csv'
+            case 'application/vnd.oasis.opendocument.spreadsheet':
+                filetype = 'ods'
             case _:
-                flash('Type de fichier non autorisé. Formats acceptés: .xlsx, .xls, .csv', 'error')
+                flash('Type de fichier non autorisé. Formats acceptés: .xlsx, .xls, .ods, .csv', 'error')
                 return redirect(url_for('ms.import_samples'))
 
         # Lire le fichier Excel avec pandas
         try:
             match filetype:
-                case 'excel':
+                case 'excel' | 'ods':
                     df = pd.read_excel(file)
                 case 'csv':
                     df = pd.read_csv(file, sep=';')

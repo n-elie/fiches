@@ -3,51 +3,45 @@
 {% block title %}Importer des échantillons MS{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h2 class="mb-0">Importer des échantillons MS</h2>
-                </div>
-                <div class="card-body">
-                    <p>Téléchargez un fichier Excel contenant les échantillons à importer.</p>
-                    <p><strong>Format attendu:</strong> Le fichier doit contenir au minimum les colonnes suivantes :</p>
-                    <ul>
-                        <li><strong>reference</strong> (obligatoire) : Référence de l'echantillon</li>
-                        <li><strong>quantity</strong> (obligatoire) : Quantité en mg</li>
-                        <li><strong>solvent</strong> (optionnel) : Solvant utilisé</li>
-                        <li><strong>formula</strong> (optionnel) : Formule brute</li>
-                        <li><strong>smiles</strong> (optionnel) : SMILES de la molécule</li>
-                        <li><strong>notes</strong> (optionnel) : Notes supplémentaires</li>
-                    </ul>
-                    
-                    <form method="POST" enctype="multipart/form-data">
-                        <div class="mb-3">
-                            <label for="team" class="form-label">Équipe:</label>
-                            <select class="form-select" id="team" name="team" required>
-                                <option value="">Sélectionnez une équipe</option>
-                                {% for team in user.get_teams() %}
-                                    <option value="{{ team }}" {% if team == user.last_team_used %}selected{% endif %}>{{ team }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="excel_file" class="form-label">Fichier Excel:</label>
-                            <input type="file" class="form-control" id="excel_file" name="excel_file" accept=".xlsx,.xls,.csv" required>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-upload"></i> Importer
-                        </button>
-                        <a href="{{ url_for('ms.user_samples') }}" class="btn btn-secondary">
-                            Annuler
-                        </a>
-                    </form>
-                </div>
+<div class="form-container">
+    <div class="form-header">
+        <h2>Importer des échantillons MS</h2>
+        <p>Téléchargez un fichier Excel contenant les échantillons à importer.</p>
+    </div>
+
+    <div class="form-section">
+        <p><strong>Format attendu:</strong> Le fichier doit contenir au minimum les colonnes suivantes :</p>
+        <ul>
+            <li><strong>reference</strong> (obligatoire) : Référence de l'échantillon</li>
+            <li><strong>quantity</strong> (obligatoire) : Quantité en mg</li>
+            <li><strong>solvent</strong> (optionnel) : Solvant utilisé</li>
+            <li><strong>formula</strong> (optionnel) : Formule brute</li>
+            <li><strong>smiles</strong> (optionnel) : SMILES de la molécule</li>
+            <li><strong>notes</strong> (optionnel) : Notes supplémentaires</li>
+        </ul>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" class="sample-form">
+        <div class="form-section">
+            <h3>Paramètres d'import</h3>
+
+            {% include "partials/_user_info.html" %}
+
+            <div class="form-group required">
+                <label for="excel_file">Fichier Excel:</label>
+                <input type="file" class="form-control" id="excel_file" name="excel_file" accept=".xlsx,.xls,.ods,.csv" required>
+				<span class="help-text">Formats acceptés: .xlsx, .xls, .ods, .csv</span>
             </div>
         </div>
-    </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-upload"></i> Importer
+            </button>
+            <a href="{{ url_for('ms.user_samples') }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Annuler
+            </a>
+        </div>
+    </form>
 </div>
 {% endblock %}

@@ -251,6 +251,11 @@ body {
     margin-bottom: 1.5rem;
 }
 
+.form-section ul {
+	margin-left: 2rem;
+	margin-bottom: 1rem;
+}
+
 .form-group label {
     display: block;
     margin-bottom: 0.5rem;
@@ -271,6 +276,18 @@ body {
     font-size: 1rem;
     font-family: inherit;
     transition: var(--transition);
+}
+
+.form-group input::file-selector-button {
+	padding: 0.75rem 1.5rem;
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius);
+	font-size: 1rem;
+	text-decoration: none;
+	background-color: var(--light-color);
+	cursor: pointer;
+	color: var(--text-color);
+	transition: var(--transition);
 }
 
 .form-group input:focus,
