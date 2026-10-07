@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 from datetime import datetime
 
@@ -27,8 +28,10 @@ class User(db.Model, UserMixin):
     last_team_used = db.Column(db.String(5), nullable=True)
     is_admin = db.Column(db.Boolean, default=False)
     ldap_dn = db.Column(db.String(500), nullable=True)
+    password_hash = db.Column(db.String(128), nullable=True)  # Pour les utilisateurs locaux
     last_login = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_ldap = db.Column(db.Boolean, default=True)  # True=LDAP, False=local
 
     # Relation avec les échantillons
     samples = db.relationship('Sample', backref='user', lazy=True)
@@ -40,6 +43,18 @@ class User(db.Model, UserMixin):
         if not self.teams:
             return []
         return self.teams.split(',') if ',' in self.teams else [self.teams]
+        
+    def set_password(self, password):
+        """Définir le mot de passe (hashé)"""
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        """Vérifier le mot de passe"""
+        return check_password_hash(self.password_hash, password)
+
+    def is_local_user(self):
+        """Vérifier si l'utilisateur est local (non-LDAP)"""
+        return not self.is_ldap or self.ldap_dn is None
 
 class Sample(db.Model):
     """Modèle échantillon pour stocker les informations des analyses"""

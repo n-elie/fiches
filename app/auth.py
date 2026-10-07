@@ -121,6 +121,13 @@ class LDAPAuth:
                 logger.error(f"Authentification échouée pour {username}: {e}")
                 conn.unbind()
                 return None
+                
+            user = User.query.filter_by(username=username).first()
+            if user and user.is_local_user() and user.check_password(password):
+                logger.info(f"Authentification locale réussie pour {username}")
+                user.last_login = db.func.now()
+                db.session.commit()
+                return user
 
         except Exception as e:
             logger.error(f"Erreur LDAP lors de l'authentification: {e}")

@@ -1,3 +1,4 @@
+from werkzeug.security import generate_password_hash
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
 from flask_login import login_required, current_user
 import csv
@@ -5,7 +6,7 @@ import io
 from datetime import datetime
 from sqlalchemy import desc
 from collections.abc import Callable
-    
+
 import pandas as pd
 
 from ..models import db, Sample, User
@@ -202,3 +203,109 @@ def update_sample_status(sample_id):
         flash('Statut invalide', 'error')
 
     return redirect(url_for('admin.admin_sample_detail', sample_id=sample_id))
+    
+@admin_bp.route('/users/create', methods=['GET', 'POST'])
+@login_required
+def create_user():
+    """Créer un nouvel utilisateur local"""
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        email = request.form.get('email', '').strip()
+        full_name = request.form.get('full_name', '').strip()
+        password = request.form.get('password', '')
+        confirm_password = request.form.get('confirm_password', '')
+        teams = request.form.get('teams', '').strip()
+        is_admin = request.form.get('is_admin') == 'on'
+
+        # Validation
+        errors = []
+        if not username:
+            errors.append('Le nom d\'utilisateur est obligatoire')
+        if not email:
+            errors.append('L\'email est obligatoire')
+        if not password:
+            errors.append('Le mot de passe est obligatoire')
+        if password and password != confirm_password:
+            errors.append('Les mots de passe ne correspondent pas')
+        if User.query.filter_by(username=username).first():
+            errors.append('Ce nom d\'utilisateur existe déjà')
+        if User.query.filter_by(email=email).first():
+            errors.append('Cet email est déjà utilisé')
+
+        if errors:
+            for error in errors:
+                flash(error, 'error')
+            return redirect(url_for('admin.create_user'))
+
+        # Créer l'utilisateur local
+        user = User(
+            username=username,
+            email=email,
+            full_name=full_name,
+            teams=teams,
+            is_admin=is_admin,
+            is_ldap=False,  # Utilisateur LOCAL
+            ldap_dn=None
+        )
+        user.set_password(password)  # Hash du mot de passe
+
+        db.session.add(user)
+        db.session.commit()
+
+        flash(f'Utilisateur {username} créé avec succès !', 'success')
+        return redirect(url_for('admin.all_users'))
+
+    return render_template('admin/create_user.html', user=current_user)
+
+@admin_bp.route('/users/<int:user_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_user(user_id):
+    """Éditer un utilisateur (LDAP ou local)"""
+    user = User.query.get_or_404(user_id)
+
+    if request.method == 'POST':
+        user.username = request.form.get('username', user.username).strip()
+        user.email = request.form.get('email', user.email).strip()
+        user.full_name = request.form.get('full_name', user.full_name).strip()
+        user.teams = request.form.get('teams', user.teams).strip()
+        user.is_admin = request.form.get('is_admin') == 'on'
+
+        # Mise à jour du mot de passe (uniquement pour les utilisateurs locaux)
+        password = request.form.get('password', '')
+        if password and user.is_local_user():
+            confirm_password = request.form.get('confirm_password', '')
+            if password == confirm_password:
+                user.set_password(password)
+            else:
+                flash('Les mots de passe ne correspondent pas', 'error')
+                return redirect(url_for('admin.edit_user', user_id=user_id))
+
+        db.session.commit()
+        flash(f'Utilisateur {user.username} mis à jour avec succès !', 'success')
+        return redirect(url_for('admin.all_users'))
+
+    return render_template('admin/edit_user.html', user=user, current_user=current_user)
+
+@admin_bp.route('/users/<int:user_id>/delete', methods=['POST'])
+@login_required
+def delete_user(user_id):
+    """Supprimer un utilisateur (uniquement local)"""
+    user = User.query.get_or_404(user_id)
+
+    # Empêcher la suppression des utilisateurs LDAP
+    if user.is_ldap:
+        flash('Impossible de supprimer un utilisateur LDAP. Modifiez-le via LDAP.', 'error')
+        return redirect(url_for('admin.all_users'))
+
+    # Supprimer les échantillons de l'utilisateur ou les réattribuer
+    # Option 1: Supprimer les échantillons (attention !)
+    # Sample.query.filter_by(user_id=user_id).delete()
+
+    # Option 2: Réattribuer à l'admin courant (recommandé)
+    Sample.query.filter_by(user_id=user_id).update({'user_id': current_user.id})
+
+    db.session.delete(user)
+    db.session.commit()
+
+    flash(f'Utilisateur {user.username} supprimé avec succès !', 'success')
+    return redirect(url_for('admin.all_users'))

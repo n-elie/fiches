@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Créer un utilisateur{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h2>Créer un nouvel utilisateur</h2>
+        <p>Créez un compte utilisateur local (non-LDAP)</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('admin.create_user') }}" class="sample-form">
+        <div class="form-section">
+            <h3>Informations de base</h3>
+
+            <div class="form-row">
+                <div class="form-group required">
+                    <label for="username">Nom d'utilisateur <span class="required-star">*</span></label>
+                    <input type="text" id="username" name="username" required
+                           placeholder="Ex: jdupont" pattern="[a-zA-Z0-9_]+"
+                           title="Caractères alphanumériques et underscores uniquement">
+                    <span class="help-text">Nom d'utilisateur unique pour la connexion</span>
+                </div>
+
+                <div class="form-group required">
+                    <label for="email">Email <span class="required-star">*</span></label>
+                    <input type="email" id="email" name="email" required
+                           placeholder="Ex: jdupont@domaine.fr">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="full_name">Nom complet</label>
+                    <input type="text" id="full_name" name="full_name"
+                           placeholder="Ex: Jean Dupont">
+                    <span class="help-text">Nom et prénom de l'utilisateur</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="teams">Équipes</label>
+                    <input type="text" id="teams" name="teams"
+                           placeholder="Ex: Chimie,Biologie">
+                    <span class="help-text">Équipes séparées par des virgules</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Mot de passe</h3>
+
+            <div class="form-row">
+                <div class="form-group required">
+                    <label for="password">Mot de passe <span class="required-star">*</span></label>
+                    <input type="password" id="password" name="password" required
+                           minlength="8" placeholder="Minimum 8 caractères">
+                    <span class="help-text">Le mot de passe doit contenir au moins 8 caractères</span>
+                </div>
+
+                <div class="form-group required">
+                    <label for="confirm_password">Confirmer le mot de passe <span class="required-star">*</span></label>
+                    <input type="password" id="confirm_password" name="confirm_password" required>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Permissions</h3>
+
+            <div class="form-group">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="is_admin" name="is_admin">
+                    <label for="is_admin">Administrateur</label>
+                    <span class="help-text">Cocher pour donner des droits d'administrateur</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> Créer l'utilisateur
+            </button>
+            <a href="{{ url_for('admin.all_users') }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Annuler
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -23,6 +23,12 @@
             </div>
         </form>
     </div>
+	
+	<div class="form-actions" style="margin-bottom: 1.5rem; padding: 0 2rem;">
+        <a href="{{ url_for('admin.create_user') }}" class="btn btn-primary">
+            <i class="fas fa-user-plus"></i> Ajouter un utilisateur
+        </a>
+    </div>
 
     {% if users %}
     <div class="samples-table-container">
@@ -34,6 +40,7 @@
                     <th>Équipes</th>
                     <th>Email</th>
                     <th>Rôle</th>
+					<th>Type</th>
                     <th>Dernière connexion</th>
                     <th>Échantillons</th>
                     <th>Actions</th>
@@ -51,6 +58,13 @@
                             <span class="admin-badge">Administrateur</span>
                         {% else %}
                             <span class="status-badge status-processing">Utilisateur</span>
+                        {% endif %}
+                    </td>
+					<td data-label="Type">
+                        {% if user.is_ldap %}
+                            <span class="status-badge status-completed">LDAP</span>
+                        {% else %}
+                            <span class="status-badge status-pending">Local</span>
                         {% endif %}
                     </td>
                     <td data-label="Dernière connexion">

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Éditer {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h2>Éditer l'utilisateur</h2>
+        <p>Modifiez les informations de l'utilisateur <strong>{{ user.username }}</strong>
+            {% if user.is_ldap %}(LDAP){% else %}(Local){% endif %}
+        </p>
+    </div>
+
+    <form method="POST" action="{{ url_for('admin.edit_user', user_id=user.id) }}" class="sample-form">
+        <div class="form-section">
+            <h3>Informations de base</h3>
+
+            <div class="form-row">
+                <div class="form-group required">
+                    <label for="username">Nom d'utilisateur <span class="required-star">*</span></label>
+                    <input type="text" id="username" name="username" required
+                           value="{{ user.username }}" placeholder="Ex: jdupont">
+                </div>
+
+                <div class="form-group required">
+                    <label for="email">Email <span class="required-star">*</span></label>
+                    <input type="email" id="email" name="email" required
+                           value="{{ user.email }}" placeholder="Ex: jdupont@domaine.fr">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="full_name">Nom complet</label>
+                    <input type="text" id="full_name" name="full_name"
+                           value="{{ user.full_name or '' }}" placeholder="Ex: Jean Dupont">
+                </div>
+
+                <div class="form-group">
+                    <label for="teams">Équipes</label>
+                    <input type="text" id="teams" name="teams"
+                           value="{{ user.teams or '' }}" placeholder="Ex: Chimie,Biologie">
+                </div>
+            </div>
+        </div>
+
+        {% if not user.is_ldap %}
+        <div class="form-section">
+            <h3>Mot de passe</h3>
+            <p>Laissez vide pour conserver le mot de passe actuel.</p>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="password">Nouveau mot de passe</label>
+                    <input type="password" id="password" name="password"
+                           minlength="8" placeholder="Minimum 8 caractères">
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password">Confirmer le nouveau mot de passe</label>
+                    <input type="password" id="confirm_password" name="confirm_password">
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="form-section">
+            <h3>Permissions</h3>
+
+            <div class="form-group">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="is_admin" name="is_admin"
+                           {% if user.is_admin %}checked{% endif %}>
+                    <label for="is_admin">Administrateur</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Sauvegarder
+            </button>
+            <a href="{{ url_for('admin.all_users') }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Annuler
+            </a>
+            {% if not user.is_ldap %}
+            <a href="{{ url_for('admin.delete_user', user_id=user.id) }}"
+               class="btn btn-delete"
+               onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.');">
+                <i class="fas fa-trash"></i> Supprimer
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+{% endblock %}
