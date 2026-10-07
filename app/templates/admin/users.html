@@ -76,10 +76,10 @@
                     </td>
                     <td data-label="Échantillons">{{ user.samples|length }}</td>
                     <td data-label="Actions">
-						<a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn-icon" title="Éditer">
+						<a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn btn-icon" title="Éditer">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <a href="{{ url_for('admin.all_samples') }}?user={{ user.id }}" class="btn-icon" title="Voir les échantillons">
+                        <a href="{{ url_for('admin.all_samples') }}?user={{ user.id }}" class="btn btn-icon" title="Voir les échantillons">
                             <i class="fas fa-flask"></i>
                         </a>
 						{% if not user.is_ldap %}
@@ -88,7 +88,7 @@
 							  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.');"
 							  class="action-form">
 							<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-							<button type="submit" class="btn-icon btn-delete" title="Supprimer">
+							<button type="submit" class="btn btn-icon btn-delete" title="Supprimer">
 								<i class="fas fa-trash"></i>
 							</button>
 						</form>

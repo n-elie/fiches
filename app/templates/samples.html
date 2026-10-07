@@ -136,17 +136,17 @@
                     </td>
                     <td data-label="Date">{{ sample.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
                     <td data-label="Actions">
-                        <a href="{{ url_for(sample.analysis_type + '.sample_detail', sample_id=sample.id) }}" class="btn-icon" title="Voir les détails"><i class="fas fa-eye"></i></a>
-						<a href="{{ url_for(sample.analysis_type + '.sample_edit', sample_id=sample.id) }}" class="btn-icon" title="Éditer"><i class="fas fa-edit"></i></a>
-						<a href="{{ url_for('main.generate_pdf', sample_id=sample.id) }}" class="btn-icon" title="Générer PDF"><i class="fas fa-file-pdf"></i></a>
-                        {% if sample.structure_file %}<a href="{{ url_for('main.download_file', filename=sample.structure_file) }}" class="btn-icon" title="Télécharger le fichier"><i class="fas fa-download"></i></a>{% endif %}
+                        <a href="{{ url_for(sample.analysis_type + '.sample_detail', sample_id=sample.id) }}" class="btn btn-icon" title="Voir les détails"><i class="fas fa-eye"></i></a>
+						<a href="{{ url_for(sample.analysis_type + '.sample_edit', sample_id=sample.id) }}" class="btn btn-icon" title="Éditer"><i class="fas fa-edit"></i></a>
+						<a href="{{ url_for('main.generate_pdf', sample_id=sample.id) }}" class="btn btn-icon" title="Générer PDF"><i class="fas fa-file-pdf"></i></a>
+                        {% if sample.structure_file %}<a href="{{ url_for('main.download_file', filename=sample.structure_file) }}" class="btn btn-icon" title="Télécharger le fichier"><i class="fas fa-download"></i></a>{% endif %}
 						{% if sample.status == 'pending' %}
 						<form method="POST"
 							action="{{ url_for('main.delete_sample', sample_id=sample.id) }}"
 							onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet échantillon ? Cette action est irréversible.');"
 							class="action-form">
 							<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-							<button type="submit" class="btn-icon btn-delete" title="Supprimer"><i class="fas fa-trash"></i></button>
+							<button type="submit" class="btn btn-icon btn-delete" title="Supprimer"><i class="fas fa-trash"></i></button>
 						</form>
 						{% endif %}
                     </td>
