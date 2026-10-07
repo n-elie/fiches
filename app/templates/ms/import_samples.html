@@ -22,6 +22,8 @@
     </div>
 
     <form method="POST" enctype="multipart/form-data" class="sample-form">
+		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+		
         <div class="form-section">
             <h3>Paramètres d'import</h3>
 

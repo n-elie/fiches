@@ -10,6 +10,8 @@
     </div>
 
     <form method="POST" action="{{ url_for('nmr.submit_sample') }}" class="sample-form" enctype="multipart/form-data">
+		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+		
 		{% include "partials/_user_info.html" %}
 		
         <div class="form-section">

@@ -48,6 +48,7 @@
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('admin.update_sample_status', sample_id=sample.id) }}" class="status-update-form">
+					<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="form-row">
                         <div class="form-group">
                             <label for="status">Statut</label>

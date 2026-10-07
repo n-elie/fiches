@@ -1,6 +1,7 @@
 from flask import Flask, render_template
 from flask_login import LoginManager
 from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect
 from .config import config
 from .models import db
 from .auth import dap_auth
@@ -9,6 +10,7 @@ import os
 # Initialiser Flask-Login au niveau du module
 login_manager = LoginManager()
 migrate = Migrate()
+csrf = CSRFProtect()
 
 def create_app():
     """Créer et configurer l'application Flask"""
@@ -27,6 +29,7 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
+    csrf.init_app(app)
 
     # Configuration de Flask-Login
     login_manager.login_view = 'auth.login'

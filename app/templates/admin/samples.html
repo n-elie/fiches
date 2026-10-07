@@ -9,6 +9,8 @@
 
 {% block extra_batch_actions %}		
 	<form method="POST" action="{{ url_for('admin.export_sample_list') }}" class="batch-form batch-form-margin-auto">
+		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+	
 		<input type="hidden" name="sample_ids" id="batch-sample-ids-export">
 		<button type="submit" class="btn btn-primary" disabled id="batch-export-btn">
 			<i class="fas fa-file-csv"></i> Créer une sample list

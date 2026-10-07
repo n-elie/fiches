@@ -10,6 +10,8 @@
     </div>
 
     <form method="POST" action="{{ url_for('admin.create_user') }}" class="sample-form">
+		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+		
         <div class="form-section">
             <h3>Informations de base</h3>
 

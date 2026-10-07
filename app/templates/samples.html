@@ -145,6 +145,7 @@
 							action="{{ url_for('main.delete_sample', sample_id=sample.id) }}"
 							onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet échantillon ? Cette action est irréversible.');"
 							class="action-form">
+							<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 							<button type="submit" class="btn-icon btn-delete" title="Supprimer"><i class="fas fa-trash"></i></button>
 						</form>
 						{% endif %}
@@ -163,6 +164,7 @@
 			</h3>
 			
 			<form method="POST" action="{{ url_for('main.batch_generate_pdf') }}" class="batch-form">
+				<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 				<button type="submit" class="btn btn-primary" disabled id="batch-pdf-btn">
 					<i class="fas fa-file-pdf"></i> Générer PDFs
 				</button>
@@ -172,6 +174,7 @@
 			{% block extra_batch_actions %}{% endblock %}
 			
 			<form method="POST" action="{{ url_for('main.batch_delete_samples') }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ces échantillons ? Cette action est irréversible.');" class="batch-form">
+				<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 				<button type="submit" class="btn btn-delete" disabled id="batch-delete-btn">
 					<i class="fas fa-trash"></i> Supprimer la sélection
 				</button>
