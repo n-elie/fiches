@@ -23,7 +23,7 @@ SOLVENTS = {"CH2Cl2": "CH<sub>2</sub>Cl<sub>2</sub>",
 def submit_sample():
     """Formulaire de soumission d'échantillon"""
     
-    os.makedirs(current_app.config['UPLOAD_FOLDER'], exist_ok=True)
+    os.makedirs(os.path.join(current_app.config['UPLOAD_FOLDER'], 'ms', 'structures'), exist_ok=True)
     
     if request.method == 'POST':
         team = request.form.get('team')  # Équipe sélectionnée pour cette analyse
@@ -41,8 +41,6 @@ def submit_sample():
             if solvent not in valid_solvents:
                 flash(f'Le solvant n\'est pas disponible.', 'error')
                 return redirect(url_for('ms.submit_sample'))
-                
-        print(solvents, other_solvent, other_solvent_name)
 
         if not solvents and ((other_solvent and not other_solvent_name) or not other_solvent):
             flash('Veuillez sélectionner au moins un solvant', 'error')
@@ -66,7 +64,7 @@ def submit_sample():
                     filename = secure_filename(file.filename)
                     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
                     unique_filename = f"{current_user.username}_{timestamp}_{filename}"
-                    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename)
+                    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], 'ms', 'structures', unique_filename)
                     file.save(filepath)
                     
                     try:
@@ -189,7 +187,7 @@ def sample_edit(sample_id):
             if file.filename != '':
                 if file and allowed_file(file.filename):
                     # Supprimer l'ancien fichier si nécessaire
-                    old_filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], sample.structure_file)
+                    old_filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], sample.analysis_type, 'structures', sample.structure_file)
                     if os.path.exists(old_filepath):
                         os.remove(old_filepath)
                     
@@ -197,7 +195,7 @@ def sample_edit(sample_id):
                     filename = secure_filename(file.filename)
                     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
                     unique_filename = f"{current_user.username}_{timestamp}_{filename}"
-                    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename)
+                    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], sample.analysis_type, 'structures', unique_filename)
                     file.save(filepath)
                     sample.structure_file = unique_filename
         
@@ -229,6 +227,8 @@ def sample_edit(sample_id):
 @login_required
 def import_samples():
     """Importer plusieurs échantillons depuis un fichier Excel ou CSV"""
+
+    os.makedirs(os.path.join(current_app.config['UPLOAD_FOLDER'], 'ms', 'structures'), exist_ok=True)
 
     if request.method == 'POST':
         # Verifier qu'un fichier est fourni
@@ -281,8 +281,6 @@ def import_samples():
             if not team:
                 flash('Veuillez selectionner une équipe', 'error')
                 return redirect(url_for('ms.import_samples'))
-
-            os.makedirs(current_app.config['UPLOAD_FOLDER'], exist_ok=True)
 
             for sample_data in samples_data:
                 try:

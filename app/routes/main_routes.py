@@ -102,7 +102,7 @@ def _delete_samples(samples):
 
         # Supprimer le fichier de structure si il existe
         if sample.structure_file:
-            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], sample.structure_file)
+            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], sample.analysis_type, 'structures', sample.structure_file)
             if os.path.exists(filepath):
                 try:
                     os.remove(filepath)
@@ -178,7 +178,7 @@ def download_file(filename):
     if not sample or (sample.user_id != current_user.id and not current_user.is_admin):
         flash('Accès non autorisé', 'error')
         return redirect(url_for('main.index'))
-    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+    return send_from_directory(os.path.join(current_app.config['UPLOAD_FOLDER'], sample.analysis_type, 'structures'), filename, as_attachment=True)
     
 @main_bp.route('/sample/<int:sample_id>/pdf')
 @login_required
@@ -203,7 +203,7 @@ def generate_pdf(sample_id):
         if not os.path.exists(logo_path):
             logo_path = None
         pdf_buffer = create_analysis_sheet_pdf(
-            [sample], current_app.config['UPLOAD_FOLDER'],
+            [sample], os.path.join(current_app.config['UPLOAD_FOLDER'], sample.analysis_type, 'structures'),
             service_name=service_name, responsible_name=responsible_name, phone_number=phone_number,
             logo_path=logo_path,
             base_url=request.host_url
@@ -227,7 +227,7 @@ def batch_generate_pdf():
     pour les échantillons sélectionnés.
     """
     sample_ids = request.form.get('sample_ids', '')
-    print(sample_ids)
+
     if not sample_ids:
         flash('Aucun échantillon sélectionné', 'error')
         return redirect(url_for('main.user_samples'))
@@ -263,7 +263,7 @@ def batch_generate_pdf():
         if not os.path.exists(logo_path):
             logo_path = None
         pdf_buffer = create_analysis_sheet_pdf(
-            samples, current_app.config['UPLOAD_FOLDER'],
+            samples, os.path.join(current_app.config['UPLOAD_FOLDER'], sample.analysis_type, 'structures'),
             service_name=service_name, responsible_name=responsible_name, phone_number=phone_number,
             logo_path=logo_path,
             base_url=request.host_url

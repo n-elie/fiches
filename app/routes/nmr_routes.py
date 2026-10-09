@@ -45,7 +45,7 @@ EXPERIMENTS_BY_FREQUENCY = {
 def submit_sample():
     """Formulaire de soumission d'échantillon"""
     
-    os.makedirs(current_app.config['UPLOAD_FOLDER'], exist_ok=True)
+    os.makedirs(os.path.join(current_app.config['UPLOAD_FOLDER'], 'nmr', 'structures'), exist_ok=True)
     
     if request.method == 'POST':
         team = request.form.get('team')  # Équipe sélectionnée pour cette analyse
@@ -87,7 +87,7 @@ def submit_sample():
                     filename = secure_filename(file.filename)
                     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
                     unique_filename = f"{current_user.username}_{timestamp}_{filename}"
-                    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename)
+                    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], sample.analysis_type, 'structures', unique_filename)
                     file.save(filepath)
                 else:
                     flash('Type de fichier non autorisé. Formats acceptés: .cdx, .cdxml, .mol, .sdf', 'error')
@@ -182,7 +182,6 @@ def sample_edit(sample_id):
         
         # Validation : vérifier que toutes les expériences sont valides pour cette fréquence
         valid_experiments = EXPERIMENTS_BY_FREQUENCY.get(frequency, [])
-        print(experiments, valid_experiments, frequency, type(frequency))
         for exp in experiments:
             if exp not in valid_experiments:
                 flash(f'L\'expérience "{exp}" n\'est pas disponible à {frequency} MHz', 'error')
@@ -202,7 +201,7 @@ def sample_edit(sample_id):
             if file.filename != '':
                 if file and allowed_file(file.filename):
                     # Supprimer l'ancien fichier si nécessaire
-                    old_filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], sample.structure_file)
+                    old_filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], sample.analysis_type, 'structures', sample.structure_file)
                     if os.path.exists(old_filepath):
                         os.remove(old_filepath)
                     
@@ -210,7 +209,7 @@ def sample_edit(sample_id):
                     filename = secure_filename(file.filename)
                     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
                     unique_filename = f"{current_user.username}_{timestamp}_{filename}"
-                    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename)
+                    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], sample.analysis_type, 'structures', unique_filename)
                     file.save(filepath)
                     sample.structure_file = unique_filename
         
