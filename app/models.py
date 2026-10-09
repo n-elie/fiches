@@ -75,6 +75,7 @@ class Sample(db.Model):
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    celery_task_id = db.Column(db.String(255), nullable=True)
 
     # Clé étrangère vers l'utilisateur
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -140,11 +141,10 @@ class Analysis(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     sample_id = db.Column(db.Integer, db.ForeignKey('samples.id'), nullable=False)
-    mass_spectrum = db.Column(db.String(500), nullable=True)
-    molecular_weight = db.Column(db.Float, nullable=True)
-    formula = db.Column(db.String(100), nullable=True)
-    analysis_date = db.Column(db.DateTime, nullable=True)
-    results = db.Column(db.Text, nullable=True)
+    data_file = db.Column(db.String(500), nullable=True)
+    results_file = db.Column(db.String(500), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relation avec l'échantillon
     sample = db.relationship('Sample', backref='analyses')

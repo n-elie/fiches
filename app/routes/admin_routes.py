@@ -1,15 +1,17 @@
-from werkzeug.security import generate_password_hash
-from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
-from flask_login import login_required, current_user
 import csv
 import io
-from datetime import datetime
-from sqlalchemy import desc
 from collections.abc import Callable
+
+from werkzeug.security import generate_password_hash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, current_app, jsonify
+from flask_login import login_required, current_user
+from celery.result import AsyncResult
+from sqlalchemy import desc
 
 import pandas as pd
 
-from ..models import db, Sample, User
+from ..models import db, Sample, User, Analysis
+from ..tasks import process_sample_analysis
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -202,7 +204,7 @@ def update_sample_status(sample_id):
     else:
         flash('Statut invalide', 'error')
 
-    return redirect(url_for('admin.admin_sample_detail', sample_id=sample_id))
+    return redirect(request.referrer)
     
 @admin_bp.route('/users/create', methods=['GET', 'POST'])
 @login_required
@@ -305,3 +307,76 @@ def delete_user(user_id):
 
     flash(f'Utilisateur {user.username} supprimé avec succès !', 'success')
     return redirect(url_for('admin.all_users'))
+    
+@admin_bp.route('/analysis/create', methods=['GET', 'POST'])
+@login_required
+def create_analysis():
+    """Créer une Analysis manuellement (synchronement)"""
+    if request.method == 'POST':
+        sample_id = request.form.get('sample_id')
+        results = request.form.get('results')
+
+        # Validation
+        if not sample_id:
+            flash('Le sample_id est obligatoire', 'error')
+            return redirect(url_for('admin.create_analysis'))
+
+        sample = Sample.query.get(sample_id)
+        if not sample:
+            flash('Échantillon introuvable', 'error')
+            return redirect(url_for('admin.create_analysis'))
+
+        # Créer l'Analysis
+        analysis = Analysis(
+            sample_id=sample_id,
+            results_file=results
+        )
+
+        db.session.add(analysis)
+        db.session.commit()
+
+        flash(f'Analysis créée avec succès pour {sample.reference}', 'success')
+        return redirect(url_for('admin.create_analysis', sample_id=sample_id))
+
+    # GET: Afficher le formulaire
+    samples = Sample.query.order_by(Sample.created_at.desc()).all()
+    return render_template('admin/create_analysis.html', samples=samples)
+
+@admin_bp.route('/analysis/<int:sample_id>/process', methods=['POST'])
+@login_required
+def start_analysis_task(sample_id):
+    """
+    Lancer une tâche Celery pour traiter un échantillon.
+    Cette route déclenche le traitement ASYNCHRONE.
+    """
+    sample = Sample.query.get_or_404(sample_id)
+
+    # Lancer la tâche Celery
+    task = process_sample_analysis.delay(sample_id)
+    sample.celery_task_id = task.id
+    db.session.commit()
+
+    flash(f'Tâche d\'analyse lancée pour {sample.reference} (ID: {task.id})', 'success')
+    return redirect(request.referrer)
+
+@admin_bp.route('/analysis/task/<task_id>/status')
+@login_required
+def check_task_status(task_id):
+    """Vérifier l'état d'une tâche Celery"""
+    
+    task = AsyncResult(task_id)
+
+    if task.state == 'PENDING':
+        response = {'state': task.state, 'status': 'En attente...'}
+    elif task.state != 'FAILURE':
+        response = {
+            'state': task.state,
+            'result': task.result
+        }
+    else:
+        response = {
+            'state': task.state,
+            'status': str(task.info)  # Message d'erreur
+        }
+
+    return jsonify(response)

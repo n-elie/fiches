@@ -1,11 +1,14 @@
+import os
+
 from flask import Flask, render_template
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
+
+from .tasks import init_celery
 from .config import config
 from .models import db
 from .auth import dap_auth
-import os
 
 # Initialiser Flask-Login au niveau du module
 login_manager = LoginManager()
@@ -30,7 +33,7 @@ def create_app():
     login_manager.init_app(app)
     migrate.init_app(app, db)
     csrf.init_app(app)
-
+    
     # Configuration de Flask-Login
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Veuillez vous connecter pour accéder à cette page'
@@ -38,6 +41,9 @@ def create_app():
 
     # Initialiser l'authentification LDAP
     dap_auth.init_app(app)
+    
+    # Initialiser Celery
+    init_celery(app)
 
     # Enregistrer les blueprints
     from .routes.main_routes import main_bp

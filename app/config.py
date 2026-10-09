@@ -30,6 +30,7 @@ class Config:
         self._init_ldap_config()
         self._init_app_config()
         self._init_services_config()
+        self._init_redis_config()
 
     def _load_config(self, config_path: Path):
         """Charge le fichier TOML"""
@@ -104,6 +105,13 @@ class Config:
                 'responsible': service_data.get('responsible', 'Responsable'),
                 'phone': service_data.get('phone', '0000')
             }
+            
+    def _init_redis_config(self):
+        """Initialise la configuration redis"""
+        redis_config = self._config.get('redis', {})
+        
+        self.CELERY_BROKER_URL =  redis_config.get('broker_url', 'redis://localhost:6379/0')
+        self.CELERY_RESULT_BACKEND = redis_config.get('result_backend', 'redis://localhost:6379/0')
 
 # Instanciation de la configuration (sera utilisée par Flask)
 config = Config()

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Créer une Analysis{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h2>Créer une Analysis</h2>
+        <p>Ajoutez manuellement les résultats d'analyse pour un échantillon</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('admin.create_analysis') }}" class="sample-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-section">
+            <h3>Échantillon</h3>
+            <div class="form-group required">
+                <label for="sample_id">Échantillon <span class="required-star">*</span></label>
+                <select id="sample_id" name="sample_id" required>
+                    <option value="">-- Sélectionnez un échantillon --</option>
+                    {% for sample in samples %}
+                        <option value="{{ sample.id }}">
+                            {{ sample.reference }} ({{ sample.get_type() }})
+                            - {{ sample.user.full_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Résultats d'analyse</h3>
+
+            <div class="form-group">
+                <label for="results">Résultats détaillés</label>
+                <textarea id="results" name="results" rows="4"
+                          placeholder="Détails de l'analyse, observations, etc."></textarea>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Créer l'Analysis
+            </button>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Annuler
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

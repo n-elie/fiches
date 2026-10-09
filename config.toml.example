@@ -49,3 +49,10 @@ phone = "1234"
 name = "Service RMN"
 responsible = "Otherone"
 phone = "5678"
+
+# -----------------------------------------------------------------------------
+# Configuration Celery (pour les taches lourdes)
+# -----------------------------------------------------------------------------
+[celery]
+broker_url = "redis://localhost:6379/0"
+result_backend = "redis://localhost:6379/0"
