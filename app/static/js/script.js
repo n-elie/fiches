@@ -14,11 +14,11 @@ $(document).ready(function() {
  */
 function initFlashMessages() {
     // Fermer les messages flash après 5 secondes
-    /*setTimeout(function() {
+    setTimeout(function() {
         $('.flash-message').fadeOut(500, function() {
             $(this).remove();
         });
-    }, 5000);*/
+    }, 5000);
 
     // Fermer manuellement les messages flash
     $('.flash-message').each(function() {
