@@ -573,7 +573,6 @@ body {
     color: inherit;
     font: inherit;
     cursor: pointer;
-    padding: 0.5rem 1rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -583,13 +582,13 @@ body {
     display: none;
     position: absolute;
     background-color: white;
-    min-width: 200px;
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
     z-index: 1000;
     border-radius: 4px;
     overflow: hidden;
     top: 100%;
     left: 0;
+	width: max-content;
 }
 
 .dropdown-content a {
