@@ -77,6 +77,11 @@ def index():
         return redirect(url_for('main.user_samples'))
     return render_template('index.html')
 
+@main_bp.route('/favicon.svg')
+def favicon():
+    return send_from_directory(os.path.join(current_app.root_path, 'static', 'images'),
+                               'favicon.svg', mimetype='image/svg+xml')
+
 @main_bp.route('/samples')
 @login_required
 def user_samples():
