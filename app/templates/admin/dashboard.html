@@ -52,13 +52,13 @@
             </div>
 
             {% if recent_samples %}
-            <div class="samples-table">
-                <table class="table">
+            <div class="samples-table-container">
+                <table class="samples-table">
                     <thead>
                         <tr>
+							<th>Type</th>
                             <th>Référence</th>
                             <th>Utilisateur</th>
-							<th>Type</th>
                             <th>Statut</th>
                             <th>Date</th>
                         </tr>
@@ -66,9 +66,9 @@
                     <tbody>
                         {% for sample in recent_samples %}
                         <tr>
+							<td data-label="Type">{{ sample.get_type() }}</td>
                             <td data-label="Référence">{{ sample.reference }}</td>
                             <td data-label="Utilisateur">{{ sample.user.full_name }}</td>
-							<td data-label="Type">{{ sample.get_type() }}</td>
                             <td data-label="Status">
                                 <span class="status-badge status-{{ sample.status }}">
                                     {{ sample.get_status() }}

@@ -763,8 +763,7 @@ body {
     position: relative;
 }
 
-.samples-table th:first-child,
-.samples-table td:first-child {
+.samples-table th:has(input#select-all){
     width: 30px;
     text-align: center;
 }
@@ -966,12 +965,12 @@ body {
         padding: 0 1rem 1.5rem;
     }
 
-    /* Cacher toutes les colonnes du thead SAUF la première (case à cocher) */
-    .samples-table thead tr th:not(:first-child) {
+    /* Cacher toutes les colonnes du thead SAUF celle qui contient une case à cocher */
+    .samples-table thead tr th:not(:has(input#select-all)) {
         display: none;
     }
 	
-	.samples-table thead tr th:first-child {
+	.samples-table thead tr th:has(input#select-all) {
         padding: 0.5rem;
     }
 	
