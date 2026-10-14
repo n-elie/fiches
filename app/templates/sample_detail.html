@@ -317,44 +317,47 @@
 {{ super() }}
 {% if sample.celery_task_id %}
 <script>
-// Vérifier l'état de la tâche toutes les 2 secondes
-const taskId = "{{ sample.celery_task_id }}";
-const statusUrl = `/admin/analysis/task/${taskId}/status`;
+$(document).ready(function() {
+    // Récupération de l'identifiant de tâche (Jinja2)
+    const taskId = "{{ sample.celery_task_id }}";
+    const statusUrl = `/admin/analysis/task/${taskId}/status`;
 
-function checkTaskStatus() {
-	fetch(statusUrl)
-		.then(response => response.json())
-		.then(data => {
-			const statusElement = document.getElementById('task-status');
-			const resultElement = document.getElementById('task-result');
+    const statusElement = $('#task-status');
+    const resultElement = $('#task-result');
 
-			statusElement.textContent = `État: ${data.state}`;
+    function checkTaskStatus() {
+        // Requête AJAX jQuery équivalente à fetch()
+        $.getJSON(statusUrl)
+            .done(function(data) {
+                statusElement.text(`État: ${data.state}`);
 
-			if (data.state === 'SUCCESS') {
-				resultElement.innerHTML = `
-					<div class="flash-message flash-success">
-						<i class="fas fa-check-circle"></i>
-						<strong>Succès!</strong> ${data.result.sample_reference}
-					</div>
-				`;
-				clearInterval(intervalId);
-			} else if (data.state === 'FAILURE') {
-				resultElement.innerHTML = `
-					<div class="flash-message flash-error">
-						<i class="fas fa-exclamation-circle"></i>
-						<strong>Erreur:</strong> ${data.status}
-					</div>
-				`;
-				clearInterval(intervalId);
-			}
-		})
-		.catch(error => {
-			console.error('Erreur:', error);
-		});
-}
+                if (data.state === 'SUCCESS') {
+                    resultElement.html(`
+                        <div class="flash-message flash-success">
+                            <i class="fas fa-check-circle"></i>
+                            <strong>Succès!</strong> ${data.result.sample_reference}
+                        </div>
+                    `);
+                    clearInterval(intervalId);
+                } else if (data.state === 'FAILURE') {
+                    resultElement.html(`
+                        <div class="flash-message flash-error">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <strong>Erreur:</strong> ${data.status}
+                        </div>
+                    `);
+                    clearInterval(intervalId);
+                }
+            })
+            .fail(function(xhr, textStatus, errorThrown) {
+                console.error('Erreur:', errorThrown);
+            });
+    }
 
-const intervalId = setInterval(checkTaskStatus, 2000);
-checkTaskStatus(); // Vérifier immédiatement
+    // Exécuter immédiatement puis toutes les 2 secondes
+    checkTaskStatus();
+    const intervalId = setInterval(checkTaskStatus, 2000);
+});
 </script>
 {% endif %}
 {% endblock %}

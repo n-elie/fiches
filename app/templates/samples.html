@@ -264,77 +264,59 @@
 {{ super() }}
 <script>
 // Highlight row on hover for better UX
-document.querySelectorAll('.samples-table tbody tr').forEach(row => {
-    row.addEventListener('mouseenter', function() {
-        this.style.transform = 'translateY(-1px)';
-        this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
-    });
-
-    row.addEventListener('mouseleave', function() {
-        this.style.transform = '';
-        this.style.boxShadow = '';
-    });
+$('.samples-table tbody tr').on({
+    mouseenter: function() {
+        $(this).css({
+            transform: 'translateY(-1px)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+        });
+    },
+    mouseleave: function() {
+        $(this).css({
+            transform: '',
+            boxShadow: ''
+        });
+    }
 });
 
 // Add loading state for filters
-const filterForm = document.querySelector('.filter-form');
-if (filterForm) {
-    filterForm.addEventListener('submit', function() {
-        this.style.opacity = '0.7';
-        setTimeout(() => {
-            this.style.opacity = '';
-        }, 500);
-    });
-}
+const $filterForm = $('.filter-form');
+$filterForm.on('submit', function() {
+    const $this = $(this);
+    $this.css('opacity', '0.7');
+    setTimeout(() => {
+        $this.css('opacity', '');
+    }, 500);
+});
 
-document.addEventListener('DOMContentLoaded', function() {
-    const selectAllCheckbox = document.getElementById('select-all');
-    const sampleCheckboxes = document.querySelectorAll('.sample-checkbox:not([disabled])');
-    const batchDeleteBtn = document.getElementById('batch-delete-btn');
-    const batchExportBtn = document.getElementById('batch-export-btn');
-	const batchPdfBtn = document.getElementById('batch-pdf-btn');
+$(document).ready(function() {
+    const $selectAllCheckbox = $('#select-all');
+    const $sampleCheckboxes = $('.sample-checkbox:not([disabled])');
+    const $batchButtons = $('#batch-delete-btn, #batch-export-btn, #batch-pdf-btn');
 
     // Mettre à jour les champs hidden et les boutons
     function updateBatchActions() {
-        const selectedIds = Array.from(sampleCheckboxes)
-            .filter(checkbox => checkbox.checked)
-            .map(checkbox => checkbox.value);
+        // Récupérer les valeurs des checkboxes cochées sous forme de tableau
+        const selectedIds = $sampleCheckboxes.filter(':checked').map(function() {
+            return $(this).val();
+        }).get(); // .get() convertit l'objet jQuery en tableau JS natif
 
         // Mettre à jour tous les champs hidden sample_ids
-        document.querySelectorAll('input[name="sample_ids"]').forEach(input => {
-            input.value = selectedIds.join(',');
-        });
+        $('input[name="sample_ids"]').val(selectedIds.join(','));
 
-        // Activer/désactiver les boutons
+        // Activer/désactiver l'ensemble des boutons d'action d'un seul coup
         const hasSelection = selectedIds.length > 0;
-
-        if (batchDeleteBtn) {
-            batchDeleteBtn.disabled = !hasSelection;
-        }
-
-        if (batchExportBtn) {
-            batchExportBtn.disabled = !hasSelection;
-        }
-		
-		if (batchPdfBtn) {
-			batchPdfBtn.disabled = !hasSelection;
-		}
+        $batchButtons.prop('disabled', !hasSelection);
     }
 
     // Sélectionner/Désélectionner tout
-    if (selectAllCheckbox) {
-        selectAllCheckbox.addEventListener('change', function() {
-            sampleCheckboxes.forEach(checkbox => {
-                checkbox.checked = this.checked;
-            });
-            updateBatchActions();
-        });
-    }
+    $selectAllCheckbox.on('change', function() {
+        $sampleCheckboxes.prop('checked', $(this).is(':checked'));
+        updateBatchActions();
+    });
 
     // Écouter les changements sur chaque checkbox
-    sampleCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', updateBatchActions);
-    });
+    $sampleCheckboxes.on('change', updateBatchActions);
 });
 </script>
 {% endblock %}
