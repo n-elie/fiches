@@ -14,6 +14,47 @@ else:
             "Le module 'tomli' est requis pour Python < 3.11. "
             "Installez-le avec: pip install tomli"
         )
+        
+DEFAULT_MS_SOLVENTS = {
+    'CH2Cl2': "CH<sub>2</sub>Cl<sub>2</sub>",
+    'MeOH': "Methanol",
+    'ACN': "Acétonitrile",
+    'H2O': "H<sub>2</sub>O"
+}
+
+DEFAULT_NMR_SOLVENTS = {
+    "": "Non précisé",
+    "AcOHd4": "Acide Acétique-d4",
+    "ACEd6": "Acétone-d6",
+    "ACNd3": "Acétonitrile-d3",
+    "PhHd6": "Benzène-d6",
+    "CDCl3": "CDCl3",
+    "CD2Cl2": "CD2Cl2",
+    "Cyd12": "Cyclohexane-d12",
+    "D2O": "D2O",
+    "DMFd7": "DMF-d7",
+    "DMSOd6": "DMSO-d6",
+    "pDd8": "p-Dioxane-d8",
+    "EtOHd6": "Ethanol-d6",
+    "MeOHd4": "Methanol-d4",
+    "pyd5": "Pyridine-d5",
+    "THDd8": "THF-d8",
+    "PhMed8": "Toluène-d8",
+    "TFAd": "TFA-d",
+    "TFEd3": "Trifluoroéthanol-d3"
+}
+             
+DEFAULT_NMR_STABILITIES = {
+    0: "Inconnue",
+    1: "Stable",
+    2: "Instable",
+    3: "Très stable"
+}
+
+DEFAULT_NMR_EXPERIMENTS_BY_FREQUENCY = {
+    "500": ("1H", "COSY", "HSQC", "HMQC", "HMBC", "NOESY", "ROESY", "HMQC-ND", "13C", "DEPT135", "DEPT90", "DEPT45", "P31", "P31-CPD"),
+    "700": ("1H", "COSY", "HSQC", "HMBC", "NOESY", "ROESY", "13C", "DEPT135", "TOCSY", "HSQC 15N", "HMBC 15N")
+}
 
 class Config:
     """Configuration de l'application chargée depuis config.toml"""
@@ -105,6 +146,13 @@ class Config:
                 'responsible': service_data.get('responsible', 'Responsable'),
                 'phone': service_data.get('phone', '0000')
             }
+            if service_key == 'ms':
+                self.SERVICES['ms']['solvents'] = service_data.get('solvents', DEFAULT_MS_SOLVENTS)
+            elif service_key == 'nmr':
+                self.SERVICES['nmr']['solvents'] = service_data.get('solvents', DEFAULT_NMR_SOLVENTS)
+                self.SERVICES['nmr']['stabilities'] = service_data.get('stabilities', DEFAULT_NMR_STABILITIES)
+                self.SERVICES['nmr']['experiments_by_frequency'] = service_data.get('experiments_by_frequency', DEFAULT_NMR_EXPERIMENTS_BY_FREQUENCY)
+                
             
     def _init_redis_config(self):
         """Initialise la configuration redis"""

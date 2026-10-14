@@ -12,18 +12,15 @@ from ..utils.mol import read_mol, mol_from_smiles, mol_to_smiles, mol_to_formula
 
 ms_bp = Blueprint('ms', __name__, url_prefix='/ms')
 
-SOLVENTS = {"CH2Cl2": "CH<sub>2</sub>Cl<sub>2</sub>",
-            "MeOH": "Methanol",
-            "ACN": "Acétonitrile",
-            "H2O": "H<sub>2</sub>O"
-            }
-
 @ms_bp.route('/sample/submit', methods=['GET', 'POST'])
 @login_required
 def submit_sample():
     """Formulaire de soumission d'échantillon"""
     
-    os.makedirs(os.path.join(current_app.config['UPLOAD_FOLDER'], 'ms', 'structures'), exist_ok=True)
+    ms_config = current_app.config['SERVICES']['ms']
+    structures_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'ms', 'structures')
+    
+    os.makedirs(structures_folder, exist_ok=True)
     
     if request.method == 'POST':
         team = request.form.get('team')  # Équipe sélectionnée pour cette analyse
@@ -36,7 +33,7 @@ def submit_sample():
         other_solvent_name = request.form.get('other_solvent_name')
         
         # Validation : vérifier que tous les solvants sont valides
-        valid_solvents = SOLVENTS.keys()
+        valid_solvents = ms_config['solvents'].keys()
         for solvent in solvents:
             if solvent not in valid_solvents:
                 flash(f'Le solvant n\'est pas disponible.', 'error')
@@ -64,7 +61,7 @@ def submit_sample():
                     filename = secure_filename(file.filename)
                     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
                     unique_filename = f"{current_user.username}_{timestamp}_{filename}"
-                    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], 'ms', 'structures', unique_filename)
+                    filepath = os.path.join(structures_folder, unique_filename)
                     file.save(filepath)
                     
                     try:
@@ -110,7 +107,7 @@ def submit_sample():
 
     return render_template('ms/sample_submit.html',
                            user=current_user,
-                           solvents=SOLVENTS)
+                           solvents=ms_config['solvents'])
 
 @ms_bp.route('/success/<int:sample_id>')
 @login_required
@@ -148,6 +145,9 @@ def user_samples():
 def sample_edit(sample_id):
     """Éditer un échantillon existant"""
     
+    ms_config = current_app.config['SERVICES']['ms']
+    structures_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'ms', 'structures')
+    
     sample = MSSample.query.get_or_404(sample_id)
     
     # Vérifier que l'utilisateur est le propriétaire ou admin
@@ -167,7 +167,7 @@ def sample_edit(sample_id):
         other_solvent_name = request.form.get('other_solvent_name')
         
         # Validation : vérifier que tous les solvants sont valides
-        valid_solvents = SOLVENTS.keys()
+        valid_solvents = ms_config['solvents'].keys()
         for solvent in solvents:
             if solvent not in valid_solvents:
                 flash(f'Le solvant n\'est pas disponible.', 'error')
@@ -187,7 +187,7 @@ def sample_edit(sample_id):
             if file.filename != '':
                 if file and allowed_file(file.filename):
                     # Supprimer l'ancien fichier si nécessaire
-                    old_filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], sample.analysis_type, 'structures', sample.structure_file)
+                    old_filepath = os.path.join(structures_folder, sample.structure_file)
                     if os.path.exists(old_filepath):
                         os.remove(old_filepath)
                     
@@ -195,7 +195,7 @@ def sample_edit(sample_id):
                     filename = secure_filename(file.filename)
                     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
                     unique_filename = f"{current_user.username}_{timestamp}_{filename}"
-                    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], sample.analysis_type, 'structures', unique_filename)
+                    filepath = os.path.join(structures_folder, unique_filename)
                     file.save(filepath)
                     sample.structure_file = unique_filename
         
@@ -221,14 +221,16 @@ def sample_edit(sample_id):
     return render_template('ms/sample_submit.html',
                            sample=sample,
                            user=current_user,
-                           solvents=SOLVENTS)
+                           solvents=ms_config['solvents'])
                            
 @ms_bp.route('/samples/import', methods=['GET', 'POST'])
 @login_required
 def import_samples():
     """Importer plusieurs échantillons depuis un fichier Excel ou CSV"""
 
-    os.makedirs(os.path.join(current_app.config['UPLOAD_FOLDER'], 'ms', 'structures'), exist_ok=True)
+    structures_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'ms', 'structures')
+
+    os.makedirs(structures_folder, exist_ok=True)
 
     if request.method == 'POST':
         # Verifier qu'un fichier est fourni

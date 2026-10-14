@@ -10,42 +10,14 @@ from .main_routes import allowed_file
 
 nmr_bp = Blueprint('nmr', __name__, url_prefix='/nmr')
 
-SOLVENTS = {"": "Non précisé",
-            "AcOHd4": "Acide Acétique-d4",
-            "ACEd6": "Acétone-d6",
-            "ACNd3": "Acétonitrile-d3",
-            "PhHd6": "Benzène-d6",
-            "CDCl3": "CDCl3",
-            "CD2Cl2": "CD2Cl2",
-            "Cyd12": "Cyclohexane-d12",
-            "D2O": "D2O",
-            "DMFd7": "DMF-d7",
-            "DMSOd6": "DMSO-d6",
-            "pDd8": "p-Dioxane-d8",
-            "EtOHd6": "Ethanol-d6",
-            "MeOHd4": "Methanol-d4",
-            "pyd5": "Pyridine-d5",
-            "THDd8": "THF-d8",
-            "PhMed8": "Toluène-d8",
-            "TFAd": "TFA-d",
-            "TFEd3": "Trifluoroéthanol-d3"}
-             
-STABILITIES = {0: "Inconnue",
-               1: "Stable",
-               2: "Instable",
-               3: "Très stable"}
-
-EXPERIMENTS_BY_FREQUENCY = {
-    "500": ("1H", "COSY", "HSQC", "HMQC", "HMBC", "NOESY", "ROESY", "HMQC-ND", "13C", "DEPT135", "DEPT90", "DEPT45", "P31", "P31-CPD"),
-    "700": ("1H", "COSY", "HSQC", "HMBC", "NOESY", "ROESY", "13C", "DEPT135", "TOCSY", "HSQC 15N", "HMBC 15N")
-}
-
 @nmr_bp.route('/sample/submit', methods=['GET', 'POST'])
 @login_required
 def submit_sample():
     """Formulaire de soumission d'échantillon"""
     
-    os.makedirs(os.path.join(current_app.config['UPLOAD_FOLDER'], 'nmr', 'structures'), exist_ok=True)
+    nmr_config = current_app.config['SERVICES']['nmr']
+    structures_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'nmr', 'structures')
+    os.makedirs(structures_folder, exist_ok=True)
     
     if request.method == 'POST':
         team = request.form.get('team')  # Équipe sélectionnée pour cette analyse
@@ -87,7 +59,7 @@ def submit_sample():
                     filename = secure_filename(file.filename)
                     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
                     unique_filename = f"{current_user.username}_{timestamp}_{filename}"
-                    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], sample.analysis_type, 'structures', unique_filename)
+                    filepath = os.path.join(structures_folder, unique_filename)
                     file.save(filepath)
                 else:
                     flash('Type de fichier non autorisé. Formats acceptés: .cdx, .cdxml, .mol, .sdf', 'error')
@@ -120,9 +92,9 @@ def submit_sample():
 
     return render_template('nmr/sample_submit.html',
                            user=current_user,
-                           solvents=SOLVENTS,
-                           stabilities=STABILITIES,
-                           experiments_by_frequency=EXPERIMENTS_BY_FREQUENCY)
+                           solvents=nmr_config['solvents'],
+                           stabilities=nmr_config['stabilities'],
+                           experiments_by_frequency=nmr_config['experiments_by_frequency'])
 
 @nmr_bp.route('/success/<int:sample_id>')
 @login_required
@@ -159,6 +131,9 @@ def user_samples():
 @login_required
 def sample_edit(sample_id):
     """Éditer un échantillon existant"""
+    
+    nmr_config = current_app.config['SERVICES']['nmr']
+    structures_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'nmr', 'structures')
     
     sample = NMRSample.query.get_or_404(sample_id)
     
@@ -201,7 +176,7 @@ def sample_edit(sample_id):
             if file.filename != '':
                 if file and allowed_file(file.filename):
                     # Supprimer l'ancien fichier si nécessaire
-                    old_filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], sample.analysis_type, 'structures', sample.structure_file)
+                    old_filepath = os.path.join(structures_folder, sample.structure_file)
                     if os.path.exists(old_filepath):
                         os.remove(old_filepath)
                     
@@ -209,7 +184,7 @@ def sample_edit(sample_id):
                     filename = secure_filename(file.filename)
                     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
                     unique_filename = f"{current_user.username}_{timestamp}_{filename}"
-                    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], sample.analysis_type, 'structures', unique_filename)
+                    filepath = os.path.join(structures_folder, unique_filename)
                     file.save(filepath)
                     sample.structure_file = unique_filename
         
@@ -237,6 +212,6 @@ def sample_edit(sample_id):
     return render_template('nmr/sample_submit.html',
                            sample=sample,
                            user=current_user,
-                           solvents=SOLVENTS,
-                           stabilities=STABILITIES,
-                           experiments_by_frequency=EXPERIMENTS_BY_FREQUENCY)
+                           solvents=nmr_config['solvents'],
+                           stabilities=nmr_config['stabilities'],
+                           experiments_by_frequency=nmr_config['experiments_by_frequency'])
