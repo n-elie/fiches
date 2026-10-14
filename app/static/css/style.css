@@ -635,17 +635,11 @@ body {
 }
 
 .other-experiment input[type="text"] {
-    padding: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
+    width: max-content;
 }
 
 .other-solvent input[type="text"] {
-    padding: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
+    width: max-content;
 }
 
 /* ===== Table - Modern Design ===== */

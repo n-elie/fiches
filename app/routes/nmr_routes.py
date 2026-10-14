@@ -222,7 +222,7 @@ def sample_edit(sample_id):
         sample.solvent=solvent
         sample.frequency=frequency
         sample.experiments=', '.join(experiments)
-        sample.other_experiment=other_experiment_name if other_experiment and other_experiment_name else None,
+        sample.other_experiment=other_experiment_name if other_experiment and other_experiment_name else None
         
         try:
             db.session.commit()
@@ -234,7 +234,7 @@ def sample_edit(sample_id):
             return redirect(url_for('nmr.sample_edit', sample_id=sample_id))
     
     # GET: Afficher le formulaire pré-rempli
-    return render_template('nmr/sample_edit.html',
+    return render_template('nmr/sample_submit.html',
                            sample=sample,
                            user=current_user,
                            solvents=SOLVENTS,

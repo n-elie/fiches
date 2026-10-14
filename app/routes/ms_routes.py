@@ -218,7 +218,7 @@ def sample_edit(sample_id):
             return redirect(url_for('ms.sample_edit', sample_id=sample_id))
     
     # GET: Afficher le formulaire pré-rempli
-    return render_template('ms/sample_edit.html',
+    return render_template('ms/sample_submit.html',
                            sample=sample,
                            user=current_user,
                            solvents=SOLVENTS)

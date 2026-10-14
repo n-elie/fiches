@@ -1,7 +1,3 @@
-/**
- * Script principal pour l'application de spectrométrie de masse
- */
-
 // Document Ready
 $(document).ready(function() {
     initFlashMessages();
@@ -37,64 +33,6 @@ function initFlashMessages() {
  * Validation des formulaires
  */
 function initFormValidation() {
-    $('.sample-form').each(function() {
-        const $form = $(this);
-
-        $form.on('submit', function(e) {
-            let isValid = true;
-
-            $('.form-group.required input[required], .form-group.required select[required]').each(function() {
-                const $input = $(this);
-                if ($input.val().trim() === '') {
-                    isValid = false;
-                    $input.addClass('error');
-                    $input.after('<span class="error-message">Ce champ est obligatoire</span>');
-                } else {
-                    $input.removeClass('error');
-                    $input.next('.error-message').remove();
-                }
-            });
-
-            const $fileInput = $('#structure_file[required]');
-            if ($fileInput.length && $fileInput.val() === '') {
-                isValid = false;
-                $fileInput.addClass('error');
-                $fileInput.after('<span class="error-message">Veuillez sélectionner un fichier de structure</span>');
-            } else {
-                $fileInput.removeClass('error');
-                $fileInput.next('.error-message').remove();
-            }
-
-            const $quantityInput = $('#quantity');
-            if ($quantityInput.length) {
-                const quantity = parseFloat($quantityInput.val());
-                if (isNaN(quantity) || quantity <= 0) {
-                    isValid = false;
-                    $quantityInput.addClass('error');
-                    $quantityInput.after('<span class="error-message">Veuillez entrer une quantité valide (nombre positif)</span>');
-                } else {
-                    $quantityInput.removeClass('error');
-                    $quantityInput.next('.error-message').remove();
-                }
-            }
-
-            if (!isValid) {
-                e.preventDefault();
-                const firstError = $('.error').first();
-                if (firstError.length) {
-                    $('html, body').animate({
-                        scrollTop: firstError.offset().top - 100
-                    }, 500);
-                }
-            }
-        });
-
-        $form.on('input change', 'input, select, textarea', function() {
-            $(this).removeClass('error');
-            $(this).next('.error-message').remove();
-        });
-    });
-
     $('.login-form').each(function() {
         const $form = $(this);
 
@@ -126,24 +64,6 @@ function initFormValidation() {
  * Gestion des uploads de fichiers
  */
 function initFileUpload() {
-    $('input[type="file"]').each(function() {
-        const $input = $(this);
-        const $fileNameDisplay = $('<div class="file-name-display"></div>');
-
-        $input.on('change', function() {
-            const fileName = $(this).val().split('\\\\').pop();
-            if (fileName) {
-                $fileNameDisplay.text(fileName).insertAfter($input);
-            } else {
-                $fileNameDisplay.remove();
-            }
-        });
-
-        $input.closest('form').on('reset', function() {
-            $fileNameDisplay.remove();
-        });
-    });
-
     $('form').each(function() {
         const $form = $(this);
 
