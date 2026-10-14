@@ -16,7 +16,7 @@ def allowed_file(filename):
     """Vérifier si le fichier a une extension autorisée"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
     
-def samples(template='samples.html', users='current', sample_type=Sample):
+def samples(template='samples.html', show_users='current', sample_type=Sample):
     status_filter = request.args.get('status', '')
     type_filter = request.args.get('type', '')
     user_filter = request.args.get('user', '')
@@ -25,16 +25,16 @@ def samples(template='samples.html', users='current', sample_type=Sample):
     
     # Paramètres de pagination
     page = request.args.get('page', 1, type=int)
-    per_page = 10  # Nombre d'échantillons par page (ajustable)
+    per_page = current_app.config['SAMPLES_PER_PAGE']  # Nombre d'échantillons par page (ajustable)
     
     query = sample_type.query
     if status_filter:
         query = query.filter_by(status=status_filter)
     if type_filter:
         query = query.filter_by(analysis_type=type_filter)
-    if users == 'current':
+    if show_users == 'current':
         query = query.filter_by(user_id=current_user.id)
-    elif current_user.is_admin and user_filter:
+    if current_user.is_admin and user_filter:
         query = query.filter_by(user_id=user_filter)
         
     if search_filter:
@@ -87,7 +87,7 @@ def favicon():
 def user_samples():
     """Liste des échantillons de l'utilisateur"""
     
-    return samples(users='current')
+    return samples(show_users='current')
 
 def _delete_samples(samples):
     # Vérifier les permissions et le statut

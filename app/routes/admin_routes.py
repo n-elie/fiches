@@ -48,7 +48,7 @@ def all_samples():
     """Liste de tous les échantillons"""
     
     from ..routes.main_routes import samples
-    return samples(template='admin/samples.html', users='all')
+    return samples(template='admin/samples.html', show_users='all')
 
 @admin_bp.route('/users')
 @login_required

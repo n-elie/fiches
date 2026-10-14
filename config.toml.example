@@ -38,7 +38,7 @@ debug = true                           # Mode debug
 admin_users = ["admin"]               # Utilisateurs administrateurs
 
 # -----------------------------------------------------------------------------
-# Services d'analyse (utilisés pour les fiches PDF)
+# Services d'analyse
 # -----------------------------------------------------------------------------
 [services.ms]
 name = "Service HRMS"

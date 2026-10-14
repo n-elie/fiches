@@ -70,6 +70,7 @@ class Config:
         self._init_db_config()
         self._init_ldap_config()
         self._init_app_config()
+        self._init_samples_config()
         self._init_services_config()
         self._init_redis_config()
 
@@ -86,6 +87,7 @@ class Config:
 
     def _init_db_config(self):
         """Initialise la configuration de la base de données"""
+        
         db_config = self._config.get('database', {})
         self.DB_TYPE = db_config.get('type', 'mysql').lower()
         self.DB_SQLITE_PATH = db_config.get('path', 'analyses.db')
@@ -108,6 +110,7 @@ class Config:
 
     def _init_ldap_config(self):
         """Initialise la configuration LDAP"""
+        
         ldap_config = self._config.get('ldap', {})
         self.LDAP_SERVER = ldap_config.get('server', 'ldap://localhost:389')
         self.LDAP_BASE_DN = ldap_config.get('base_dn', 'dc=example,dc=com')
@@ -119,6 +122,7 @@ class Config:
 
     def _init_app_config(self):
         """Initialise la configuration de l'application"""
+        
         app_config = self._config.get('app', {})
         self.SECRET_KEY = app_config.get('secret_key', 'your-secret-key-here')
         self.UPLOAD_FOLDER = os.path.join(
@@ -135,9 +139,16 @@ class Config:
         self.DEBUG = app_config.get('debug', True)
         self.ADMIN_USERS = app_config.get('admin_users', ['admin'])
         self.LOGO = app_config.get('logo', 'logo.png')
+        
+    def _init_samples_config(self):
+        """Initialise la configuration pour la liste d'échantillons"""
+        
+        samples_config = self._config.get('samples', {})
+        self.SAMPLES_PER_PAGE = samples_config.get('per_page', 10)
 
     def _init_services_config(self):
         """Initialise la configuration des services"""
+        
         services_config = self._config.get('services', {})
         self.SERVICES = {}
         for service_key, service_data in services_config.items():
@@ -156,6 +167,7 @@ class Config:
             
     def _init_redis_config(self):
         """Initialise la configuration redis"""
+        
         redis_config = self._config.get('redis', {})
         
         self.CELERY_BROKER_URL =  redis_config.get('broker_url', 'redis://localhost:6379/0')
