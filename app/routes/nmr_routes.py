@@ -33,7 +33,7 @@ def submit_sample():
         other_experiment_name = request.form.get('other_experiment_name')
 
         # Validation : vérifier que toutes les expériences sont valides pour cette fréquence
-        valid_experiments = EXPERIMENTS_BY_FREQUENCY.get(frequency, [])
+        valid_experiments = nmr_config['experiments_by_frequency'].get(frequency, [])
         for exp in experiments:
             if exp not in valid_experiments:
                 flash(f'L\'expérience "{exp}" n\'est pas disponible à {frequency} MHz', 'error')
