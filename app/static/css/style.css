@@ -352,6 +352,18 @@ body {
     margin-top: 2rem;
 }
 
+/* ===== Home Page ===== */
+.home-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.home-container img {
+	max-width: 40%;
+	border-radius: var(--border-radius);
+}
+
 /* ===== Login Page ===== */
 .login-container {
     max-width: 500px;
@@ -460,20 +472,6 @@ body {
     .form-row {
         flex-direction: column;
         gap: 0;
-    }
-
-    .hero {
-        flex-direction: column;
-        text-align: center;
-        padding: 2rem 1rem;
-    }
-
-    .hero-content {
-        text-align: center;
-    }
-
-    .hero-buttons {
-        justify-content: center;
     }
 
     .about-content {
