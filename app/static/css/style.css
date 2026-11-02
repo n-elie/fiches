@@ -364,6 +364,60 @@ body {
 	border-radius: var(--border-radius);
 }
 
+/* ===== Spectrum ===== */
+.spectrum-container {
+	width: 80vw;
+}
+
+.highcharts-background {
+  fill: var(--light-color) !important;
+}
+
+.highcharts-series .highcharts-point {
+	fill: var(--secondary-color);
+	fill-opacity: 0.75;
+    transition: fill-opacity 50ms;
+}
+
+.highcharts-column-series .highcharts-point-hover,
+.highcharts-bar-series .highcharts-point-hover {
+	fill: var(--warning-color);
+}
+
+.highcharts-series:not(.highcharts-pie-series) .highcharts-point-select, .highcharts-markers .highcharts-point-select {
+	fill: var(--danger-color) !important;
+	stroke-width: 0;
+}
+
+.highcharts-contextbutton, .highcharts-button-box {
+	fill: var(--light-color) !important;
+}
+
+th.highcharts-text, th.highcharts-number, td.highcharts-number {
+	padding: 0 2em;
+	text-align: center;
+}
+
+ul#contextmenu {
+	display: none;
+	position: absolute;
+	background: white;
+	border: 1px solid #ccc;
+	list-style: none;
+	padding: 5px;
+	z-index: 1000;
+	boxShadow: 2px 2px 5px rgba(0,0,0,0.2);
+	cursor: pointer;
+}
+ul#contextmenu li {
+	transition: background-color 0.2s ease;
+}
+
+ul#contextmenu li:hover {
+	background: var(--primary-color);
+	color: white; 
+}
+
 /* ===== Login Page ===== */
 .login-container {
     max-width: 500px;

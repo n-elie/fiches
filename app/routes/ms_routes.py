@@ -140,6 +140,17 @@ def user_samples():
     from ..routes.main_routes import samples
     return samples(template='samples.html', show_users='current', sample_type=MSSample)
     
+@ms_bp.route('/sample/<int:sample_id>/spectrum')
+@login_required
+def sample_spectrum(sample_id):
+    """Visualiser le spectre d'un échantillon existant"""
+    
+    sample = MSSample.query.get_or_404(sample_id)
+    
+    return render_template('ms/sample_spectrum.html',
+                           sample=sample)
+    
+    
 @ms_bp.route('/sample/<int:sample_id>/edit', methods=['GET', 'POST'])
 @login_required
 def sample_edit(sample_id):
