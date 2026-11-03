@@ -369,35 +369,6 @@ body {
 	width: 80vw;
 }
 
-.highcharts-background {
-  fill: var(--light-color) !important;
-}
-
-.highcharts-series .highcharts-point {
-	fill: var(--secondary-color);
-	fill-opacity: 0.75;
-    transition: fill-opacity 50ms;
-}
-
-.highcharts-column-series .highcharts-point-hover,
-.highcharts-bar-series .highcharts-point-hover {
-	fill: var(--warning-color);
-}
-
-.highcharts-series:not(.highcharts-pie-series) .highcharts-point-select, .highcharts-markers .highcharts-point-select {
-	fill: var(--danger-color) !important;
-	stroke-width: 0;
-}
-
-.highcharts-contextbutton, .highcharts-button-box {
-	fill: var(--light-color) !important;
-}
-
-th.highcharts-text, th.highcharts-number, td.highcharts-number {
-	padding: 0 2em;
-	text-align: center;
-}
-
 ul#contextmenu {
 	display: none;
 	position: absolute;
