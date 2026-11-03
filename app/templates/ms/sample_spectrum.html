@@ -59,7 +59,7 @@ $(document).ready(function () {
 
     tooltip: {
       trigger: 'item',
-      //confine: true,
+      confine: true,
       formatter: p => {
         const [mz, inten] = p.value;
         return `<i>m/z</i> <b>${mz.toFixed(4)}</b> — <b>${inten.toFixed(2)}</b> %`;
@@ -67,21 +67,51 @@ $(document).ready(function () {
     },
 	
 	toolbox: {
-      feature: {
-        dataZoom: {
-          yAxisIndex: 'none',
-		  brushStyle: {
-		    color: 'rgb(52, 152, 219, 0.3)',
-		  }
-        },
-		dataView: {
-		  readOnly: true,
-		  title: reference,
-	    },
-        restore: {},
-        saveAsImage: {}
-      }
-    },
+    feature: {
+      dataZoom: {
+        yAxisIndex: 'none',
+        brushStyle: {
+          color: 'rgb(52, 152, 219, 0.3)',
+        }
+      },
+      restore: { title: 'Restore Zoom'},
+      mySpacer1: {
+        show: true,
+        title: ' ', 
+        icon: 'path://',
+        onclick: function() { return false; }
+      },
+      mySelectAll: {
+        show:true,
+        title: 'Select All',
+        icon: 'path://m74.3164 90.752v10.4551h10.625V90.752Zm8.4021 2.3303-4.3429 4.3434-2.4365-2.4365-.4243.4243 2.8608 2.8608 4.7682-4.7677z',
+        onclick: function() {
+          selected.clear();
+          spectrum.forEach((p, i) => { if (p.y > 0) selected.add(i); });
+          chart.setOption(option);
+        }
+      },
+      myClearSelection: {
+        show: true,
+        title: 'Effacer la sélection',
+        icon: 'path://M6 6l12 12M18 6L6 18',
+        onclick: function () {
+          selected.clear();
+          chart.setOption(option);
+        }
+      },
+      mySpacer2: {
+        show: true,
+        title: ' ',
+        icon: 'path://',
+        onclick: function() { return false; }
+      },
+      dataView: {
+        readOnly: true,
+      },
+      saveAsImage: {}
+    }
+  },
 
     // ============ Zoom natif ============
     dataZoom: [
@@ -92,8 +122,8 @@ $(document).ready(function () {
         zoomOnMouseWheel: true,
         moveOnMouseMove: false,
         moveOnMouseWheel: true,
-		startValue: xMinOrig,
-		endValue: xMaxOrig
+        startValue: xMinOrig,
+        endValue: xMaxOrig
       }
     ],
 
@@ -125,10 +155,12 @@ $(document).ready(function () {
             width: half * 2,
             height: Math.max(yBase - yPix, 0),
           },
-		  style: {
-			fill: isSelected ? '#1f77b4' : '#1e1e1e',
-		  },
-          emphasis: { style: { fill: 'red' } },
+		      style: {
+			      fill: isSelected ? '#1f77b4' : '#1e1e1e',
+		      },
+          emphasis: {
+            style: { fill: 'red' }
+          },
         }];
 
         // Étiquette m/z au-dessus du pic si intensité > 5 %
@@ -183,7 +215,7 @@ $(document).ready(function () {
 
   // ============ Reset zoom ============
   function resetZoom() {
-	chart.setOption({
+    chart.setOption({
       dataZoom: [
         { startValue: xMinOrig, endValue: xMaxOrig }
       ],
@@ -224,11 +256,10 @@ $(document).ready(function () {
     chart.setOption(option);
   });
   
-  // Échap désélectionne tout
+  // Échap désactive le zoom
   $(document).on('keydown', function (e) {
     if (e.key === 'Escape') {
-      selected.clear();
-      chart.setOption(option);
+      chart.dispatchAction({ type: 'takeGlobalCursor', key: 'dataZoomSelect', dataZoomSelectActive: false });
     }
   });
 });
