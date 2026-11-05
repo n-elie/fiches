@@ -56,7 +56,7 @@
 								<label for="status">Statut</label>
 								<select id="status" name="status" class="form-control">
 									{% for status, name in status_names.items() %}
-									<option value="{{ status }}" {% if status_filter == status %}selected{% endif %}>{{ name }}</option>
+									<option value="{{ status }}" {% if sample.status.name == status %}selected{% endif %}>{{ name }}</option>
 									{% endfor %}
 								</select>
 							</div>
