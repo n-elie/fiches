@@ -100,7 +100,7 @@
                                            disabled="">
                                 </div>
                             </div>
-                            <span class="help-text">Solvant utilisé pour la préparation d'échantillon</span>
+                            <span class="help-text">Solvants utilisés pour la préparation d'échantillon</span>
                         </div>
                     </div>
                 </div>
@@ -144,7 +144,9 @@
                                   id="notes"
                                   name="notes"
                                   rows="4"
+								  maxlength="500"
                                   placeholder="Ajoutez des notes ou commentaires sur l'échantillon...">{% if sample %}{{ sample.notes }}{% endif %}</textarea>
+						<span class="help-text">Entrez des informations utiles pour l'opérateur (max. 500 caractères)</span>
                     </div>
                 </div>
             </div>

@@ -113,6 +113,7 @@ def submit_sample():
 @login_required
 def success(sample_id):
     """Page de confirmation de soumission"""
+    
     sample = db.get_or_404(MSSample, sample_id)
     if sample.user_id != current_user.id:
         flash('Accès non autorisé', 'error')
@@ -123,14 +124,18 @@ def success(sample_id):
 @login_required
 def sample_detail(sample_id):
     """Détails d'un échantillon"""
+    
+    ms_config = current_app.config['SERVICES']['ms']
     sample = db.get_or_404(MSSample, sample_id)
+    
     if sample.user_id != current_user.id and not current_user.is_admin:
         flash('Accès non autorisé', 'error')
         return redirect(url_for('main.index'))
     return render_template('sample_detail.html',
                            sample=sample,
                            user=current_user,
-                           status_names=STATUS_NAMES)
+                           status_names=STATUS_NAMES,
+                           solvents=ms_config['solvents'])
                            
 @ms_bp.route('/samples')
 @login_required

@@ -100,6 +100,7 @@ def submit_sample():
 @login_required
 def success(sample_id):
     """Page de confirmation de soumission"""
+    
     sample = db.get_or_404(NMRSample, sample_id)
     if sample.user_id != current_user.id:
         flash('Accès non autorisé', 'error')
@@ -110,14 +111,21 @@ def success(sample_id):
 @login_required
 def sample_detail(sample_id):
     """Détails d'un échantillon"""
+    
+    nmr_config = current_app.config['SERVICES']['nmr']
     sample = db.get_or_404(NMRSample, sample_id)
+    solvent = nmr_config['solvents'].get(sample.solvent, None)
+    stability = nmr_config['stabilities'].get(str(sample.stability), None)
+    
     if sample.user_id != current_user.id and not current_user.is_admin:
         flash('Accès non autorisé', 'error')
         return redirect(url_for('main.index'))
     return render_template('sample_detail.html',
                            sample=sample,
                            user=current_user,
-                           status_names=STATUS_NAMES)
+                           status_names=STATUS_NAMES,
+                           solvent=solvent,
+                           stability=stability)
                            
 @nmr_bp.route('/samples')
 @login_required

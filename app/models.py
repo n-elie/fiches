@@ -83,7 +83,7 @@ class Sample(db.Model):
     smiles = db.Column(db.Text, nullable=True)
     mass = db.Column(db.Float, nullable=True)
     status = db.Column(db.Enum(SampleStatus, name="sample_status"), default='pending')
-    notes = db.Column(db.Text, nullable=True)
+    notes = db.Column(db.String(500), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     celery_task_id = db.Column(db.String(255), nullable=True)

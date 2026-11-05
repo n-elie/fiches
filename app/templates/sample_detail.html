@@ -136,7 +136,7 @@
                     <div class="col-md-6 col-lg-4">
                         <div class="d-flex align-items-center gap-3">
                             <div class="detail-icon">
-                                <i class="fas fa-balance-scale"></i>
+                                <i class="fas fa-weight-scale"></i>
                             </div>
                             <div>
                                 <div class="text-muted small">Quantité</div>
@@ -217,7 +217,7 @@
                                 </div>
                                 <div>
                                     <div class="text-muted small">Solvant</div>
-                                    <div class="fw-semibold">{{ sample.solvent }}</div>
+                                    <div class="fw-semibold">{{ solvent if solvent else '-' }}</div>
                                 </div>
                             </div>
                         </div>
@@ -232,6 +232,17 @@
                                 </div>
                             </div>
                         </div>
+						<div class="col-md-6 col-lg-4">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="detail-icon">
+                                    <i class="fas fa-scale-balanced"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Stabilité</div>
+                                    <div class="fw-semibold">{{ stability if stability else '-' }}</div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="col-12">
                             <div class="d-flex align-items-start gap-3">
                                 <div class="detail-icon">
@@ -243,6 +254,9 @@
                                         {% for exp in sample.experiments.split(', ') %}
                                             <span class="experiment-tag">{{ exp }}</span>
                                         {% endfor %}
+										{% if sample.other_experiment %}
+                                            <span class="experiment-tag">{{ sample.other_experiment }}</span>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -265,8 +279,24 @@
                                     <i class="fas fa-tint"></i>
                                 </div>
                                 <div>
-                                    <div class="text-muted small">Solvant</div>
-                                    <div class="fw-semibold">{{ sample.solvent or '-' }}</div>
+                                    <div class="text-muted small">Solvants</div>
+									<div class="mt-1">
+										{% if sample %}
+											{% if sample.solvents %}
+												{% set sample_solvents_list = sample.solvents.split(', ') %}
+											{% else %}
+												{% set sample_solvents_list = [] %}
+											{% endif %}
+										{% endif %}
+										{% for code, solv in solvents.items() %}
+										    {% if code in sample_solvents_list %}
+												<span class="experiment-tag">{{ solv|safe }}</span>
+											{% endif %}
+                                        {% endfor %}
+										{% if sample.other_solvent %}
+                                            <span class="experiment-tag">{{ sample.other_solvent }}</span>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
