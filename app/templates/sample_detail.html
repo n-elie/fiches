@@ -1,363 +1,393 @@
 {% extends "base.html" %}
 
-{% block title %}{{ sample.reference }} - {% endblock %}
+{% block title %}{{ sample.reference }} -{% endblock %}
 
 {% block content %}
-<div class="sample-detail-container">
-    <div class="sample-detail-header">
-		<div class="sample-detail-header">
-        {% if user.is_admin %}
-        <nav class="breadcrumb" aria-label="breadcrumbs">
-            <ol>
-                <li><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a></li>
-                <li><a href="{{ url_for('admin.all_samples') }}"><i class="fas fa-list"></i> Échantillons</a></li>
-                <li aria-current="page"><i class="fas fa-file-alt"></i> {{ sample.reference }}</li>
-            </ol>
-        </nav>
-        {% else %}
-        <nav class="breadcrumb" aria-label="breadcrumbs">
-            <ol>
-                <li><a href="{{ url_for('main.index') }}"><i class="fas fa-home"></i> Accueil</a></li>
-                <li><a href="{{ url_for('main.user_samples') }}"><i class="fas fa-list"></i> Mes échantillons</a></li>
-                <li aria-current="page"><i class="fas fa-file-alt"></i> {{ sample.reference }}</li>
-            </ol>
-        </nav>
-        {% endif %}
+    <div class="sample-detail-container">
+        <div class="sample-detail-header">
+            <div class="sample-detail-header">
+                {% if user.is_admin %}
+                    <nav class="breadcrumb" aria-label="breadcrumbs">
+                        <ol>
+                            <li><a href="{{ url_for("admin.dashboard") }}"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a></li>
+                            <li><a href="{{ url_for("admin.all_samples") }}"><i class="fas fa-list"></i> Échantillons</a></li>
+                            <li aria-current="page"><i class="fas fa-file-alt"></i> {{ sample.reference }}</li>
+                        </ol>
+                    </nav>
+                {% else %}
+                    <nav class="breadcrumb" aria-label="breadcrumbs">
+                        <ol>
+                            <li><a href="{{ url_for("main.index") }}"><i class="fas fa-home"></i> Accueil</a></li>
+                            <li><a href="{{ url_for("main.user_samples") }}"><i class="fas fa-list"></i> Mes échantillons</a></li>
+                            <li aria-current="page"><i class="fas fa-file-alt"></i> {{ sample.reference }}</li>
+                        </ol>
+                    </nav>
+                {% endif %}
 
-		<div class="sample-detail-title">
-            <div class="title-content">
-                <h1><i class="fas fa-{{ 'atom' if sample.analysis_type == 'ms' else 'magnet' }}"></i> {{ sample.reference }}</h1>
-                <span class="sample-type-badge">
-                    <i class="fas fa-tag"></i> {{ sample.get_type() }}
-                </span>
-            </div>
-            <div class="title-actions">
-                <span class="status-badge status-{{ sample.status.name }}">
-                    <i class="fas fa-circle"></i> {{ sample.get_status_name()|capitalize }}
-                </span>
-            </div>
-        </div>
-	</div>
-	
-	<div class="sample-detail-content">
-		<!-- Section Actions Admin -->
-        {% if user.is_admin %}
-        <div class="detail-card admin-actions-card">
-            <div class="card-header">
-                <h2><i class="fas fa-tools"></i> Actions</h2>
-            </div>
-			
-            <div class="card-body">
-                <form method="POST" action="{{ url_for('admin.update_sample_status', sample_id=sample.id) }}" class="status-update-form">
-					<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-					<div class="form-section">
-						<div class="form-row">
-							<div class="form-group">
-								<label for="status">Statut</label>
-								<select id="status" name="status" class="form-control">
-									{% for status, name in status_names.items() %}
-									<option value="{{ status }}" {% if sample.status.name == status %}selected{% endif %}>{{ name }}</option>
-									{% endfor %}
-								</select>
-							</div>
-							<button type="submit" class="btn btn-primary">
-								<i class="fas fa-sync-alt"></i> Mettre à jour
-							</button>
-						</div>
-					</div>
-                </form>
-			</div>
-			
-			{% if sample.status.name == 'pending' %}
-			<div class="card-body">
-				<div class="form-section">
-					<div class="form-row">
-						<div class="form-group">
-							<label for="status">Fiche d'analyse</label>
-							<div class="action-buttons">
-								<a href="{{ url_for('main.generate_pdf', sample_id=sample.id) }}"
-								   class="btn btn-primary" title="Générer la fiche PDF">
-									<i class="fas fa-file-pdf"></i> Générer fiche PDF
-								</a>
-							</div>
-						</div>
-						
-						{% if sample.celery_task_id %}
-						<div class="form-group">
-							<h4>État de l'analyse</h4>
-							<p id="task-status">Vérification en cours...</p>
-							<div id="task-result"></div>
-						</div>
-						{% endif %}
-						
-						<form method="POST" action="{{ url_for('admin.start_analysis_task', sample_id=sample.id) }}">
-							<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-							<div class="form-group">
-								<label for="status">Analyse automatique</label>
-								<button type="submit" class="btn btn-primary">
-									<i class="fas fa-play"></i> Lancer l'analyse
-								</button>
-							</div>
-						</form>
-					</div>
-				</div>
-            </div>
-			{% endif %}
-        </div>
-        {% endif %}
-	
-        <!-- Section Informations principales -->
-        <div class="detail-card">
-            <div class="card-header">
-                <h2><i class="fas fa-info-circle"></i> Informations principales</h2>
-            </div>
-            <div class="card-body">
-                <div class="detail-grid">
-                    <div class="detail-item">
-                        <div class="detail-icon"><i class="fas fa-hashtag"></i></div>
-                        <div class="detail-content">
-                            <span class="detail-label">Référence</span>
-                            <span class="detail-value">{{ sample.reference }}</span>
-                        </div>
+                <div class="sample-detail-title">
+                    <div class="title-content">
+                        <h1><i class="fas fa-{{ 'atom' if sample.analysis_type == 'ms' else 'magnet' }}"></i> {{ sample.reference }}</h1>
+                        <span class="sample-type-badge">
+                            <i class="fas fa-tag"></i> {{ sample.get_type() }}
+                        </span>
                     </div>
-                    <div class="detail-item">
-                        <div class="detail-icon"><i class="fas fa-balance-scale"></i></div>
-                        <div class="detail-content">
-                            <span class="detail-label">Quantité</span>
-                            <span class="detail-value">{{ sample.quantity }} mg</span>
-                        </div>
+                    <div class="title-actions">
+                        <span class="status-badge status-{{ sample.status.name }}">
+                            <i class="fas fa-circle"></i> {{ sample.get_status_name()|capitalize }}
+                        </span>
                     </div>
-                    <div class="detail-item">
-                        <div class="detail-icon"><i class="fas fa-calendar-alt"></i></div>
-                        <div class="detail-content">
-                            <span class="detail-label">Créé le</span>
-                            <span class="detail-value">{{ sample.created_at.strftime('%d/%m/%Y à %H:%M') }}</span>
-                        </div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-icon"><i class="fas fa-sync-alt"></i></div>
-                        <div class="detail-content">
-                            <span class="detail-label">Mis à jour le</span>
-                            <span class="detail-value">{{ sample.updated_at.strftime('%d/%m/%Y à %H:%M') }}</span>
-                        </div>
-                    </div>
-                    {% if sample.team %}
-                    <div class="detail-item">
-                        <div class="detail-icon"><i class="fas fa-users"></i></div>
-                        <div class="detail-content">
-                            <span class="detail-label">Équipe</span>
-                            <span class="detail-value">{{ sample.team }}</span>
-                        </div>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
-        </div>
 
-        <!-- Section Utilisateur -->
-        <div class="detail-card">
-            <div class="card-header">
-                <h2><i class="fas fa-user"></i> Informations utilisateur</h2>
-            </div>
-            <div class="card-body">
-                <div class="user-info-container">
-                    <div class="user-avatar">
-                        <i class="fas fa-user-circle"></i>
-                    </div>
-                    <div class="user-details">
-                        <div class="user-main-info">
-                            <h3>{{ sample.user.full_name|default(sample.user.username) }}</h3>
-                            <span class="user-username">@{{ sample.user.username }}</span>
+            <div class="sample-detail-content">
+                <!-- Section Actions Admin -->
+                {% if user.is_admin %}
+                    <div class="detail-card admin-actions-card">
+                        <div class="card-header">
+                            <h2><i class="fas fa-tools"></i> Actions</h2>
                         </div>
-                        <div class="user-contact">
-                            <div class="contact-item">
-                                <i class="fas fa-envelope"></i>
-                                <span>{{ sample.user.email }}</span>
+
+                        <div class="card-body">
+                            <form method="post"
+                                  action="{{ url_for('admin.update_sample_status', sample_id=sample.id) }}"
+                                  class="status-update-form">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <div class="form-section">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="status">Statut</label>
+                                            <select id="status" name="status" class="form-control">
+                                                {% for status, name in status_names.items() %}
+                                                    <option value="{{ status }}"
+                                                            {% if sample.status.name == status %}selected{% endif %}>{{ name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-sync-alt"></i> Mettre à jour
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        {% if sample.status.name == "pending" %}
+                            <div class="card-body">
+                                <div class="form-section">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="status">Fiche d'analyse</label>
+                                            <div class="action-buttons">
+                                                <a href="{{ url_for('main.generate_pdf', sample_id=sample.id) }}"
+                                                   class="btn btn-primary"
+                                                   title="Générer la fiche PDF">
+                                                    <i class="fas fa-file-pdf"></i> Générer fiche PDF
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        {% if sample.celery_task_id %}
+                                            <div class="form-group">
+                                                <h4>État de l'analyse</h4>
+                                                <p id="task-status">Vérification en cours...</p>
+                                                <div id="task-result"></div>
+                                            </div>
+                                        {% endif %}
+
+                                        <form method="post"
+                                              action="{{ url_for('admin.start_analysis_task', sample_id=sample.id) }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <div class="form-group">
+                                                <label for="status">Analyse automatique</label>
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="fas fa-play"></i> Lancer l'analyse
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                <!-- Section Informations principales -->
+                <div class="detail-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-info-circle"></i> Informations principales</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <i class="fas fa-hashtag"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <span class="detail-label">Référence</span>
+                                    <span class="detail-value">{{ sample.reference }}</span>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <i class="fas fa-balance-scale"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <span class="detail-label">Quantité</span>
+                                    <span class="detail-value">{{ sample.quantity }} mg</span>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <span class="detail-label">Créé le</span>
+                                    <span class="detail-value">{{ sample.created_at.strftime("%d/%m/%Y à %H:%M") }}</span>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <i class="fas fa-sync-alt"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <span class="detail-label">Mis à jour le</span>
+                                    <span class="detail-value">{{ sample.updated_at.strftime("%d/%m/%Y à %H:%M") }}</span>
+                                </div>
+                            </div>
+                            {% if sample.team %}
+                                <div class="detail-item">
+                                    <div class="detail-icon">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <span class="detail-label">Équipe</span>
+                                        <span class="detail-value">{{ sample.team }}</span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Utilisateur -->
+                <div class="detail-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-user"></i> Informations utilisateur</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="user-info-container">
+                            <div class="user-avatar">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <div class="user-details">
+                                <div class="user-main-info">
+                                    <h3>{{ sample.user.full_name|default(sample.user.username) }}</h3>
+                                    <span class="user-username">@{{ sample.user.username }}</span>
+                                </div>
+                                <div class="user-contact">
+                                    <div class="contact-item">
+                                        <i class="fas fa-envelope"></i>
+                                        <span>{{ sample.user.email }}</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Section spécifique selon le type -->
-        {% if sample.analysis_type == 'nmr' %}
-        <div class="detail-card">
-            <div class="card-header">
-                <h2><i class="fas fa-cog"></i> Paramètres RMN</h2>
-            </div>
-            <div class="card-body">
-                <div class="detail-grid">
-                    <div class="detail-item">
-                        <div class="detail-icon"><i class="fas fa-tint"></i></div>
-                        <div class="detail-content">
-                            <span class="detail-label">Solvant</span>
-                            <span class="detail-value">{{ sample.solvent }}</span>
+                <!-- Section spécifique selon le type -->
+                {% if sample.analysis_type == "nmr" %}
+                    <div class="detail-card">
+                        <div class="card-header">
+                            <h2><i class="fas fa-cog"></i> Paramètres RMN</h2>
                         </div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-icon"><i class="fas fa-wave-square"></i></div>
-                        <div class="detail-content">
-                            <span class="detail-label">Fréquence</span>
-                            <span class="detail-value">{{ sample.frequency }} MHz</span>
-                        </div>
-                    </div>
-                    <div class="detail-item full-width">
-                        <div class="detail-icon"><i class="fas fa-list-ul"></i></div>
-                        <div class="detail-content">
-                            <span class="detail-label">Expériences demandées</span>
-                            <div class="experiments-list">
-                                {% for exp in sample.experiments.split(', ') %}
-                                <span class="experiment-tag">{{ exp }}</span>
-                                {% endfor %}
+                        <div class="card-body">
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <div class="detail-icon">
+                                        <i class="fas fa-tint"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <span class="detail-label">Solvant</span>
+                                        <span class="detail-value">{{ sample.solvent }}</span>
+                                    </div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-icon">
+                                        <i class="fas fa-wave-square"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <span class="detail-label">Fréquence</span>
+                                        <span class="detail-value">{{ sample.frequency }} MHz</span>
+                                    </div>
+                                </div>
+                                <div class="detail-item full-width">
+                                    <div class="detail-icon">
+                                        <i class="fas fa-list-ul"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <span class="detail-label">Expériences demandées</span>
+                                        <div class="experiments-list">
+                                            {% for exp in sample.experiments.split(', ') %}
+                                                <span class="experiment-tag">{{ exp }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
+                {% endif %}
 
-        {% if sample.analysis_type == 'ms' %}
-        <div class="detail-card">
-            <div class="card-header">
-                <h2><i class="fas fa-cog"></i> Paramètres Spectrométrie de Masse</h2>
-            </div>
-            <div class="card-body">
-                <div class="detail-grid">
-                    <div class="detail-item">
-                        <div class="detail-icon"><i class="fas fa-tint"></i></div>
-                        <div class="detail-content">
-                            <span class="detail-label">Solvant</span>
-                            <span class="detail-value">{{ sample.solvent or '-' }}</span>
+                {% if sample.analysis_type == "ms" %}
+                    <div class="detail-card">
+                        <div class="card-header">
+                            <h2><i class="fas fa-cog"></i> Paramètres Spectrométrie de Masse</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <div class="detail-icon">
+                                        <i class="fas fa-tint"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <span class="detail-label">Solvant</span>
+                                        <span class="detail-value">{{ sample.solvent or '-' }}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Section Structure chimique -->
-        {% if sample.formula or sample.mass or sample.smiles or sample.structure_file %}
-        <div class="detail-card">
-            <div class="card-header">
-                <h2><i class="fas fa-molecule"></i> Structure chimique</h2>
-            </div>
-            <div class="card-body">
-				{% if sample.formula %}
-				<div class="mol-display">
-                    <div class="mol-icon"><i class="fas fa-atom"></i></div>
-                    <div class="mol-content">
-                        <span class="mol-label">Formule brute</span>
-                        <code class="mol-value">{{ sample.get_html_formula()|safe }}</code>
-                    </div>
-				</div>
-				{% endif %}
-				
-				{% if sample.mass %}
-				<div class="mol-display">
-					<div class="mol-icon"><i class="fas fa-balance-scale"></i></div>
-                    <div class="mol-content">
-                        <span class="mol-label">Masse exacte</span>
-                        <code class="mol-value">{{ "%.4f"|format(sample.mass) }}</code>
-                    </div>
-				</div>
-				{% endif %}
-				
-				{% if sample.smiles %}
-                <div class="smiles-display">
-                    <div class="mol-icon"><i class="fas fa-align-justify"></i></div>
-                    <div class="mol-content">
-                        <span class="mol-label">SMILES</span>
-                        <code class="mol-value">{{ sample.smiles }}</code>
-                    </div>
-                </div>
                 {% endif %}
 
-                {% if sample.structure_file %}
-                <div class="file-info">
-                    <div class="file-preview">
-                        <i class="fas fa-file-code"></i>
-                        <div class="file-type">Struct</div>
+                <!-- Section Structure chimique -->
+                {% if sample.formula or sample.mass or sample.smiles or sample.structure_file %}
+                    <div class="detail-card">
+                        <div class="card-header">
+                            <h2><i class="fas fa-molecule"></i> Structure chimique</h2>
+                        </div>
+                        <div class="card-body">
+                            {% if sample.formula %}
+                                <div class="mol-display">
+                                    <div class="mol-icon">
+                                        <i class="fas fa-atom"></i>
+                                    </div>
+                                    <div class="mol-content">
+                                        <span class="mol-label">Formule brute</span>
+                                        <code class="mol-value">{{ sample.get_html_formula()|safe }}</code>
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            {% if sample.mass %}
+                                <div class="mol-display">
+                                    <div class="mol-icon">
+                                        <i class="fas fa-balance-scale"></i>
+                                    </div>
+                                    <div class="mol-content">
+                                        <span class="mol-label">Masse exacte</span>
+                                        <code class="mol-value">{{ "%.4f"|format(sample.mass) }}</code>
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            {% if sample.smiles %}
+                                <div class="smiles-display">
+                                    <div class="mol-icon">
+                                        <i class="fas fa-align-justify"></i>
+                                    </div>
+                                    <div class="mol-content">
+                                        <span class="mol-label">SMILES</span>
+                                        <code class="mol-value">{{ sample.smiles }}</code>
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            {% if sample.structure_file %}
+                                <div class="file-info">
+                                    <div class="file-preview">
+                                        <i class="fas fa-file-code"></i>
+                                        <div class="file-type">Struct</div>
+                                    </div>
+                                    <div class="file-details">
+                                        <span class="file-name">{{ sample.structure_file }}</span>
+                                        <span class="file-meta">Fichier de structure chimique</span>
+                                    </div>
+                                    <a href="{{ url_for('main.download_file', filename=sample.structure_file) }}"
+                                       class="btn btn-primary"
+                                       title="Télécharger le fichier">
+                                        <i class="fas fa-download"></i> Télécharger
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="file-details">
-                        <span class="file-name">{{ sample.structure_file }}</span>
-                        <span class="file-meta">Fichier de structure chimique</span>
+                {% endif %}
+
+                <!-- Section Notes -->
+                {% if sample.notes %}
+                    <div class="detail-card">
+                        <div class="card-header">
+                            <h2><i class="fas fa-sticky-note"></i> Notes</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="notes-container">
+                                <div class="notes-content">
+                                    <p>{{ sample.notes }}</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <a href="{{ url_for('main.download_file', filename=sample.structure_file) }}"
-                       class="btn btn-primary" title="Télécharger le fichier">
-                        <i class="fas fa-download"></i> Télécharger
-                    </a>
-                </div>
                 {% endif %}
             </div>
         </div>
-        {% endif %}
-		
-		<!-- Section Notes -->
-        {% if sample.notes %}
-        <div class="detail-card">
-            <div class="card-header">
-                <h2><i class="fas fa-sticky-note"></i> Notes</h2>
-            </div>
-            <div class="card-body">
-                <div class="notes-container">
-                    <div class="notes-content">
-                        <p>{{ sample.notes }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-    </div>
-</div>
 {% endblock %}
 
 {% block scripts %}
-{{ super() }}
-{% if sample.celery_task_id %}
-<script>
-$(document).ready(function() {
-    // Récupération de l'identifiant de tâche (Jinja2)
-    const taskId = "{{ sample.celery_task_id }}";
-    const statusUrl = `/admin/analysis/task/${taskId}/status`;
+    {{ super() }}
+    {% if sample.celery_task_id %}
+        <script>
+            $(document).ready(function() {
+                // Récupération de l'identifiant de tâche (Jinja2)
+                const taskId = "{{ sample.celery_task_id }}";
+                const statusUrl = `/admin/analysis/task/${taskId}/status`;
 
-    const statusElement = $('#task-status');
-    const resultElement = $('#task-result');
+                const statusElement = $('#task-status');
+                const resultElement = $('#task-result');
 
-    function checkTaskStatus() {
-        // Requête AJAX jQuery équivalente à fetch()
-        $.getJSON(statusUrl)
-            .done(function(data) {
-                statusElement.text(`État: ${data.state}`);
+                function checkTaskStatus() {
+                    // Requête AJAX jQuery équivalente à fetch()
+                    $.getJSON(statusUrl)
+                        .done(function(data) {
+                            statusElement.text(`État: ${data.state}`);
 
-                if (data.state === 'SUCCESS') {
-                    resultElement.html(`
+                            if (data.state === 'SUCCESS') {
+                                resultElement.html(`
                         <div class="flash-message flash-success">
                             <i class="fas fa-check-circle"></i>
                             <strong>Succès!</strong> ${data.result.sample_reference}
                         </div>
                     `);
-                    clearInterval(intervalId);
-                } else if (data.state === 'FAILURE') {
-                    resultElement.html(`
+                                clearInterval(intervalId);
+                            } else if (data.state === 'FAILURE') {
+                                resultElement.html(`
                         <div class="flash-message flash-error">
                             <i class="fas fa-exclamation-circle"></i>
                             <strong>Erreur:</strong> ${data.status}
                         </div>
                     `);
-                    clearInterval(intervalId);
+                                clearInterval(intervalId);
+                            }
+                        })
+                        .fail(function(xhr, textStatus, errorThrown) {
+                            console.error('Erreur:', errorThrown);
+                        });
                 }
-            })
-            .fail(function(xhr, textStatus, errorThrown) {
-                console.error('Erreur:', errorThrown);
-            });
-    }
 
-    // Exécuter immédiatement puis toutes les 2 secondes
-    checkTaskStatus();
-    const intervalId = setInterval(checkTaskStatus, 2000);
-});
-</script>
-{% endif %}
+                // Exécuter immédiatement puis toutes les 2 secondes
+                checkTaskStatus();
+                const intervalId = setInterval(checkTaskStatus, 2000);
+            });
+        </script>
+    {% endif %}
 {% endblock %}

@@ -1,211 +1,234 @@
 {% extends "base.html" %}
 
-{% block title %}Mes Échantillons - {% endblock %}
+{% block title %}Mes Échantillons -{% endblock %}
 
 {% block content %}
-<div class="samples-container">
-    <div class="samples-header">
-        {% if user.is_admin %}
-        <nav class="breadcrumb" aria-label="breadcrumbs">
-            <ol>
-                <li><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a></li>
-                <li aria-current="page"><i class="fas fa-list"></i> Échantillons</li>
-            </ol>
-        </nav>
-        {% else %}
-        <nav class="breadcrumb" aria-label="breadcrumbs">
-            <ol>
-                <li><a href="{{ url_for('main.index') }}"><i class="fas fa-home"></i> Accueil</a></li>
-                <li aria-current="page"><i class="fas fa-list"></i> Échantillons</li>
-            </ol>
-	    </nav>
-	    {% endif %}
-          
-        {% block header %}
-        <h2>Mes Échantillons</h2>
-        <p>Liste de tous vos échantillons soumis pour analyse</p>
-        {% endblock %}
-    </div>
+    <div class="samples-container">
+        <div class="samples-header">
+            {% if user.is_admin %}
+                <nav class="breadcrumb" aria-label="breadcrumbs">
+                    <ol>
+                        <li><a href="{{ url_for("admin.dashboard") }}"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a></li>
+                        <li aria-current="page"><i class="fas fa-list"></i> Échantillons</li>
+                    </ol>
+                </nav>
+            {% else %}
+                <nav class="breadcrumb" aria-label="breadcrumbs">
+                    <ol>
+                        <li><a href="{{ url_for("main.index") }}"><i class="fas fa-home"></i> Accueil</a></li>
+                        <li aria-current="page"><i class="fas fa-list"></i> Échantillons</li>
+                    </ol>
+                </nav>
+            {% endif %}
 
-    <div class="samples-filter">
-        <form method="GET" action="" class="filter-form">
-            <div class="filter-row">
-                <h3 class="filter-title">
-                    <i class="fas fa-filter"></i> Filtrer les échantillons
-                </h3>
-                
-                {% if show_type %}
-                <div class="filter-group">
-                    <label for="type"> <i class="fas fa-tag"></i> Type :</label>
-                    <select id="type" name="type">
-                        <option value="">Tous les types</option>
-                        <option value="ms" {% if type_filter == 'ms' %}selected{% endif %}>Spectrométrie de masse</option>
-                        <option value="nmr" {% if type_filter == 'nmr' %}selected{% endif %}>RMN</option>
-                    </select>
-                </div>
-                {% endif %}
-                
-                <div class="filter-group">
-                    <label for="status"><i class="fas fa-circle"></i> Statut :</label>
-                    <select id="status" name="status">
-                        <option value="">Tous les statuts</option>
-                        {% for status, name in status_names.items() %}
-                        <option value="{{ status }}" {% if status_filter == status %}selected{% endif %}>{{ name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                {% if user.is_admin and users is defined %}
-                <div class="filter-group">
-                    <label for="user"><i class="fas fa-user"></i> Utilisateur:</label>
-                    <select id="user" name="user">
-                        <option value="">Tous les utilisateurs</option>
-                        {% for user in users %}
-                        <option value="{{ user.id }}" {% if user_filter == user.id|string %}selected{% endif %}>{{ user.username }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                {% endif %}
-                
-                <div class="filter-group">
-                    <label for="search"><i class="fas fa-search"></i> Référence :</label>
-                    <input type="text" name="search" placeholder="Rechercher..."
-                           value="{{ search_filter }}">
-                </div>
+            {% block header %}
+                <h2>Mes Échantillons</h2>
+                <p>Liste de tous vos échantillons soumis pour analyse</p>
+            {% endblock %}
+        </div>
 
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-check"></i> Filtrer
-                </button>
+        <div class="samples-filter">
+            <form method="get" action="" class="filter-form">
+                <div class="filter-row">
+                    <h3 class="filter-title">
+                        <i class="fas fa-filter"></i> Filtrer les échantillons
+                    </h3>
 
-                <a href="{{ url_for('main.user_samples') }}" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Réinitialiser
-                </a>
-            </div>
-        </form>
-    </div>
-    
-    {% if samples %}
-    <div class="samples-table-container">
-        <table class="samples-table">
-            <thead>
-                <tr>
-                    <th>
-                        <input type="checkbox" id="select-all" title="Sélectionner tout">
-                    </th>
                     {% if show_type %}
-                    <th>
-                        <a href="?sort=analysis_type&order={% if sort_by == 'analysis_type' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
-                            Type
-                            {% if sort_by == 'analysis_type' %}
-                                <i class="fas fa-sort-{{ sort_order }}"></i>
-                            {% endif %}
-                        </a>
-                    </th>
+                        <div class="filter-group">
+                            <label for="type"> <i class="fas fa-tag"></i> Type :</label>
+                            <select id="type" name="type">
+                                <option value="">Tous les types</option>
+                                <option value="ms"
+                                        {% if type_filter == 'ms' %}selected{% endif %}>Spectrométrie de masse</option>
+                                <option value="nmr" {% if type_filter == 'nmr' %}selected{% endif %}>RMN</option>
+                            </select>
+                        </div>
                     {% endif %}
-                    {% if user.is_admin and users is defined %}<th>Utilisateur</th>{% endif %}
-                    <th>
-                        <a href="?sort=reference&order={% if sort_by == 'reference' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
-                            Référence
-                            {% if sort_by == 'reference' %}
-                                <i class="fas fa-sort-{{ sort_order }}"></i>
-                            {% endif %}
-                        </a>
-                    </th>
-                    <th>Formule</th>
-                    <th>Quantité</th>
-                    <th>
-                        <a href="?sort=status&order={% if sort_by == 'status' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
-                            Statut
-                            {% if sort_by == 'status' %}
-                                <i class="fas fa-sort-{{ sort_order }}"></i>
-                            {% endif %}
-                        </a>
-                    </th>
-                    <th>
-                        <a href="?sort=created_at&order={% if sort_by == 'created_at' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
-                            Date de soumission
-                            {% if sort_by == 'created_at' %}
-                                <i class="fas fa-sort-{{ sort_order }}"></i>
-                            {% endif %}
-                        </a>
-                    </th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for sample in samples %}
-                <tr>
-                    <td>
-                        <input type="checkbox" value="{{ sample.id }}"
-                               class="sample-checkbox"
-                               {% if sample.status.name != 'pending' %}disabled title="Seuls les échantillons 'pending' peuvent être supprimés"{% endif %}>
-                    </td>
-                    {% if show_type %} <td data-label="Type">{{ sample.get_type() }}</td>{% endif %}
-                    {% if user.is_admin and users is defined %}<td data-label="Utilisateur">{{ sample.user.full_name }}</td>{% endif %}
-                    <td data-label="Référence">{{ sample.reference }}</td>
-                    <td data-label="Formule"><span>{{ sample.get_html_formula()|safe or '-' }}</span></td>
-                    <td data-label="Quantité">{{ sample.quantity }} mg</td>
-                    <td data-label="Statut">
-                        <span class="status-badge status-{{ sample.status.name }}">
-                            {{ sample.get_status_name() }}
-                        </span>
-                    </td>
-                    <td data-label="Date">{{ sample.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
-                    <td data-label="Actions">
-                        <a href="{{ url_for(sample.analysis_type + '.sample_detail', sample_id=sample.id) }}" class="btn btn-icon" title="Voir les détails"><i class="fas fa-eye"></i></a>
-                        <a href="{{ url_for(sample.analysis_type + '.sample_edit', sample_id=sample.id) }}" class="btn btn-icon" title="Éditer"><i class="fas fa-edit"></i></a>
-                        <a href="{{ url_for('main.generate_pdf', sample_id=sample.id) }}" class="btn btn-icon" title="Générer PDF"><i class="fas fa-file-pdf"></i></a>
-                        {% if sample.structure_file %}<a href="{{ url_for('main.download_file', filename=sample.structure_file) }}" class="btn btn-icon" title="Télécharger le fichier"><i class="fas fa-download"></i></a>{% endif %}
-                        {% if sample.is_pending() %}
-                        <form method="POST"
-                            action="{{ url_for('main.delete_sample', sample_id=sample.id) }}"
-                            onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet échantillon ? Cette action est irréversible.');"
-                            class="action-form">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn btn-icon btn-delete" title="Supprimer"><i class="fas fa-trash"></i></button>
-                        </form>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    
-    {% if samples %}
-    <div class="batch-actions">
-        <div class="batch-row">
-            <h3 class="filter-title">
-                <i class="fas fa-gear"></i> Actions par lot
-            </h3>
-            
-            <form method="POST" action="{{ url_for('main.batch_generate_pdf') }}" class="batch-form">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn btn-primary" disabled id="batch-pdf-btn">
-                    <i class="fas fa-file-pdf"></i> Générer PDFs
-                </button>
-                <input type="hidden" name="sample_ids" id="selected-sample-ids-pdf">
-            </form>
-            
-            {% block extra_batch_actions %}{% endblock %}
-            
-            <form method="POST" action="{{ url_for('main.batch_delete_samples') }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ces échantillons ? Cette action est irréversible.');" class="batch-form">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn btn-delete" disabled id="batch-delete-btn">
-                    <i class="fas fa-trash"></i> Supprimer la sélection
-                </button>
-                <input type="hidden" name="sample_ids" id="selected-sample-ids">
+
+                    <div class="filter-group">
+                        <label for="status"><i class="fas fa-circle"></i> Statut :</label>
+                        <select id="status" name="status">
+                            <option value="">Tous les statuts</option>
+                            {% for status, name in status_names.items() %}
+                                <option value="{{ status }}"
+                                        {% if status_filter == status %}selected{% endif %}>{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    {% if user.is_admin and users is defined %}
+                        <div class="filter-group">
+                            <label for="user"><i class="fas fa-user"></i> Utilisateur:</label>
+                            <select id="user" name="user">
+                                <option value="">Tous les utilisateurs</option>
+                                {% for user in users %}
+                                    <option value="{{ user.id }}"
+                                            {% if user_filter == user.id|string %}selected{% endif %}>{{ user.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endif %}
+
+                    <div class="filter-group">
+                        <label for="search"><i class="fas fa-search"></i> Référence :</label>
+                        <input type="text"
+                               name="search"
+                               placeholder="Rechercher..."
+                               value="{{ search_filter }}">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check"></i> Filtrer
+                    </button>
+
+                    <a href="{{ url_for("main.user_samples") }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Réinitialiser
+                    </a>
+                </div>
             </form>
         </div>
-    </div>
-    {% endif %}
 
-    {% if pagination.pages > 1 %}
-    <div class="pagination-container">
-        <ul class="pagination">
-            <!-- Lien "Précédent" -->
-            <li class="pagination-item {% if not pagination.has_prev %}disabled{% endif %}">
-                <a href="{{ url_for('main.user_samples',
+        {% if samples %}
+            <div class="samples-table-container">
+                <table class="samples-table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <input type="checkbox" id="select-all" title="Sélectionner tout">
+                            </th>
+                            {% if show_type %}
+                                <th>
+                                    <a href="?sort=analysis_type&order={% if sort_by == 'analysis_type' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
+                                        Type
+                                        {% if sort_by == "analysis_type" %}
+                                            <i class="fas fa-sort-{{ sort_order }}"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                            {% endif %}
+                            {% if user.is_admin and users is defined %}<th>Utilisateur</th>{% endif %}
+                            <th>
+                                <a href="?sort=reference&order={% if sort_by == 'reference' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
+                                    Référence
+                                    {% if sort_by == "reference" %}
+                                        <i class="fas fa-sort-{{ sort_order }}"></i>
+                                    {% endif %}
+                                </a>
+                            </th>
+                            <th>Formule</th>
+                            <th>Quantité</th>
+                            <th>
+                                <a href="?sort=status&order={% if sort_by == 'status' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
+                                    Statut
+                                    {% if sort_by == "status" %}
+                                        <i class="fas fa-sort-{{ sort_order }}"></i>
+                                    {% endif %}
+                                </a>
+                            </th>
+                            <th>
+                                <a href="?sort=created_at&order={% if sort_by == 'created_at' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
+                                    Date de soumission
+                                    {% if sort_by == "created_at" %}
+                                        <i class="fas fa-sort-{{ sort_order }}"></i>
+                                    {% endif %}
+                                </a>
+                            </th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sample in samples %}
+                            <tr>
+                                <td>
+                                    <input type="checkbox"
+                                           value="{{ sample.id }}"
+                                           class="sample-checkbox"
+                                           {% if sample.status.name != 'pending' %}disabled title="Seuls les échantillons 'pending' peuvent être supprimés"{% endif %}>
+                                </td>
+                                {% if show_type %}<td data-label="Type">{{ sample.get_type() }}</td>{% endif %}
+                                {% if user.is_admin and users is defined %}<td data-label="Utilisateur">{{ sample.user.full_name }}</td>{% endif %}
+                                <td data-label="Référence">{{ sample.reference }}</td>
+                                <td data-label="Formule"><span>{{ sample.get_html_formula()|safe or '-' }}</span></td>
+                                <td data-label="Quantité">{{ sample.quantity }} mg</td>
+                                <td data-label="Statut">
+                                    <span class="status-badge status-{{ sample.status.name }}">
+                                        {{ sample.get_status_name() }}
+                                    </span>
+                                </td>
+                                <td data-label="Date">{{ sample.created_at.strftime("%d/%m/%Y %H:%M") }}</td>
+                                <td data-label="Actions">
+                                    <a href="{{ url_for(sample.analysis_type + '.sample_detail', sample_id=sample.id) }}"
+                                       class="btn btn-icon"
+                                       title="Voir les détails"><i class="fas fa-eye"></i></a>
+                                    <a href="{{ url_for(sample.analysis_type + '.sample_edit', sample_id=sample.id) }}"
+                                       class="btn btn-icon"
+                                       title="Éditer"><i class="fas fa-edit"></i></a>
+                                    <a href="{{ url_for('main.generate_pdf', sample_id=sample.id) }}"
+                                       class="btn btn-icon"
+                                       title="Générer PDF"><i class="fas fa-file-pdf"></i></a>
+                                    {% if sample.structure_file %}
+                                        <a href="{{ url_for('main.download_file', filename=sample.structure_file) }}"
+                                           class="btn btn-icon"
+                                           title="Télécharger le fichier"><i class="fas fa-download"></i></a>
+                                    {% endif %}
+                                    {% if sample.is_pending() %}
+                                        <form method="post"
+                                              action="{{ url_for('main.delete_sample', sample_id=sample.id) }}"
+                                              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet échantillon ? Cette action est irréversible.');"
+                                              class="action-form">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-icon btn-delete" title="Supprimer">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if samples %}
+                <div class="batch-actions">
+                    <div class="batch-row">
+                        <h3 class="filter-title">
+                            <i class="fas fa-gear"></i> Actions par lot
+                        </h3>
+
+                        <form method="post"
+                              action="{{ url_for("main.batch_generate_pdf") }}"
+                              class="batch-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-primary" disabled id="batch-pdf-btn">
+                                <i class="fas fa-file-pdf"></i> Générer PDFs
+                            </button>
+                            <input type="hidden" name="sample_ids" id="selected-sample-ids-pdf">
+                        </form>
+
+                        {% block extra_batch_actions %}{% endblock %}
+
+                        <form method="post"
+                              action="{{ url_for("main.batch_delete_samples") }}"
+                              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ces échantillons ? Cette action est irréversible.');"
+                              class="batch-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-delete" disabled id="batch-delete-btn">
+                                <i class="fas fa-trash"></i> Supprimer la sélection
+                            </button>
+                            <input type="hidden" name="sample_ids" id="selected-sample-ids">
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if pagination.pages > 1 %}
+                <div class="pagination-container">
+                    <ul class="pagination">
+                        <!-- Lien "Précédent" -->
+                        <li class="pagination-item {% if not pagination.has_prev %}disabled{% endif %}">
+                            <a href="{{ url_for('main.user_samples',
                         page=pagination.prev_num if pagination.has_prev else 1,
                         status=status_filter,
                         type=type_filter,
@@ -213,17 +236,17 @@
                         search=search_filter,
                         sort=sort_by,
                         order=sort_order) }}"
-                   class="pagination-link"
-                   {% if not pagination.has_prev %}aria-disabled="true"{% endif %}>
-                    <i class="fas fa-chevron-left"></i>
-                </a>
-            </li>
+                               class="pagination-link"
+                               {% if not pagination.has_prev %}aria-disabled="true"{% endif %}>
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
 
-            <!-- Numéros de page -->
-            {% for page_num in pagination.iter_pages() %}
-                {% if page_num %}
-                    <li class="pagination-item {% if page_num == pagination.page %}active{% endif %}">
-                        <a href="{{ url_for('main.user_samples',
+                        <!-- Numéros de page -->
+                        {% for page_num in pagination.iter_pages() %}
+                            {% if page_num %}
+                                <li class="pagination-item {% if page_num == pagination.page %}active{% endif %}">
+                                    <a href="{{ url_for('main.user_samples',
                                 page=page_num,
                                 status=status_filter,
                                 type=type_filter,
@@ -231,21 +254,19 @@
                                 search=search_filter,
                                 sort=sort_by,
                                 order=sort_order) }}"
-                           class="pagination-link">
-                            {{ page_num }}
-                        </a>
-                    </li>
-                {% else %}
-                    <!-- Séparateur pour les pages omises (ex: 1 ... 4 5 6 ... 10) -->
-                    <li class="pagination-item disabled">
-                        <span class="pagination-link">...</span>
-                    </li>
-                {% endif %}
-            {% endfor %}
+                                       class="pagination-link">{{ page_num }}</a>
+                                </li>
+                            {% else %}
+                                <!-- Séparateur pour les pages omises (ex: 1 ... 4 5 6 ... 10) -->
+                                <li class="pagination-item disabled">
+                                    <span class="pagination-link">...</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
 
-            <!-- Lien "Suivant" -->
-            <li class="pagination-item {% if not pagination.has_next %}disabled{% endif %}">
-                <a href="{{ url_for('main.user_samples',
+                        <!-- Lien "Suivant" -->
+                        <li class="pagination-item {% if not pagination.has_next %}disabled{% endif %}">
+                            <a href="{{ url_for('main.user_samples',
                         page=pagination.next_num if pagination.has_next else pagination.pages,
                         status=status_filter,
                         type=type_filter,
@@ -253,60 +274,60 @@
                         search=search_filter,
                         sort=sort_by,
                         order=sort_order) }}"
-                   class="pagination-link"
-                   {% if not pagination.has_next %}aria-disabled="true"{% endif %}>
-                    <i class="fas fa-chevron-right"></i>
-                </a>
-            </li>
-        </ul>
-    </div>
-    {% endif %}
-    
-    <div class="pagination-info">
-        <p>Affichage de {{ samples|length }} échantillon{% if samples|length > 1 %}s{% endif %}    (total : {{ pagination.total }})</p>
-    </div>
+                               class="pagination-link"
+                               {% if not pagination.has_next %}aria-disabled="true"{% endif %}>
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            {% endif %}
 
-    {% else %}
-    <div class="no-samples">
-        <i class="fas fa-inbox"></i>
-        <h3>Aucun échantillon trouvé</h3>
-        <p>Aucun échantillon ne correspond à vos critères de recherche.</p>
+            <div class="pagination-info">
+                <p>Affichage de {{ samples|length }} échantillon{% if samples|length > 1 %}s{% endif %}    (total : {{ pagination.total }})</p>
+            </div>
+
+        {% else %}
+            <div class="no-samples">
+                <i class="fas fa-inbox"></i>
+                <h3>Aucun échantillon trouvé</h3>
+                <p>Aucun échantillon ne correspond à vos critères de recherche.</p>
+            </div>
+        {% endif %}
     </div>
-    {% endif %}
-</div>
 {% endblock %}
 
 {% block scripts %}
-{{ super() }}
-<script>
-$(document).ready(function() {
-    const $selectAllCheckbox = $('#select-all');
-    const $sampleCheckboxes = $('.sample-checkbox:not([disabled])');
-    const $batchButtons = $('#batch-delete-btn, #batch-export-btn, #batch-pdf-btn');
+    {{ super() }}
+    <script>
+        $(document).ready(function() {
+            const $selectAllCheckbox = $('#select-all');
+            const $sampleCheckboxes = $('.sample-checkbox:not([disabled])');
+            const $batchButtons = $('#batch-delete-btn, #batch-export-btn, #batch-pdf-btn');
 
-    // Mettre à jour les champs hidden et les boutons
-    function updateBatchActions() {
-        // Récupérer les valeurs des checkboxes cochées sous forme de tableau
-        const selectedIds = $sampleCheckboxes.filter(':checked').map(function() {
-            return $(this).val();
-        }).get(); // .get() convertit l'objet jQuery en tableau JS natif
+            // Mettre à jour les champs hidden et les boutons
+            function updateBatchActions() {
+                // Récupérer les valeurs des checkboxes cochées sous forme de tableau
+                const selectedIds = $sampleCheckboxes.filter(':checked').map(function() {
+                    return $(this).val();
+                }).get(); // .get() convertit l'objet jQuery en tableau JS natif
 
-        // Mettre à jour tous les champs hidden sample_ids
-        $('input[name="sample_ids"]').val(selectedIds.join(','));
+                // Mettre à jour tous les champs hidden sample_ids
+                $('input[name="sample_ids"]').val(selectedIds.join(','));
 
-        // Activer/désactiver l'ensemble des boutons d'action d'un seul coup
-        const hasSelection = selectedIds.length > 0;
-        $batchButtons.prop('disabled', !hasSelection);
-    }
+                // Activer/désactiver l'ensemble des boutons d'action d'un seul coup
+                const hasSelection = selectedIds.length > 0;
+                $batchButtons.prop('disabled', !hasSelection);
+            }
 
-    // Sélectionner/Désélectionner tout
-    $selectAllCheckbox.on('change', function() {
-        $sampleCheckboxes.prop('checked', $(this).is(':checked'));
-        updateBatchActions();
-    });
+            // Sélectionner/Désélectionner tout
+            $selectAllCheckbox.on('change', function() {
+                $sampleCheckboxes.prop('checked', $(this).is(':checked'));
+                updateBatchActions();
+            });
 
-    // Écouter les changements sur chaque checkbox
-    $sampleCheckboxes.on('change', updateBatchActions);
-});
-</script>
+            // Écouter les changements sur chaque checkbox
+            $sampleCheckboxes.on('change', updateBatchActions);
+        });
+    </script>
 {% endblock %}

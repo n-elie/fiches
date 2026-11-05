@@ -3,24 +3,24 @@
 {% block title %}404 - Page non trouvée{% endblock %}
 
 {% block content %}
-<div class="error-container">
-    <div class="error-content">
-        <div class="error-icon">
-            <i class="fas fa-exclamation-triangle"></i>
-        </div>
-        <h1>404</h1>
-        <h2>Page non trouvée</h2>
-        <p>Désolé, la page que vous cherchez n'existe pas ou a été déplacée.</p>
-        <div class="error-actions">
-            <a href="{{ url_for('main.index') }}" class="btn btn-primary">
-                <i class="fas fa-home"></i> Retour à l'accueil
-            </a>
-            {% if current_user.is_authenticated %}
-                <a href="{{ url_for('main.user_samples') }}" class="btn btn-secondary">
-                    <i class="fas fa-list"></i> Mes Échantillons
+    <div class="error-container">
+        <div class="error-content">
+            <div class="error-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h1>404</h1>
+            <h2>Page non trouvée</h2>
+            <p>Désolé, la page que vous cherchez n'existe pas ou a été déplacée.</p>
+            <div class="error-actions">
+                <a href="{{ url_for("main.index") }}" class="btn btn-primary">
+                    <i class="fas fa-home"></i> Retour à l'accueil
                 </a>
-            {% endif %}
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for("main.user_samples") }}" class="btn btn-secondary">
+                        <i class="fas fa-list"></i> Mes Échantillons
+                    </a>
+                {% endif %}
+            </div>
         </div>
     </div>
-</div>
 {% endblock %}

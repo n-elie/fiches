@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 
 from ..models import User, db
 from ..auth import dap_auth
-from .. import login_manager  # Import du login_manager depuis __init__.py
+from .. import login_manager
 
 @login_manager.user_loader
 def load_user(user_id):

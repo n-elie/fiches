@@ -1,267 +1,329 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div id="mschart" style="height: 400px"></div>
+    <div id="mschart" style="height: 400px"></div>
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/echarts@5"></script>
-<script>
-$(document).ready(function () {
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5"></script>
+    <script>
+        $(document).ready(function() {
 
-  // ================= Données =================
-  const spectrum = [
-    { x: 43.018,  y: 100.0 },
-    { x: 60.021,  y: 62.4 },
-    { x: 73.029,  y: 15.8 },
-    { x: 91.018,  y: 8.2 },
-    { x: 118.050, y: 24.1 },
-  ];
-  const reference = '{{ sample.reference }}';
-  
-  const $container = $('#mschart');
+            // ================= Données =================
+            const spectrum = [{
+                x: 43.018,
+                y: 100.0
+            }, {
+                x: 60.021,
+                y: 62.4
+            }, {
+                x: 73.029,
+                y: 15.8
+            }, {
+                x: 91.018,
+                y: 8.2
+            }, {
+                x: 118.050,
+                y: 24.1
+            }, ];
+            const reference = '{{ sample.reference }}';
 
-  // Fenêtre X initiale (avec marge autour des pics)
-  const xMinOrig = Math.min(...spectrum.map(p => p.x)) - 5;
-  const xMaxOrig = Math.max(...spectrum.map(p => p.x)) + 5;
-  const yMaxOrig = Math.max(10, Math.ceil(Math.max(...spectrum.map(p => p.y)) * 1.1));
-  
-  // ==== Sélection ====
-  const selected = new Set();          // indices des pics sélectionnés
+            const $container = $('#mschart');
 
-  // ================= Initialisation =================
-  const chart = echarts.init($container[0], null, { renderer: 'svg' });
+            // Fenêtre X initiale (avec marge autour des pics)
+            const xMinOrig = Math.min(...spectrum.map(p => p.x)) - 5;
+            const xMaxOrig = Math.max(...spectrum.map(p => p.x)) + 5;
+            const yMaxOrig = Math.max(10, Math.ceil(Math.max(...spectrum.map(p => p.y)) * 1.1));
 
-  const option = {
-    animation: true,
-	title: { text: reference, left: 'center' },
-    grid: { left: 65, right: 25, top: 35, bottom: 70 },
+            // ==== Sélection ====
+            const selected = new Set(); // indices des pics sélectionnés
 
-    xAxis: {
-      type: 'value',                       // axe m/z numérique
-      name: 'm/z',
-      nameLocation: 'middle',
-      nameGap: 28,
-      nameTextStyle: { fontStyle: 'italic', fontSize: 14 },
-      splitLine: { show: false },
-      axisLabel: { formatter: v => v.toFixed(0) },
-    },
+            // ================= Initialisation =================
+            const chart = echarts.init($container[0], null, {
+                renderer: 'svg'
+            });
 
-    yAxis: {
-      type: 'value',
-      name: 'Intensité relative (%)',
-      nameLocation: 'middle',
-      nameGap: 45,
-      min: 0,
-      max: yMaxOrig,
-      splitLine: { show: true, lineStyle: { color: '#eee' } },
-    },
+            const option = {
+                animation: true,
+                title: {
+                    text: reference,
+                    left: 'center'
+                },
+                grid: {
+                    left: 65,
+                    right: 25,
+                    top: 35,
+                    bottom: 70
+                },
 
-    tooltip: {
-      trigger: 'item',
-      confine: true,
-      formatter: p => {
-        const [mz, inten] = p.value;
-        return `<i>m/z</i> <b>${mz.toFixed(4)}</b> — <b>${inten.toFixed(2)}</b> %`;
-      },
-    },
-	
-	toolbox: {
-    feature: {
-      dataZoom: {
-        yAxisIndex: 'none',
-        brushStyle: {
-          color: 'rgb(52, 152, 219, 0.3)',
-        }
-      },
-      restore: { title: 'Restore Zoom'},
-      mySpacer1: {
-        show: true,
-        title: ' ', 
-        icon: 'path://',
-        onclick: function() { return false; }
-      },
-      mySelectAll: {
-        show:true,
-        title: 'Select All',
-        icon: 'path://m74.3164 90.752v10.4551h10.625V90.752Zm8.4021 2.3303-4.3429 4.3434-2.4365-2.4365-.4243.4243 2.8608 2.8608 4.7682-4.7677z',
-        onclick: function() {
-          selected.clear();
-          spectrum.forEach((p, i) => { if (p.y > 0) selected.add(i); });
-          chart.setOption(option);
-        }
-      },
-      myClearSelection: {
-        show: true,
-        title: 'Effacer la sélection',
-        icon: 'path://M6 6l12 12M18 6L6 18',
-        onclick: function () {
-          selected.clear();
-          chart.setOption(option);
-        }
-      },
-      mySpacer2: {
-        show: true,
-        title: ' ',
-        icon: 'path://',
-        onclick: function() { return false; }
-      },
-      dataView: {
-        readOnly: true,
-      },
-      saveAsImage: {}
-    }
-  },
+                xAxis: {
+                    type: 'value', // axe m/z numérique
+                    name: 'm/z',
+                    nameLocation: 'middle',
+                    nameGap: 28,
+                    nameTextStyle: {
+                        fontStyle: 'italic',
+                        fontSize: 14
+                    },
+                    splitLine: {
+                        show: false
+                    },
+                    axisLabel: {
+                        formatter: v => v.toFixed(0)
+                    },
+                },
 
-    // ============ Zoom natif ============
-    dataZoom: [
-      {
-        type: 'inside',                     // molette + pan à la souris
-        xAxisIndex: 0,
-        //filterMode: 'none',                 // garde les points hors fenêtre (important)
-        zoomOnMouseWheel: true,
-        moveOnMouseMove: false,
-        moveOnMouseWheel: true,
-        startValue: xMinOrig,
-        endValue: xMaxOrig
-      }
-    ],
+                yAxis: {
+                    type: 'value',
+                    name: 'Intensité relative (%)',
+                    nameLocation: 'middle',
+                    nameGap: 45,
+                    min: 0,
+                    max: yMaxOrig,
+                    splitLine: {
+                        show: true,
+                        lineStyle: {
+                            color: '#eee'
+                        }
+                    },
+                },
 
-    // ============ Série custom : bâtons du spectrum ============
-    series: [{
-      type: 'custom',
-      data: spectrum.map(p => [p.x, p.y]),
-      encode: { x: 0, y: 1 },
-	    name: 'm/z\tIntensities (%)',
-      renderItem: (params, api) => {
-        const mz    = api.value(0);
-        const inten = api.value(1);
-		    const idx   = params.dataIndex;
-		
-		    const isSelected = selected.has(idx);
+                tooltip: {
+                    trigger: 'item',
+                    confine: true,
+                    formatter: p => {
+                        const [mz, inten] = p.value;
+                        return `<i>m/z</i> <b>${mz.toFixed(4)}</b> — <b>${inten.toFixed(2)}</b> %`;
+                    },
+                },
 
-        // Conversion coordonnées données -> pixels
-        const xPix = api.coord([mz, 0])[0];        // x à la base
-        const yPix = api.coord([mz, inten])[1];    // y au sommet
-        const yBase = api.coord([mz, 0])[1];       // y = 0 en pixels
+                toolbox: {
+                    feature: {
+                        dataZoom: {
+                            yAxisIndex: 'none',
+                            brushStyle: {
+                                color: 'rgb(52, 152, 219, 0.3)',
+                            }
+                        },
+                        restore: {
+                            title: 'Restore Zoom'
+                        },
+                        mySpacer1: {
+                            show: true,
+                            title: ' ',
+                            icon: 'path://',
+                            onclick: function() {
+                                return false;
+                            }
+                        },
+                        mySelectAll: {
+                            show: true,
+                            title: 'Select All',
+                            icon: 'path://m74.3164 90.752v10.4551h10.625V90.752Zm8.4021 2.3303-4.3429 4.3434-2.4365-2.4365-.4243.4243 2.8608 2.8608 4.7682-4.7677z',
+                            onclick: function() {
+                                selected.clear();
+                                spectrum.forEach((p, i) => {
+                                    if (p.y > 0) selected.add(i);
+                                });
+                                chart.setOption(option);
+                            }
+                        },
+                        myClearSelection: {
+                            show: true,
+                            title: 'Effacer la sélection',
+                            icon: 'path://M6 6l12 12M18 6L6 18',
+                            onclick: function() {
+                                selected.clear();
+                                chart.setOption(option);
+                            }
+                        },
+                        mySpacer2: {
+                            show: true,
+                            title: ' ',
+                            icon: 'path://',
+                            onclick: function() {
+                                return false;
+                            }
+                        },
+                        dataView: {
+                            readOnly: true,
+                        },
+                        saveAsImage: {}
+                    }
+                },
 
-        const half = 2;                            // bâton de 4 px de large
+                // ============ Zoom natif ============
+                dataZoom: [{
+                    type: 'inside', // molette + pan à la souris
+                    xAxisIndex: 0,
+                    //filterMode: 'none',                 // garde les points hors fenêtre (important)
+                    zoomOnMouseWheel: true,
+                    moveOnMouseMove: false,
+                    moveOnMouseWheel: true,
+                    startValue: xMinOrig,
+                    endValue: xMaxOrig
+                }],
 
-        const children = [{
-          type: 'rect',
-          shape: {
-            x: xPix - half,
-            y: yPix,
-            width: half * 2,
-            height: Math.max(yBase - yPix, 0),
-          },
-		      style: {
-			      fill: isSelected ? '#1f77b4' : '#1e1e1e',
-		      },
-          emphasis: {
-            style: { fill: 'red' }
-          },
-        }];
+                // ============ Série custom : bâtons du spectrum ============
+                series: [{
+                    type: 'custom',
+                    data: spectrum.map(p => [p.x, p.y]),
+                    encode: {
+                        x: 0,
+                        y: 1
+                    },
+                    name: 'm/z\tIntensities (%)',
+                    renderItem: (params, api) => {
+                        const mz = api.value(0);
+                        const inten = api.value(1);
+                        const idx = params.dataIndex;
 
-        // Étiquette m/z au-dessus du pic si intensité > 5 %
-        if (inten > 5) {
-          children.push({
-            type: 'text',
-            silent: true,  // le label ne capture pas les events
-            style: {
-              text: mz.toFixed(4),
-              x: xPix,
-              y: yPix - 5,
-              textAlign: 'center',
-              textVerticalAlign: 'bottom',
-              fontSize: 9,
-              fill: isSelected ? '#1f77b4' : '#333',
-			  fontWeight: isSelected ? 'bold' : 'normal',
-            },
-          });
-        }
+                        const isSelected = selected.has(idx);
 
-        return { type: 'group', children };
-      },
-    }],
-  };
+                        // Conversion coordonnées données -> pixels
+                        const xPix = api.coord([mz, 0])[0]; // x à la base
+                        const yPix = api.coord([mz, inten])[1]; // y au sommet
+                        const yBase = api.coord([mz, 0])[1]; // y = 0 en pixels
 
-  chart.setOption(option);
-  // Auto activate zoom feature
-  chart.dispatchAction({ type: 'takeGlobalCursor', key: 'dataZoomSelect', dataZoomSelectActive: true });
+                        const half = 2; // bâton de 4 px de large
 
-  // ============ rescaleY : axe Y recalculé selon la fenêtre visible ============
-  function rescaleY() {
-    const dz = chart.getOption().dataZoom[0];
-    const x0 = (dz.startValue !== undefined && dz.startValue !== null)
-      ? dz.startValue
-      : xMinOrig;
-    const x1 = (dz.endValue !== undefined && dz.endValue !== null)
-      ? dz.endValue
-      : xMaxOrig;
-	  
-    const visible = spectrum.filter(p => p.x >= x0 && p.x <= x1);
-    const newMax = visible.length
-      ? Math.max(10, Math.ceil(Math.max(...visible.map(p => p.y)) * 1.1))
-      : yMaxOrig;
+                        const children = [{
+                            type: 'rect',
+                            shape: {
+                                x: xPix - half,
+                                y: yPix,
+                                width: half * 2,
+                                height: Math.max(yBase - yPix, 0),
+                            },
+                            style: {
+                                fill: isSelected ? '#1f77b4' : '#1e1e1e',
+                            },
+                            emphasis: {
+                                style: {
+                                    fill: 'red'
+                                }
+                            },
+                        }];
 
-    const curMax = chart.getOption().yAxis[0].max;
-    if (curMax !== newMax) {
-      chart.setOption({ yAxis: { max: newMax } });
-    }
-  }
+                        // Étiquette m/z au-dessus du pic si intensité > 5 %
+                        if (inten > 5) {
+                            children.push({
+                                type: 'text',
+                                silent: true, // le label ne capture pas les events
+                                style: {
+                                    text: mz.toFixed(4),
+                                    x: xPix,
+                                    y: yPix - 5,
+                                    textAlign: 'center',
+                                    textVerticalAlign: 'bottom',
+                                    fontSize: 9,
+                                    fill: isSelected ? '#1f77b4' : '#333',
+                                    fontWeight: isSelected ? 'bold' : 'normal',
+                                },
+                            });
+                        }
 
-  chart.on('dataZoom', rescaleY);
+                        return {
+                            type: 'group',
+                            children
+                        };
+                    },
+                }],
+            };
 
-  // ============ Reset zoom ============
-  function resetZoom() {
-    chart.setOption({
-      dataZoom: [
-        { startValue: xMinOrig, endValue: xMaxOrig }
-      ],
-      yAxis: { max: yMaxOrig },
-    });
-  }
+            chart.setOption(option);
+            // Auto activate zoom feature
+            chart.dispatchAction({
+                type: 'takeGlobalCursor',
+                key: 'dataZoomSelect',
+                dataZoomSelectActive: true
+            });
 
-  $container.on('dblclick', resetZoom);
+            // ============ rescaleY : axe Y recalculé selon la fenêtre visible ============
+            function rescaleY() {
+                const dz = chart.getOption().dataZoom[0];
+                const x0 = (dz.startValue !== undefined && dz.startValue !== null) ?
+                    dz.startValue :
+                    xMinOrig;
+                const x1 = (dz.endValue !== undefined && dz.endValue !== null) ?
+                    dz.endValue :
+                    xMaxOrig;
 
-  // Redimensionnement responsive
-  $(window).on('resize', () => chart.resize());
-  
-  // ==== Clic gauche sur un pic : toggle sélection ====
-  let lastClickedIndex = null;
-  chart.on('click', { seriesIndex: 0 }, function (params) {
-    const idx = params.dataIndex;
+                const visible = spectrum.filter(p => p.x >= x0 && p.x <= x1);
+                const newMax = visible.length ?
+                    Math.max(10, Math.ceil(Math.max(...visible.map(p => p.y)) * 1.1)) :
+                    yMaxOrig;
 
-    // Un pic fantôme (marges) ou d'intensité 0 n'est pas sélectionnable
-    if (!spectrum[idx] || spectrum[idx].y <= 0) return;
+                const curMax = chart.getOption().yAxis[0].max;
+                if (curMax !== newMax) {
+                    chart.setOption({
+                        yAxis: {
+                            max: newMax
+                        }
+                    });
+                }
+            }
 
-    if (params.event && params.event.event.shiftKey && lastClickedIndex !== null) {
-      // Shift : sélection en plage (du dernier pic cliqué à celui-ci)
-      const [a, b] = [lastClickedIndex, idx].sort((x, y) => x - y);
-      for (let i = a; i <= b; i++) selected.add(i);
+            chart.on('dataZoom', rescaleY);
 
-    } else if (params.event && params.event.event.ctrlKey) {
-      // Ctrl : ajout/retrait à la sélection sans effacer le reste
-      selected.has(idx) ? selected.delete(idx) : selected.add(idx);
+            // ============ Reset zoom ============
+            function resetZoom() {
+                chart.setOption({
+                    dataZoom: [{
+                        startValue: xMinOrig,
+                        endValue: xMaxOrig
+                    }],
+                    yAxis: {
+                        max: yMaxOrig
+                    },
+                });
+            }
 
-    } else {
-      // Clic simple : sélection unique (toggle)
-      selected.has(idx) && selected.size === 1
-        ? selected.clear()
-        : (selected.clear(), selected.add(idx));
-    }
-    lastClickedIndex = idx;
-    
-    chart.setOption(option);
-  });
-  
-  // Échap désactive le zoom
-  $(document).on('keydown', function (e) {
-    if (e.key === 'Escape') {
-      chart.dispatchAction({ type: 'takeGlobalCursor', key: 'dataZoomSelect', dataZoomSelectActive: false });
-    }
-  });
-});
-</script>
+            $container.on('dblclick', resetZoom);
+
+            // Redimensionnement responsive
+            $(window).on('resize', () => chart.resize());
+
+            // ==== Clic gauche sur un pic : toggle sélection ====
+            let lastClickedIndex = null;
+            chart.on('click', {
+                seriesIndex: 0
+            }, function(params) {
+                const idx = params.dataIndex;
+
+                // Un pic fantôme (marges) ou d'intensité 0 n'est pas sélectionnable
+                if (!spectrum[idx] || spectrum[idx].y <= 0) return;
+
+                if (params.event && params.event.event.shiftKey && lastClickedIndex !== null) {
+                    // Shift : sélection en plage (du dernier pic cliqué à celui-ci)
+                    const [a, b] = [lastClickedIndex, idx].sort((x, y) => x - y);
+                    for (let i = a; i <= b; i++) selected.add(i);
+
+                } else if (params.event && params.event.event.ctrlKey) {
+                    // Ctrl : ajout/retrait à la sélection sans effacer le reste
+                    selected.has(idx) ? selected.delete(idx) : selected.add(idx);
+
+                } else {
+                    // Clic simple : sélection unique (toggle)
+                    selected.has(idx) && selected.size === 1 ?
+                        selected.clear() :
+                        (selected.clear(), selected.add(idx));
+                }
+                lastClickedIndex = idx;
+
+                chart.setOption(option);
+            });
+
+            // Échap désactive le zoom
+            $(document).on('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    chart.dispatchAction({
+                        type: 'takeGlobalCursor',
+                        key: 'dataZoomSelect',
+                        dataZoomSelectActive: false
+                    });
+                }
+            });
+        });
+    </script>
 {% endblock %}

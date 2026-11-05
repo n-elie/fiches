@@ -3,279 +3,315 @@
 {% block title %}{% if sample %}Éditer - {{ sample.reference }} - {% else %}Nouvelle Analyse - {% endif %}{% endblock %}
 
 {% block content %}
-<div class="form-container">
-    <div class="form-header">
-        <h2>
-			{% if sample %}
-			Éditer l'échantillon
-			{% else %}
-			Soumission d'Échantillon
-			{% endif%}
-		</h2>
-        <p>
-			{% if sample %}
-			Modifiez les informations de l'échantillon <strong>{{ sample.reference }}</strong>
-			{% else %}
-			Remplissez le formulaire ci-dessous pour soumettre un nouvel échantillon à l'analyse.
-			{% endif %}
-		</p>
+    <div class="form-container">
+        <div class="form-header">
+            <h2>
+                {% if sample %}
+                    Éditer l'échantillon
+                {% else %}
+                    Soumission d'Échantillon
+                {% endif %}
+            </h2>
+            <p>
+                {% if sample %}
+                    Modifiez les informations de l'échantillon <strong>{{ sample.reference }}</strong>
+                {% else %}
+                    Remplissez le formulaire ci-dessous pour soumettre un nouvel échantillon à l'analyse.
+                {% endif %}
+            </p>
+        </div>
+
+        {% if sample %}
+            {% set action = url_for('nmr.sample_edit', sample_id=sample.id) %}
+        {% else %}
+            {% set action = url_for('nmr.submit_sample') %}
+        {% endif %}
+        <form method="post"
+              action="{{ action }}"
+              class="sample-form"
+              enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            {% include "partials/_user_info.html" %}
+
+            <div class="form-section">
+                <h3>Informations de l'échantillon</h3>
+
+                <div class="form-row">
+                    <div class="form-group required">
+                        <label for="reference">Référence de l'échantillon <span class="required-star">*</span></label>
+                        <input type="text"
+                               id="reference"
+                               name="reference"
+                               required
+                               {% if sample %}value="{{ sample.reference }}"{% endif %}
+                               placeholder="Ex: SAM-2024-001">
+                        <span class="help-text">Référence unique pour identifier votre échantillon</span>
+                    </div>
+
+                    <div class="form-group required">
+                        <label for="quantity">Quantité déposée (mg) <span class="required-star">*</span></label>
+                        <input type="number"
+                               id="quantity"
+                               name="quantity"
+                               step="0.1"
+                               required
+                               {% if sample %}value="{{ sample.quantity }}"{% endif %}
+                               placeholder="Ex: 1.5"
+                               min="0.1"
+                               inputmode="numeric">
+                        <span class="help-text">Quantité déposée dans le tube (en mg)</span>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group required">
+                        <label for="stability">Stabilité</label>
+                        <select id="stability" name="stability" required>
+                            {% for code, stability in stabilities.items() %}
+                                <option value="{{ code }}"
+                                        {% if sample and sample.stability == code %}selected{% endif %}>{{ stability }}</option>
+                            {% endfor %}
+                        </select>
+                        <span class="help-text">Sélectionnez la stabilité de l'échantillon</span>
+                    </div>
+
+                    <div class="form-group required">
+                        <label for="solvent">Solvant</label>
+                        <select id="solvent" name="solvent">
+                            {% for code, solvent in solvents.items() %}
+                                <option value="{{ code }}"
+                                        {% if sample and sample.solvent == code %}selected{% endif %}>{{ solvent }}</option>
+                            {% endfor %}
+                        </select>
+                        <span class="help-text">Sélectionnez le solvant utilisé pour préparer l'échantillon</span>
+                    </div>
+
+                    <div class="form-group required">
+                        <label for="frequency">Fréquence de l'instrument <span class="required-star">*</span></label>
+                        <select id="frequency" name="frequency" required>
+                            {% for frequency in experiments_by_frequency.keys() %}
+                                <option value="{{ frequency }}"
+                                        {% if sample and sample.frequency == frequency %}selected{% endif %}>{{ frequency }} MHz</option>
+                            {% endfor %}
+                        </select>
+                        <span class="help-text">Sélectionnez la fréquence de l'instrument</span>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group required">
+                        <label>Expériences demandées <span class="required-star">*</span></label>
+                        <div class="checkbox-group" id="experiments-container">
+                            {# Les checkboxes sont générées dynamiquement par JavaScript #}
+                        </div>
+                        <span class="help-text">Sélectionnez une ou plusieurs expériences (au moins une obligatoire)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Structure chimique</h3>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="structure_file">Fichier de structure{% if sample %} (laisser vide pour conserver l'ancien){% endif %}</label>
+                        <input type="file"
+                               id="structure_file"
+                               name="structure_file"
+                               accept=".cdx,.cdxml,.mol,.sdf">
+                        <span class="help-text">Formats acceptés: .cdx, .cdxml, .mol, .sdf (optionnel)</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="formula">Formule brute</label>
+                        <input type="text"
+                               id="formula"
+                               name="formula"
+                               {% if sample %}value="{{ sample.formula }}"{% endif %}
+                               placeholder="Ex: C8H10N4O2">
+                        <span class="help-text">Formule chimique de l'échantillon (optionnel)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Informations supplémentaires</h3>
+
+                <div class="form-group">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes"
+                              name="notes"
+                              rows="4"
+                              {% if sample %}value="{{ sample.notes }}"{% endif %}
+                              placeholder="Ajoutez des notes ou commentaires sur l'échantillon..."></textarea>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                {% if sample %}
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Sauvegarder
+                    </button>
+                    <a href="{{ url_for('nmr.sample_detail', sample_id=sample.id) }}"
+                       class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Annuler
+                    </a>
+                {% else %}
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Soumettre
+                    </button>
+                    <button type="reset" class="btn btn-secondary">
+                        <i class="fas fa-undo"></i> Réinitialiser
+                    </button>
+                {% endif %}
+                <a href="{{ url_for("main.user_samples") }}" class="btn btn-tertiary">
+                    <i class="fas fa-list"></i> Mes Échantillons
+                </a>
+            </div>
+        </form>
     </div>
-
-	{% if sample %}
-		{% set action = url_for('nmr.sample_edit', sample_id=sample.id) %}
-	{% else %}
-		{% set action = url_for('nmr.submit_sample') %}
-	{% endif %}
-    <form method="POST" action="{{ action }}" class="sample-form" enctype="multipart/form-data">
-		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-		
-		{% include "partials/_user_info.html" %}
-		
-        <div class="form-section">
-            <h3>Informations de l'échantillon</h3>
-			
-			<div class="form-row">
-				<div class="form-group required">
-					<label for="reference">Référence de l'échantillon <span class="required-star">*</span></label>
-					<input type="text" id="reference" name="reference" required
-						   {% if sample %}value="{{ sample.reference }}"{% endif %} placeholder="Ex: SAM-2024-001">
-					<span class="help-text">Référence unique pour identifier votre échantillon</span>
-				</div>
-
-				<div class="form-group required">
-					<label for="quantity">Quantité déposée (mg) <span class="required-star">*</span></label>
-					<input type="number" id="quantity" name="quantity" step="0.1" required
-						   {% if sample %}value="{{ sample.quantity }}"{% endif %} placeholder="Ex: 1.5" min="0.1" inputmode="numeric">
-				   <span class="help-text">Quantité déposée dans le tube (en mg)</span>
-				</div>
-			</div>
-			
-			<div class="form-row">
-				<div class="form-group required">
-                    <label for="stability">Stabilité</label>
-					<select id="stability" name="stability" required>
-						{% for code, stability in stabilities.items() %}
-						<option value="{{ code }}" {% if sample and sample.stability == code %}selected{% endif %}>{{ stability }}</option>
-						{% endfor %}
-					</select>
-					<span class="help-text">Sélectionnez la stabilité de l'échantillon</span>
-                </div>
-			
-                <div class="form-group required">
-                    <label for="solvent">Solvant</label>
-					<select id="solvent" name="solvent">
-						{% for code, solvent in solvents.items() %}
-						<option value="{{ code }}" {% if sample and sample.solvent == code %}selected{% endif %}>{{ solvent }}</option>
-						{% endfor %}
-					</select>
-					<span class="help-text">Sélectionnez le solvant utilisé pour préparer l'échantillon</span>
-                </div>
-
-                <div class="form-group required">
-                    <label for="frequency">Fréquence de l'instrument <span class="required-star">*</span></label>
-                    <select id="frequency" name="frequency" required>
-						{% for frequency in experiments_by_frequency.keys() %}
-						<option value="{{ frequency }}" {% if sample and sample.frequency == frequency %}selected{% endif %}>{{ frequency }} MHz</option>
-						{% endfor %}
-					</select>
-				    <span class="help-text">Sélectionnez la fréquence de l'instrument</span>
-                </div>
-            </div>
-			
-			<div class="form-row">
-				<div class="form-group required">
-					<label>Expériences demandées <span class="required-star">*</span></label>
-					<div class="checkbox-group" id="experiments-container">
-						{# Les checkboxes sont générées dynamiquement par JavaScript #}
-					</div>
-					<span class="help-text">Sélectionnez une ou plusieurs expériences (au moins une obligatoire)</span>
-				</div>
-			</div>
-        </div>
-
-        <div class="form-section">
-            <h3>Structure chimique</h3>
-
-			<div class="form-row">
-				<div class="form-group">
-					<label for="structure_file">Fichier de structure{% if sample %} (laisser vide pour conserver l'ancien){% endif %}</label>
-					<input type="file" id="structure_file" name="structure_file"
-						   accept=".cdx,.cdxml,.mol,.sdf">
-					<span class="help-text">Formats acceptés: .cdx, .cdxml, .mol, .sdf (optionnel)</span>
-				</div>
-				<div class="form-group">
-					<label for="formula">Formule brute</label>
-					<input type="text" id="formula" name="formula"
-						   {% if sample %}value="{{ sample.formula }}"{% endif %} placeholder="Ex: C8H10N4O2">
-					<span class="help-text">Formule chimique de l'échantillon (optionnel)</span>
-				</div>
-			</div>
-        </div>
-
-        <div class="form-section">
-            <h3>Informations supplémentaires</h3>
-
-            <div class="form-group">
-                <label for="notes">Notes</label>
-                <textarea id="notes" name="notes" rows="4"
-                          {% if sample %}value="{{ sample.notes }}"{% endif %} placeholder="Ajoutez des notes ou commentaires sur l'échantillon..."></textarea>
-            </div>
-        </div>
-
-        <div class="form-actions">
-            {% if sample %}
-			<button type="submit" class="btn btn-primary">
-                <i class="fas fa-save"></i> Sauvegarder
-            </button>
-            <a href="{{ url_for('nmr.sample_detail', sample_id=sample.id) }}" class="btn btn-secondary">
-                <i class="fas fa-times"></i> Annuler
-            </a>
-			{% else %}
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-paper-plane"></i> Soumettre
-            </button>
-            <button type="reset" class="btn btn-secondary">
-                <i class="fas fa-undo"></i> Réinitialiser
-            </button>
-			{% endif %}
-            <a href="{{ url_for('main.user_samples') }}" class="btn btn-tertiary">
-                <i class="fas fa-list"></i> Mes Échantillons
-            </a>
-        </div>
-    </form>
-</div>
 {% endblock %}
 
 {% block scripts %}
-{{ super() }}
-<script>
-$(document).ready(function() {
-    const experimentsByFrequency = {{ experiments_by_frequency|tojson|safe }};
-	{% if sample %}
-	const sampleExperiments = "{{ sample.experiments }}".split(', ')
-        .map(e => e.trim())
-        .filter(e => e);
-	const sampleOtherExperiment = "{{ sample.other_experiment if sample.other_experiment }}"
-	{% else %}
-	const sampleExperiments = [];
-	const sampleOtherExperiment = "";
-	{% endif %}
+    {{ super() }}
+    <script>
+        $(document).ready(function() {
+            const experimentsByFrequency = {{ experiments_by_frequency|tojson|safe }};
+            {% if sample %}
+            const sampleExperiments = "{{ sample.experiments }}".split(', ')
+                .map(e => e.trim())
+                .filter(e => e);
+            const sampleOtherExperiment = "{{ sample.other_experiment if sample.other_experiment }}"
+            {% else %}
+            const sampleExperiments = [];
+            const sampleOtherExperiment = "";
+            {% endif %}
 
-    const frequencySelect = $('#frequency');
-    const experimentsContainer = $('#experiments-container');
+            const frequencySelect = $('#frequency');
+            const experimentsContainer = $('#experiments-container');
 
-    // Générer les checkboxes pour une fréquence donnée
-    function renderExperiments(frequency) {
-        const experiments = experimentsByFrequency[frequency] || [];
+            // Générer les checkboxes pour une fréquence donnée
+            function renderExperiments(frequency) {
+                const experiments = experimentsByFrequency[frequency] || [];
 
-        // Vider le conteneur
-        experimentsContainer.empty();
+                // Vider le conteneur
+                experimentsContainer.empty();
 
-        // Créer une checkbox pour chaque expérience
-        experiments.forEach(exp => {
-            const idSanitized = `exp_${exp.replace(/\s+/g, '_')}`;
-            const labelHtml = exp.replace(/^\d+/g, match => `<sup>${match}</sup>`);
+                // Créer une checkbox pour chaque expérience
+                experiments.forEach(exp => {
+                    const idSanitized = `exp_${exp.replace(/\s+/g, '_')}`;
+                    const labelHtml = exp.replace(/^\d+/g, match => `<sup>${match}</sup>`);
 
-			// Déterminer si la checkbox doit être cochée à l'initialisation
-            const isChecked = sampleExperiments.includes(exp);
+                    // Déterminer si la checkbox doit être cochée à l'initialisation
+                    const isChecked = sampleExperiments.includes(exp);
 
-            const div = $('<div>', { class: 'checkbox-item' });
-            
-            const input = $('<input>', {
-                type: 'checkbox',
-                id: idSanitized,
-                name: 'experiments',
-                value: exp,
-				prop: { checked: isChecked }
+                    const div = $('<div>', {
+                        class: 'checkbox-item'
+                    });
+
+                    const input = $('<input>', {
+                        type: 'checkbox',
+                        id: idSanitized,
+                        name: 'experiments',
+                        value: exp,
+                        prop: {
+                            checked: isChecked
+                        }
+                    });
+
+                    const label = $('<label>', {
+                        for: idSanitized,
+                        html: labelHtml // Gère les balises <sup> insérées via regex
+                    });
+
+                    div.append(input, label).appendTo(experimentsContainer);
+                });
+
+                // Ajouter l'option "Autre"
+                const otherDiv = $('<div>', {
+                    class: 'checkbox-item other-experiment'
+                });
+
+                const otherInput = $('<input>', {
+                    type: 'checkbox',
+                    id: 'other_experiment',
+                    name: 'other_experiment',
+                    value: 'Autre',
+                    prop: {
+                        checked: !!sampleOtherExperiment
+                    } // Coché si une valeur existe
+                });
+
+                const otherLabel = $('<label>', {
+                    for: 'other_experiment',
+                    text: 'Autre'
+                });
+
+                // Champ texte pour l'expérience personnalisée
+                const otherInputText = $('<input>', {
+                    type: 'text',
+                    id: 'other_experiment_name',
+                    name: 'other_experiment_name',
+                    placeholder: "Précisez l'expérience...",
+                    val: sampleOtherExperiment || '',
+                    prop: {
+                        disabled: !sampleOtherExperiment
+                    } // Activé si une valeur existe
+                });
+
+                otherDiv.append(otherInput, otherLabel, otherInputText).appendTo(experimentsContainer);
+
+                // Écouteur pour afficher/masquer le champ texte
+                otherInput.on('change', function() {
+                    if ($(this).is(':checked')) {
+                        otherInputText.prop('disabled', false).trigger('focus');
+                    } else {
+                        otherInputText.prop('disabled', true).val('');
+                    }
+                });
+            }
+
+            // Écouter le changement de fréquence
+            frequencySelect.on('change', function() {
+                const selectedFrequency = parseInt($(this).val());
+                renderExperiments(selectedFrequency);
             });
 
-            const label = $('<label>', {
-                for: idSanitized,
-                html: labelHtml // Gère les balises <sup> insérées via regex
-            });
-
-            div.append(input, label).appendTo(experimentsContainer);
-        });
-		
-        // Ajouter l'option "Autre"
-        const otherDiv = $('<div>', { class: 'checkbox-item other-experiment' });
-		
-        const otherInput = $('<input>', {
-            type: 'checkbox',
-            id: 'other_experiment',
-            name: 'other_experiment',
-            value: 'Autre',
-			prop: { checked: !!sampleOtherExperiment } // Coché si une valeur existe
-        });
-
-        const otherLabel = $('<label>', {
-            for: 'other_experiment',
-            text: 'Autre'
-        });
-
-        // Champ texte pour l'expérience personnalisée
-        const otherInputText = $('<input>', {
-            type: 'text',
-            id: 'other_experiment_name',
-            name: 'other_experiment_name',
-            placeholder: "Précisez l'expérience...",
-            val: sampleOtherExperiment || '',
-            prop: { disabled: !sampleOtherExperiment } // Activé si une valeur existe
-        });
-
-        otherDiv.append(otherInput, otherLabel, otherInputText).appendTo(experimentsContainer);
-
-        // Écouteur pour afficher/masquer le champ texte
-        otherInput.on('change', function() {
-            if ($(this).is(':checked')) {
-				otherInputText.prop('disabled', false).trigger('focus');
-            } else {
-                otherInputText.prop('disabled', true).val('');
+            // Initialiser avec la première fréquence par défaut
+            const firstOption = frequencySelect.find('option').first();
+            if (firstOption.length > 0) {
+                renderExperiments(parseInt(firstOption.val()));
             }
         });
-    }
 
-    // Écouter le changement de fréquence
-    frequencySelect.on('change', function() {
-        const selectedFrequency = parseInt($(this).val());
-        renderExperiments(selectedFrequency);
-    });
+        // Vérification du formulaire
+        $('.sample-form').each(function() {
+            const $form = $(this);
 
-    // Initialiser avec la première fréquence par défaut
-    const firstOption = frequencySelect.find('option').first();
-    if (firstOption.length > 0) {
-        renderExperiments(parseInt(firstOption.val()));
-    }
-});
+            $form.on('submit', function(e) {
+                let isValid = true;
 
-// Vérification du formulaire
-$('.sample-form').each(function() {
-	const $form = $(this);
+                const $checkboxInput = $('.checkbox-item > input[type=checkbox]').first().get(0);
+                if ($('.checkbox-item > input[type=checkbox]:checked').length == 0) {
+                    isValid = false;
+                    $checkboxInput.setCustomValidity("Veuillez cocher au moins une case");
+                    $checkboxInput.reportValidity();
+                    $checkboxInput.setCustomValidity("");
+                }
 
-	$form.on('submit', function(e) {
-		let isValid = true;
+                const $chkOther = $(".checkbox-item > input[type=checkbox]#other_experiment").get(0);
+                const $chkOtherName = $(".checkbox-item > input[type=text]#other_experiment_name");
+                if (($chkOther.checked == true) && ($chkOtherName.val().length == 0)) {
+                    isValid = false;
+                    $chkOther.setCustomValidity("Veuillez préciser l'expérience");
+                    $chkOther.reportValidity();
+                    $chkOther.setCustomValidity("");
+                }
 
-		const $checkboxInput = $('.checkbox-item > input[type=checkbox]').first().get(0);
-		if ($('.checkbox-item > input[type=checkbox]:checked').length == 0) {
-			isValid = false;
-			$checkboxInput.setCustomValidity("Veuillez cocher au moins une case");
-			$checkboxInput.reportValidity();
-			$checkboxInput.setCustomValidity("");
-		}
-		
-		const $chkOther = $(".checkbox-item > input[type=checkbox]#other_experiment").get(0);
-		const $chkOtherName = $(".checkbox-item > input[type=text]#other_experiment_name");
-		if (($chkOther.checked == true) && ($chkOtherName.val().length == 0)) {
-			isValid = false;
-			$chkOther.setCustomValidity("Veuillez préciser l'expérience");
-			$chkOther.reportValidity();
-			$chkOther.setCustomValidity("");
-		}
-
-		if (!isValid) {
-			e.preventDefault();
-		}
-	});
-});
-</script>
+                if (!isValid) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
 {% endblock %}

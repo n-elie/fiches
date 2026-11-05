@@ -3,193 +3,223 @@
 {% block title %}{% if sample %}Éditer - {{ sample.reference }} - {% else %}Nouvelle Analyse - {% endif %}{% endblock %}
 
 {% block content %}
-<div class="form-container">
-    <div class="form-header">
-        <h2>
-			{% if sample %}
-			Éditer l'échantillon
-			{% else %}
-			Soumission d'Échantillon
-			{% endif%}
-		</h2>
-        <p>
-			{% if sample %}
-			Modifiez les informations de l'échantillon <strong>{{ sample.reference }}</strong>
-			{% else %}
-			Remplissez le formulaire ci-dessous pour soumettre un nouvel échantillon à l'analyse. Vous pouvez aussi <a href="{{ url_for('ms.import_samples') }}">importer des échantillons par lot</a> à partir d'un fichier Excel.
-			{% endif %}
-		</p>
-    </div>
-
-	{% if sample %}
-		{% set action = url_for('ms.sample_edit', sample_id=sample.id) %}
-	{% else %}
-		{% set action = url_for('ms.submit_sample') %}
-	{% endif %}
-    <form method="POST" action="{{ action }}" class="sample-form" enctype="multipart/form-data">
-		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-		
-        {% include "partials/_user_info.html" %}
-
-        <div class="form-section">
-            <h3>Informations de l'échantillon</h3>
-			
-			<div class="form-row">
-				<div class="form-group required">
-					<label for="reference">Référence de l'échantillon <span class="required-star">*</span></label>
-					<input type="text" id="reference" name="reference" required
-						   {% if sample %}value="{{ sample.reference }}"{% endif %} placeholder="Ex: SAM-2024-001">
-					<span class="help-text">Référence unique pour identifier votre échantillon</span>
-				</div>
-
-				<div class="form-group required">
-					<label for="quantity">Quantité déposée (mg) <span class="required-star">*</span></label>
-					<input type="number" id="quantity" name="quantity" step="0.1" required
-						   {% if sample %} value="{{ sample.quantity }}"{% endif %} placeholder="Ex: 1.5" min="0.1" inputmode="numeric">
-				    <span class="help-text">Quantité déposée dans le tube (en mg)</span>
-				</div>
-			</div>
-			
-			<div class="form-row">
-				<div class="form-group required">
-					<label>Solvant utilisé<span class="required-star">*</span></label>
-						<div id="solvents-container" class="checkbox-group"> 
-							{% if sample %}
-								{% if sample.solvents %}
-									{% set sample_solvents_list = sample.solvents.split(', ') %}
-								{% else %}
-									{% set sample_solvents_list = [] %}
-								{% endif %}
-							{% endif %}
-							{% for code, solvent in solvents.items() %}
-							<div class="checkbox-item">
-								<input type="checkbox" id="solvent_{{ loop.index }}" 
-								   name="solvents" value="{{ code }}" {% if sample and code in sample_solvents_list %}checked{% endif %}>
-								<label for="solvent_{{ loop.index }}">{{ solvent | safe }}</label>
-							</div>
-							{% endfor %}
-							<div class="checkbox-item">
-								<input type="checkbox" id="other_solvent" name="other_solvent" value="other">
-								<label for="other_solvent">Autre</label>
-								<input type="text" id="other_solvent_name" name="other_solvent_name" placeholder="Précisez..." style="width: 180px;" disabled="">
-							</div>
-						</div>
-					<span class="help-text">Solvant utilisé pour la préparation d'échantillon</span>
-				</div>
-			</div>
+    <div class="form-container">
+        <div class="form-header">
+            <h2>
+                {% if sample %}
+                    Éditer l'échantillon
+                {% else %}
+                    Soumission d'Échantillon
+                {% endif %}
+            </h2>
+            <p>
+                {% if sample %}
+                    Modifiez les informations de l'échantillon <strong>{{ sample.reference }}</strong>
+                {% else %}
+                    Remplissez le formulaire ci-dessous pour soumettre un nouvel échantillon à l'analyse. Vous pouvez aussi <a href="{{ url_for("ms.import_samples") }}">importer des échantillons par lot</a> à partir d'un fichier Excel.
+                {% endif %}
+            </p>
         </div>
 
-        <div class="form-section">
-            <h3>Structure chimique</h3>
+        {% if sample %}
+            {% set action = url_for('ms.sample_edit', sample_id=sample.id) %}
+        {% else %}
+            {% set action = url_for('ms.submit_sample') %}
+        {% endif %}
+        <form method="post"
+              action="{{ action }}"
+              class="sample-form"
+              enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-			<div class="form-row">
-				<div class="form-group">
-					<label for="structure_file">Fichier de structure{% if sample %} (laisser vide pour conserver l'ancien){% endif %}</label>
-					<input type="file" id="structure_file" name="structure_file"
-						   accept=".cdx,.cdxml,.mol,.sdf">
-					<span class="help-text">Formats acceptés: .cdx, .cdxml, .mol, .sdf (optionnel)</span>
-				</div>
-				<div class="form-group">
-					<label for="formula">Formule brute</label>
-					<input type="text" id="formula" name="formula"
-						   {% if sample %} value="{{ sample.formula }}"{% endif %} placeholder="Ex: C8H10N4O2">
-					<span class="help-text">Formule chimique de l'échantillon (optionnel)</span>
-				</div>
-			</div>
-        </div>
+            {% include "partials/_user_info.html" %}
 
-        <div class="form-section">
-            <h3>Informations supplémentaires</h3>
+            <div class="form-section">
+                <h3>Informations de l'échantillon</h3>
 
-            <div class="form-group">
-                <label for="notes">Notes</label>
-                <textarea id="notes" name="notes" rows="4"
-                          {% if sample %} value="{{ sample.notes }}"{% endif %} placeholder="Ajoutez des notes ou commentaires sur l'échantillon..."></textarea>
+                <div class="form-row">
+                    <div class="form-group required">
+                        <label for="reference">Référence de l'échantillon <span class="required-star">*</span></label>
+                        <input type="text"
+                               id="reference"
+                               name="reference"
+                               required
+                               {% if sample %}value="{{ sample.reference }}"{% endif %}
+                               placeholder="Ex: SAM-2024-001">
+                        <span class="help-text">Référence unique pour identifier votre échantillon</span>
+                    </div>
+
+                    <div class="form-group required">
+                        <label for="quantity">Quantité déposée (mg) <span class="required-star">*</span></label>
+                        <input type="number"
+                               id="quantity"
+                               name="quantity"
+                               step="0.1"
+                               required
+                               {% if sample %} value="{{ sample.quantity }}"{% endif %}
+                               placeholder="Ex: 1.5"
+                               min="0.1"
+                               inputmode="numeric">
+                        <span class="help-text">Quantité déposée dans le tube (en mg)</span>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group required">
+                        <label>Solvant utilisé<span class="required-star">*</span></label>
+                        <div id="solvents-container" class="checkbox-group">
+                            {% if sample %}
+                                {% if sample.solvents %}
+                                    {% set sample_solvents_list = sample.solvents.split(', ') %}
+                                {% else %}
+                                    {% set sample_solvents_list = [] %}
+                                {% endif %}
+                            {% endif %}
+                            {% for code, solvent in solvents.items() %}
+                                <div class="checkbox-item">
+                                    <input type="checkbox"
+                                           id="solvent_{{ loop.index }}"
+                                           name="solvents"
+                                           value="{{ code }}"
+                                           {% if sample and code in sample_solvents_list %}checked{% endif %}>
+                                    <label for="solvent_{{ loop.index }}">{{ solvent | safe }}</label>
+                                </div>
+                            {% endfor %}
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="other_solvent" name="other_solvent" value="other">
+                                <label for="other_solvent">Autre</label>
+                                <input type="text"
+                                       id="other_solvent_name"
+                                       name="other_solvent_name"
+                                       placeholder="Précisez..."
+                                       style="width: 180px"
+                                       disabled="">
+                            </div>
+                        </div>
+                        <span class="help-text">Solvant utilisé pour la préparation d'échantillon</span>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <div class="form-actions">
-			{% if sample %}
-			<button type="submit" class="btn btn-primary">
-                <i class="fas fa-save"></i> Sauvegarder
-            </button>
-            <a href="{{ url_for('ms.sample_detail', sample_id=sample.id) }}" class="btn btn-secondary">
-                <i class="fas fa-times"></i> Annuler
-            </a>
-			{% else %}
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-paper-plane"></i> Soumettre
-            </button>
-            <button type="reset" class="btn btn-secondary">
-                <i class="fas fa-undo"></i> Réinitialiser
-            </button>
-			{% endif %}
-            <a href="{{ url_for('main.user_samples') }}" class="btn btn-tertiary">
-                <i class="fas fa-list"></i> Mes Échantillons
-            </a>
-        </div>
-    </form>
-</div>
+            <div class="form-section">
+                <h3>Structure chimique</h3>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="structure_file">Fichier de structure{% if sample %} (laisser vide pour conserver l'ancien){% endif %}</label>
+                        <input type="file"
+                               id="structure_file"
+                               name="structure_file"
+                               accept=".cdx,.cdxml,.mol,.sdf">
+                        <span class="help-text">Formats acceptés: .cdx, .cdxml, .mol, .sdf (optionnel)</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="formula">Formule brute</label>
+                        <input type="text"
+                               id="formula"
+                               name="formula"
+                               {% if sample %} value="{{ sample.formula }}"{% endif %}
+                               placeholder="Ex: C8H10N4O2">
+                        <span class="help-text">Formule chimique de l'échantillon (optionnel)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Informations supplémentaires</h3>
+
+                <div class="form-group">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes"
+                              name="notes"
+                              rows="4"
+                              {% if sample %} value="{{ sample.notes }}"{% endif %}
+                              placeholder="Ajoutez des notes ou commentaires sur l'échantillon..."></textarea>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                {% if sample %}
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Sauvegarder
+                    </button>
+                    <a href="{{ url_for('ms.sample_detail', sample_id=sample.id) }}"
+                       class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Annuler
+                    </a>
+                {% else %}
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Soumettre
+                    </button>
+                    <button type="reset" class="btn btn-secondary">
+                        <i class="fas fa-undo"></i> Réinitialiser
+                    </button>
+                {% endif %}
+                <a href="{{ url_for("main.user_samples") }}" class="btn btn-tertiary">
+                    <i class="fas fa-list"></i> Mes Échantillons
+                </a>
+            </div>
+        </form>
+    </div>
 {% endblock %}
 
 {% block scripts %}
-{{ super() }}
-<script>
-$(document).ready(function() {
-    const $otherCheckBox = $('#other_solvent');
-    const $otherTextBox = $('#other_solvent_name');
-	
-    // Écouter le changement d'état de la case à cocher
-    $otherCheckBox.on('change', function() {
-        if ($(this).is(':checked')) {
-            // Activer le champ texte et lui donner le focus
-            $otherTextBox.prop('disabled', false).trigger('focus');
-        } else {
-            // Désactiver le champ texte et vider sa valeur
-            $otherTextBox.prop('disabled', true).val('');
-        }
-    });
+    {{ super() }}
+    <script>
+        $(document).ready(function() {
+            const $otherCheckBox = $('#other_solvent');
+            const $otherTextBox = $('#other_solvent_name');
 
-	{% if sample %}
-	// Initialisation selon les données existantes
-	const $sampleOtherSolvent = "{{ sample.other_solvent if sample.other_solvent }}"	
-	if (sampleOtherSolvent) {
-        $otherTextBox.val(sampleOtherSolvent).prop('disabled', false);
-        $otherCheckBox.prop('checked', true);
-    } else {
-        $otherTextBox.prop('disabled', true);
-    }
-	{% endif %}
-});
+            // Écouter le changement d'état de la case à cocher
+            $otherCheckBox.on('change', function() {
+                if ($(this).is(':checked')) {
+                    // Activer le champ texte et lui donner le focus
+                    $otherTextBox.prop('disabled', false).trigger('focus');
+                } else {
+                    // Désactiver le champ texte et vider sa valeur
+                    $otherTextBox.prop('disabled', true).val('');
+                }
+            });
+            {% if sample %}
+            // Initialisation selon les données existantes
+            const $sampleOtherSolvent = "{{ sample.other_solvent if sample.other_solvent }}"
+            if (sampleOtherSolvent) {
+                $otherTextBox.val(sampleOtherSolvent).prop('disabled', false);
+                $otherCheckBox.prop('checked', true);
+            } else {
+                $otherTextBox.prop('disabled', true);
+            }
+            {% endif %}
+        });
 
-// Vérification du formulaire
-$('.sample-form').each(function() {
-	const $form = $(this);
+        // Vérification du formulaire
+        $('.sample-form').each(function() {
+            const $form = $(this);
 
-	$form.on('submit', function(e) {
-		let isValid = true;
+            $form.on('submit', function(e) {
+                let isValid = true;
 
-		const $checkboxInput = $('.checkbox-item > input[type=checkbox]').first().get(0);
-		if ($('.checkbox-item > input[type=checkbox]:checked').length == 0) {
-			isValid = false;
-			$checkboxInput.setCustomValidity("Veuillez cocher au moins une case");
-			$checkboxInput.reportValidity();
-			$checkboxInput.setCustomValidity("");
-		}
-		
-		const $chkOther = $(".checkbox-item > input[type=checkbox]#other_solvent").get(0);
-		const $chkOtherName = $(".checkbox-item > input[type=text]#other_solvent_name");
-		if (($chkOther.checked == true) && ($chkOtherName.val().length == 0)) {
-			isValid = false;
-			$chkOther.setCustomValidity("Veuillez préciser le solvant");
-			$chkOther.reportValidity();
-			$chkOther.setCustomValidity("");
-		}
+                const $checkboxInput = $('.checkbox-item > input[type=checkbox]').first().get(0);
+                if ($('.checkbox-item > input[type=checkbox]:checked').length == 0) {
+                    isValid = false;
+                    $checkboxInput.setCustomValidity("Veuillez cocher au moins une case");
+                    $checkboxInput.reportValidity();
+                    $checkboxInput.setCustomValidity("");
+                }
 
-		if (!isValid) {
-			e.preventDefault();
-		}
-	});
-});
-</script>
+                const $chkOther = $(".checkbox-item > input[type=checkbox]#other_solvent").get(0);
+                const $chkOtherName = $(".checkbox-item > input[type=text]#other_solvent_name");
+                if (($chkOther.checked == true) && ($chkOtherName.val().length == 0)) {
+                    isValid = false;
+                    $chkOther.setCustomValidity("Veuillez préciser le solvant");
+                    $chkOther.reportValidity();
+                    $chkOther.setCustomValidity("");
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
 {% endblock %}
