@@ -282,52 +282,68 @@
                     <h2 class="h5 mb-0"><i class="fas fa-molecule"></i> Structure chimique</h2>
                 </div>
                 <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        {% if sample.formula %}
-                            <li class="list-group-item d-flex align-items-center gap-3 px-0">
-                                <i class="fas fa-atom fa-lg text-primary"></i>
-                                <div>
-                                    <div class="text-muted small">Formule brute</div>
-                                    <code>{{ sample.get_html_formula()|safe }}</code>
-                                </div>
-                            </li>
-                        {% endif %}
-
-                        {% if sample.mass %}
-                            <li class="list-group-item d-flex align-items-center gap-3 px-0">
-                                <i class="fas fa-balance-scale fa-lg text-primary"></i>
-                                <div>
-                                    <div class="text-muted small">Masse exacte</div>
-                                    <code>{{ "%.4f"|format(sample.mass) }}</code>
-                                </div>
-                            </li>
-                        {% endif %}
-
-                        {% if sample.smiles %}
-                            <li class="list-group-item d-flex align-items-center gap-3 px-0">
-                                <i class="fas fa-align-justify fa-lg text-primary"></i>
-                                <div>
-                                    <div class="text-muted small">SMILES</div>
-                                    <code>{{ sample.smiles }}</code>
-                                </div>
-                            </li>
-                        {% endif %}
-
-                        {% if sample.structure_file %}
-                            <li class="list-group-item d-flex align-items-center gap-3 px-0 flex-wrap">
-                                <i class="fas fa-file-code fa-2x text-secondary"></i>
-                                <div class="flex-grow-1">
-                                    <div class="fw-semibold">{{ sample.structure_file }}</div>
-                                    <div class="text-muted small">Fichier de structure chimique</div>
-                                </div>
-                                <a href="{{ url_for('main.download_file', filename=sample.structure_file) }}"
-                                   class="btn btn-primary"
-                                   title="Télécharger le fichier">
-                                    <i class="fas fa-download"></i> Télécharger
-                                </a>
-                            </li>
-                        {% endif %}
-                    </ul>
+					<div class="row g-3">
+						{% if sample.formula %}
+							<div class="col-md-6 col-lg-4">
+								<div class="d-flex align-items-center gap-3">
+									<div class="detail-icon">
+										<i class="fas fa-atom"></i>
+									</div>
+									<div>
+										<div class="text-muted small">Formule brute</div>
+										<div class="fw-semibold">{{ sample.get_html_formula()|safe }}</div>
+									</div>
+								</div>
+							</div>
+						{% endif %}
+					
+						{% if sample.mass %}
+							<div class="col-md-6 col-lg-4">
+								<div class="d-flex align-items-center gap-3">
+									<div class="detail-icon">
+										<i class="fas fa-balance-scale"></i>
+									</div>
+									<div>
+										<div class="text-muted small">Masse exacte</div>
+										<div class="fw-semibold">{{ "%.4f"|format(sample.mass) }}</div>
+									</div>
+								</div>
+							</div>
+						{% endif %}
+					
+						{% if sample.smiles %}
+							<div class="col-md-6 col-lg-4">
+								<div class="d-flex align-items-center gap-3">
+									<div class="detail-icon">
+										<i class="fas fa-atom"></i>
+									</div>
+									<div>
+										<div class="text-muted small">SMILES</div>
+										<div class="fw-semibold">{{ sample.smiles }}</div>
+									</div>
+								</div>
+							</div>
+						{% endif %}
+					
+						{% if sample.structure_file %}
+							<div class="col-md-6 col-lg-4">
+								<div class="d-flex align-items-center gap-3">
+									<div class="detail-icon">
+										<i class="fas fa-file-code"></i>
+									</div>
+									<div class="flex-grow-1">
+										<div class="fw-semibold">{{ sample.structure_file }}</div>
+										<div class="text-muted small">Fichier de structure chimique</div>
+									</div>
+									<a href="{{ url_for('main.download_file', filename=sample.structure_file) }}"
+										class="btn btn-primary"
+										title="Télécharger le fichier">
+										<i class="fas fa-download"></i> Télécharger
+									</a>
+								</div>
+							</div>
+						{% endif %}
+					</div>
                 </div>
             </div>
         {% endif %}

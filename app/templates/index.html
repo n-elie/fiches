@@ -6,7 +6,7 @@
     <div class="text-center py-4">
         <h1 class="display-6 fw-bold">Bienvenue sur la plateforme d'analyse chimique</h1>
         <img src="{{ url_for('static', filename='images/banner.png') }}"
-             class="img-fluid my-4 rounded"
+             class="img-fluid my-4 rounded home-banner"
              alt="Bannière du service d'analyse chimique">
         {% if not current_user.is_authenticated %}
             <div>

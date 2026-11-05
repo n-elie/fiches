@@ -242,3 +242,7 @@ uploads/
 # Backup files
 *.bak
 *.old
+
+# Frontend : dépendances npm et CSS Bootstrap compilé
+node_modules/
+app/static/css/bootstrap.custom*.css
