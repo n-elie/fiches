@@ -122,7 +122,7 @@ class LDAPAuth:
                 conn.unbind()
                 return None
                 
-            user = User.query.filter_by(username=username).first()
+            user = self.get_user_by_username(username)
             if user and user.is_local_user() and user.check_password(password):
                 logger.info(f"Authentification locale réussie pour {username}")
                 user.last_login = db.func.now()
@@ -169,7 +169,7 @@ class LDAPAuth:
     def _sync_user_to_db(self, username, user_info, user_dn):
         """Synchroniser les informations de l'utilisateur avec la base de données"""
         # Vérifier si l'utilisateur existe déjà
-        user = User.query.filter_by(username=username).first()
+        user = self.get_user_by_username(username)
 
         if user:
             # Mettre à jour les informations
@@ -197,11 +197,13 @@ class LDAPAuth:
 
     def get_user_by_id(self, user_id):
         """Récupérer un utilisateur par son ID"""
-        return User.query.get(user_id)
+        return db.session.get(User, user_id)
 
     def get_user_by_username(self, username):
         """Récupérer un utilisateur par son nom d'utilisateur"""
-        return User.query.filter_by(username=username).first()
+        return db.session.scalars(
+            db.select(User).where(User.username == username).limit(1)
+        ).first()
 
 # Instance de LDAPAuth
 dap_auth = LDAPAuth()

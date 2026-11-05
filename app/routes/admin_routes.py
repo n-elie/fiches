@@ -26,12 +26,24 @@ def require_admin():
 def dashboard():
     """Tableau de bord administrateur"""
 
-    total_samples = Sample.query.count()
-    total_users = User.query.count()
-    pending_samples = Sample.query.filter_by(status='pending').count()
-    completed_samples = Sample.query.filter_by(status='completed').count()
-    recent_samples = Sample.query.order_by(desc(Sample.created_at)).limit(10).all()
-    users = User.query.order_by(User.username).all()
+    total_samples = db.session.scalar(
+        db.select(db.func.count()).select_from(Sample)
+    )
+    total_users = db.session.scalar(
+        db.select(db.func.count()).select_from(User)
+    )
+    pending_samples = db.session.scalar(
+        db.select(db.func.count()).select_from(User).where(Sample.status == 'pending')
+    )
+    completed_samples = db.session.scalar(
+        db.select(db.func.count()).select_from(User).where(Sample.status == 'completed')
+    )
+    recent_samples = db.session.scalars(
+        db.select(Sample).order_by(desc(Sample.created_at)).limit(10)
+    ).all()
+    users = db.session.scalars(
+        db.select(User).order_by(User.username)
+    ).all()
 
     return render_template('admin/dashboard.html',
                          total_samples=total_samples,
@@ -55,7 +67,9 @@ def all_samples():
 def all_users():
     """Liste de tous les utilisateurs"""
 
-    users = User.query.order_by(User.username).all()
+    users = db.session.scalars(
+        db.select(User).order_by(User.username)
+    ).all()
     return render_template('admin/users.html', users=users, user=current_user)
     
 def _export_data(samples:list[Sample], callback:Callable[Sample | None], data_format:str='csv'):
@@ -87,7 +101,9 @@ def _export_data(samples:list[Sample], callback:Callable[Sample | None], data_fo
 def export_csv():
     """Exporter les données en CSV"""
 
-    samples = Sample.query.join(User).all()
+    samples = db.session.scalars(
+        db.select(Sample).join(User)
+    ).all()
     
     def callback(sample: Sample | None) -> list:
         if sample is None:
@@ -124,7 +140,9 @@ def export_excel():
     """Exporter les données au format Excel"""
 
     data = []
-    samples = Sample.query.join(User).all()
+    samples = db.session.scalars(
+        db.select(Sample).join(User)
+    ).all()
 
     def callback(sample: Sample | None) -> dict:
         return {
@@ -169,7 +187,9 @@ def export_sample_list():
         return redirect(url_for('admin.all_samples'))
 
     # Récupérer les échantillons sélectionnés avec leurs utilisateurs
-    samples = Sample.query.filter(Sample.id.in_(sample_ids)).join(User).all()
+    samples = db.session.scalars(
+        db.select(Sample).where(Sample.id.in_(sample_ids)).join(User)
+    ).all()
 
     if not samples:
         flash('Aucun échantillon trouvé', 'error')
@@ -194,7 +214,7 @@ def export_sample_list():
 def update_sample_status(sample_id):
     """Mettre à jour le statut d'un échantillon"""
 
-    sample = Sample.query.get_or_404(sample_id)
+    sample = db.get_or_404(Sample, sample_id)
     new_status = request.form.get('status')
   
     if new_status in SampleStatus:
@@ -229,9 +249,9 @@ def create_user():
             errors.append('Le mot de passe est obligatoire')
         if password and password != confirm_password:
             errors.append('Les mots de passe ne correspondent pas')
-        if User.query.filter_by(username=username).first():
+        if db.session.scalar_one_or_none(db.select(User).where(User.username == username)) is not None:
             errors.append('Ce nom d\'utilisateur existe déjà')
-        if User.query.filter_by(email=email).first():
+        if db.session.scalars(db.select(User).where(User.email == email).limit(1)).first():
             errors.append('Cet email est déjà utilisé')
 
         if errors:
@@ -263,7 +283,7 @@ def create_user():
 @login_required
 def edit_user(user_id):
     """Éditer un utilisateur (LDAP ou local)"""
-    user = User.query.get_or_404(user_id)
+    user = db.get_or_404(User, user_id)
 
     if request.method == 'POST':
         user.username = request.form.get('username', user.username).strip()
@@ -292,7 +312,7 @@ def edit_user(user_id):
 @login_required
 def delete_user(user_id):
     """Supprimer un utilisateur (uniquement local)"""
-    user = User.query.get_or_404(user_id)
+    user = db.get_or_404(User, user_id)
 
     # Empêcher la suppression des utilisateurs LDAP
     if user.is_ldap:
@@ -300,7 +320,12 @@ def delete_user(user_id):
         return redirect(url_for('admin.all_users'))
 
     # Réattribuer les échantillons de l'utilisateur
-    Sample.query.filter_by(user_id=user_id).update({'user_id': current_user.id})
+    stmt = (
+        db.update(Sample)
+        .where(Sample.user_id == user_id)
+        .values(user_id=current_user.id)
+    )
+    db.session.execute(stmt)
 
     db.session.delete(user)
     db.session.commit()
@@ -321,7 +346,7 @@ def create_analysis():
             flash('Le sample_id est obligatoire', 'error')
             return redirect(url_for('admin.create_analysis'))
 
-        sample = Sample.query.get(sample_id)
+        sample = db.session.get(Sample, sample_id)
         if not sample:
             flash('Échantillon introuvable', 'error')
             return redirect(url_for('admin.create_analysis'))
@@ -339,7 +364,9 @@ def create_analysis():
         return redirect(url_for('admin.create_analysis', sample_id=sample_id))
 
     # GET: Afficher le formulaire
-    samples = Sample.query.order_by(Sample.created_at.desc()).all()
+    samples = db.session.scalars(
+        db.select(Sample).order_by(Sample.created_at.desc())
+    ).all()
     return render_template('admin/create_analysis.html', samples=samples)
 
 @admin_bp.route('/analysis/<int:sample_id>/process', methods=['POST'])
@@ -349,7 +376,7 @@ def start_analysis_task(sample_id):
     Lancer une tâche Celery pour traiter un échantillon.
     Cette route déclenche le traitement ASYNCHRONE.
     """
-    sample = Sample.query.get_or_404(sample_id)
+    sample = db.get_or_404(Sample, sample_id)
 
     # Lancer la tâche Celery
     task = process_sample_analysis.delay(sample_id)

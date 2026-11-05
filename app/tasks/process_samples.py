@@ -19,7 +19,7 @@ def process_sample_analysis(self, sample_id):
     """
     try:
         # Récupérer l'échantillon
-        sample = Sample.query.get(sample_id)
+        sample = db.session.get(Sample, sample_id)
         if not sample:
             logger.error(f"Échantillon {sample_id} introuvable")
             return {'status': 'error', 'message': 'Sample not found'}

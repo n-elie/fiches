@@ -100,7 +100,7 @@ def submit_sample():
 @login_required
 def success(sample_id):
     """Page de confirmation de soumission"""
-    sample = NMRSample.query.get_or_404(sample_id)
+    sample = db.get_or_404(NMRSample, sample_id)
     if sample.user_id != current_user.id:
         flash('Accès non autorisé', 'error')
         return redirect(url_for('main.index'))
@@ -110,7 +110,7 @@ def success(sample_id):
 @login_required
 def sample_detail(sample_id):
     """Détails d'un échantillon"""
-    sample = NMRSample.query.get_or_404(sample_id)
+    sample = db.get_or_404(NMRSample, sample_id)
     if sample.user_id != current_user.id and not current_user.is_admin:
         flash('Accès non autorisé', 'error')
         return redirect(url_for('main.index'))
@@ -135,7 +135,7 @@ def sample_edit(sample_id):
     nmr_config = current_app.config['SERVICES']['nmr']
     structures_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'nmr', 'structures')
     
-    sample = NMRSample.query.get_or_404(sample_id)
+    sample = db.get_or_404(NMRSample, sample_id)
     
     # Vérifier que l'utilisateur est le propriétaire ou admin
     if sample.user_id != current_user.id and not current_user.is_admin:

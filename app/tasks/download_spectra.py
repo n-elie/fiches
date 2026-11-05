@@ -28,14 +28,17 @@ def download_spectra(self):
     try:
         unifi_config = current_app.config['UNIFI']
     
-        samples = Sample.query.filter_by(status=SampleStatus.analysing, analysis_type='ms')
+        stmt = db.select(Sample) \
+            .where(Sample.status == SampleStatus.analysing) \
+            .where(Sample.analysis_type == 'ms')
+        samples = db.session.scalars(stmt)
+        total = db.session.scalar(db.select(db.func.count()).select_from(stmt.subquery()))
         
-        if not samples:
-            logger.warning("No samples in analysing status found.")
-            r.delete(LOCK_KEY)
+        if total == 0:
+            logger.warning("No MS samples in analysing status found.")
             return {'status': 'success'}
         else:
-            logger.info(f"{samples.count()} MS samples in analysing status found.")
+            logger.info(f"{total} MS samples in analysing status found.")
         
         api = UNIFIAPI(unifi_config['server'], certificate=unifi_config['certificate'])
         for sample in samples:

@@ -8,7 +8,7 @@ from .. import login_manager  # Import du login_manager depuis __init__.py
 @login_manager.user_loader
 def load_user(user_id):
     """Charger l'utilisateur pour Flask-Login"""
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 auth_bp = Blueprint('auth', __name__)
 

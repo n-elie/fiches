@@ -27,34 +27,34 @@ def samples(template='samples.html', show_users='current', sample_type=Sample):
     page = request.args.get('page', 1, type=int)
     per_page = current_app.config['SAMPLES_PER_PAGE']  # Nombre d'échantillons par page (ajustable)
     
-    query = sample_type.query
+    stmt = db.select(sample_type)
     if status_filter:
-        query = query.filter_by(status=status_filter)
+        stmt = stmt.where(sample_type.status == status_filter)
     if type_filter:
-        query = query.filter_by(analysis_type=type_filter)
+        stmt = stmt.where(sample_type.analysis_type == type_filter)
     if show_users == 'current':
-        query = query.filter_by(user_id=current_user.id)
+        stmt = stmt.where(sample_type.user_id == current_user.id)
     if current_user.is_admin and user_filter:
-        query = query.filter_by(user_id=user_filter)
+        stmt = stmt.where(sample_type.user_id == user_filter)
         
     if search_filter:
-        query = query.filter(
-            sample_type.reference.ilike(f'%{search_filter}%')
-        )
+        stmt = stmt.where(sample_type.reference.ilike(f'%{search_filter}%'))
 
     # Tri
     sort_by = request.args.get('sort', 'created_at')
     sort_order = request.args.get('order', 'desc')
 
     if sort_order == 'desc':
-        query = query.order_by(desc(getattr(sample_type, sort_by)))
+        stmt = stmt.order_by(desc(getattr(sample_type, sort_by)))
     else:
-        query = query.order_by(getattr(sample_type, sort_by))
+        stmt = stmt.order_by(getattr(sample_type, sort_by))
         
     # Pagination
-    paginated_samples = query.paginate(page=page, per_page=per_page, error_out=False)
+    paginated_samples = db.paginate(stmt, page=page, per_page=per_page, error_out=False)
     
-    users = User.query.order_by(User.username).all() if current_user.is_admin else None
+    users = db.session.scalars(
+        db.select(User).order_by(User.username)
+    ).all() if current_user.is_admin else None
 
     return render_template(template,
                          samples=paginated_samples.items,  # Liste des échantillons pour la page courante
@@ -137,7 +137,7 @@ def _delete_samples(samples):
 def delete_sample(sample_id):
     """Supprimer un échantillon (uniquement si statut = pending)"""
 
-    sample = Sample.query.get_or_404(sample_id)
+    sample = db.get_or_404(Sample, sample_id)
 
     redirection = _delete_samples([sample])
     if redirection is not None:
@@ -161,8 +161,8 @@ def batch_delete_samples():
         return redirect(url_for('main.user_samples'))
 
     # Récupérer les échantillons
-    samples = Sample.query.filter(
-        Sample.id.in_(sample_ids)
+    samples = db.session.scalars(
+        db.select(Sample).where(Sample.id.in_(sample_ids))
     ).all()
 
     if not samples:
@@ -179,7 +179,10 @@ def batch_delete_samples():
 @login_required
 def download_file(filename):
     """Télécharger un fichier de structure"""
-    sample = Sample.query.filter_by(structure_file=filename).first()
+    
+    sample = db.session.scalars(
+        db.select(Sample).filter_by(structure_file=filename).limit(1)
+    ).first()
     if not sample or (sample.user_id != current_user.id and not current_user.is_admin):
         flash('Accès non autorisé', 'error')
         return redirect(url_for('main.index'))
@@ -191,7 +194,7 @@ def generate_pdf(sample_id):
     """Générer une fiche d'analyse PDF pour un échantillon"""
     
     # Récupérer l'échantillon (peut être Sample, MSSample ou NMRSample)
-    sample = Sample.query.get_or_404(sample_id)
+    sample = db.get_or_404(Sample, sample_id)
     
     # Vérifier les permissions
     if sample.user_id != current_user.id and not current_user.is_admin:
@@ -243,11 +246,11 @@ def batch_generate_pdf():
         return redirect(url_for('main.user_samples'))
 
     # Récupérer les échantillons (filtrer par utilisateur si non-admin)
-    query = Sample.query.filter(Sample.id.in_(sample_ids))
+    stmt = db.select(Sample).where(Sample.id.in_(sample_ids))
     if not current_user.is_admin:
-        query = query.filter_by(user_id=current_user.id)
+        stmt = stmt.where(Sample.user_id == current_user.id)
 
-    samples = query.all()
+    samples = db.session.scalars(stmt).all()
     if not samples:
         flash('Aucun échantillon trouvé', 'error')
         return redirect(url_for('main.user_samples'))
