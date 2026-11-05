@@ -101,7 +101,7 @@ def _delete_samples(samples):
             continue
         
         # Vérifier que le statut est "pending"
-        if sample.status != 'pending':
+        if sample.is_pending():
             errors.append(f"{sample.reference} : Seuls les échantillons en attente peuvent être supprimés")
             continue
 

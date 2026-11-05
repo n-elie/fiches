@@ -130,6 +130,8 @@ __pypackages__/
 # Celery stuff
 celerybeat-schedule
 celerybeat.pid
+celerybeat-schedule-shm
+celerybeat-schedule-wal
 
 # Redis
 *.rdb
@@ -228,3 +230,11 @@ uploads/
 
 # Config
 /config.toml
+
+# certificates
+*.pem
+
+# Spreadsheets
+/*.xlsx
+/*.csv
+/*.ods

@@ -10,7 +10,7 @@ from sqlalchemy import desc
 
 import pandas as pd
 
-from ..models import db, Sample, User, Analysis
+from ..models import db, Sample, SampleStatus, User, Analysis
 from ..tasks import process_sample_analysis
 
 admin_bp = Blueprint('admin', __name__)
@@ -135,7 +135,7 @@ def export_excel():
             'Référence': sample.reference,
             'Quantité (mg)': sample.quantity,
             'Fichier de structure': sample.structure_file,
-            'Statut': sample.status,
+            'Statut': sample.get_status(),
             'Date': sample.created_at.strftime('%Y-%m-%d %H:%M:%S')
         }
 
@@ -196,8 +196,8 @@ def update_sample_status(sample_id):
 
     sample = Sample.query.get_or_404(sample_id)
     new_status = request.form.get('status')
-
-    if new_status in ['pending', 'processing', 'completed', 'cancelled']:
+  
+    if new_status in SampleStatus:
         sample.status = new_status
         db.session.commit()
         flash('Statut mis à jour avec succès', 'success')

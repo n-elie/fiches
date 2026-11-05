@@ -95,6 +95,16 @@ TFEd3 = "Trifluoroéthanol-d3"
 "700" = ["1H", "COSY", "HSQC", "HMBC", "NOESY", "ROESY", "13C", "DEPT135", "TOCSY", "HSQC 15N", "HMBC 15N"]
 
 # -----------------------------------------------------------------------------
+# Configuration UNIFI (pour récupérer les données)
+# -----------------------------------------------------------------------------
+[unifi]
+server = "localhost"
+username = "user"
+password = "g0)<TH70w/2="
+data_folder = "root"
+certificate = "some-file.perm"
+
+# -----------------------------------------------------------------------------
 # Configuration Celery (pour les taches lourdes)
 # -----------------------------------------------------------------------------
 [celery]

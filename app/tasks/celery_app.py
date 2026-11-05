@@ -15,4 +15,13 @@ def init_celery(app):
     celery.Task = ContextTask
     celery.autodiscover_tasks(['app.tasks'])
     celery.set_default()
+    
+    celery.conf.beat_schedule = {
+        # Check if there is spectra to download every hour
+        'downlad_spectra': {
+            'task': 'app.tasks.download_spectra.download_spectra',
+            'schedule': 3600,
+        },
+    }
+    
     return celery

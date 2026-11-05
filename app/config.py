@@ -72,7 +72,8 @@ class Config:
         self._init_app_config()
         self._init_samples_config()
         self._init_services_config()
-        self._init_redis_config()
+        self._init_unifi_config()
+        self._init_celery_config()
 
     def _load_config(self, config_path: Path):
         """Charge le fichier TOML"""
@@ -163,12 +164,29 @@ class Config:
                 self.SERVICES['nmr']['solvents'] = service_data.get('solvents', DEFAULT_NMR_SOLVENTS)
                 self.SERVICES['nmr']['stabilities'] = service_data.get('stabilities', DEFAULT_NMR_STABILITIES)
                 self.SERVICES['nmr']['experiments_by_frequency'] = service_data.get('experiments_by_frequency', DEFAULT_NMR_EXPERIMENTS_BY_FREQUENCY)
-                
-            
-    def _init_redis_config(self):
-        """Initialise la configuration redis"""
+
+    def _init_unifi_config(self):
+        """Initialise la configuration unifi"""
         
-        redis_config = self._config.get('redis', {})
+        unifi_config = self._config.get('unifi', {})
+        self.UNIFI = {
+            'server': unifi_config.get('server', 'localhost'),
+            'username': unifi_config.get('username', 'username'),
+            'password': unifi_config.get('password', 'password'),
+            'data_folder': unifi_config.get('data_folder', 'root')
+        }
+        
+        certificate = unifi_config.get('certificate')
+        if certificate:
+            self.UNIFI['certificate'] = os.path.join(
+                os.path.dirname(__file__),
+                certificate,
+            )
+            
+    def _init_celery_config(self):
+        """Initialise la configuration celery"""
+        
+        redis_config = self._config.get('celery', {})
         
         self.CELERY_BROKER_URL =  redis_config.get('broker_url', 'redis://localhost:6379/0')
         self.CELERY_RESULT_BACKEND = redis_config.get('result_backend', 'redis://localhost:6379/0')

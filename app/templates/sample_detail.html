@@ -32,8 +32,8 @@
                 </span>
             </div>
             <div class="title-actions">
-                <span class="status-badge status-{{ sample.status }}">
-                    <i class="fas fa-circle"></i> {{ sample.get_status()|capitalize }}
+                <span class="status-badge status-{{ sample.status.name }}">
+                    <i class="fas fa-circle"></i> {{ sample.get_status_name()|capitalize }}
                 </span>
             </div>
         </div>
@@ -68,7 +68,7 @@
                 </form>
 			</div>
 			
-			{% if sample.status == 'pending' %}
+			{% if sample.status.name == 'pending' %}
 			<div class="card-body">
 				<div class="form-section">
 					<div class="form-row">

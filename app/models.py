@@ -2,17 +2,28 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
+from enum import Enum
 from datetime import datetime
 
 from .utils.mol import html_formula
 
 db = SQLAlchemy()
 
+class SampleStatus(Enum):
+    pending = "pending"
+    analysing = "analysing"
+    analysed = "analysed"
+    processing = "processing"
+    completed = "completed"
+    cancelled = "cancelled"
+    
 STATUS_NAMES = {
-    'pending': 'En attente',
-    'processing': 'En cours',
-    'completed': 'Terminé',
-    'cancelled': 'Annulé'
+    "pending": "En attente",
+    "analysing": "En cours d'analyse",
+    "analysed": "Analysé",
+    "processing": "En cours",
+    "completed": "Terminé",
+    "cancelled": "Annulé"
 }
 
 class User(db.Model, UserMixin):
@@ -71,7 +82,7 @@ class Sample(db.Model):
     formula = db.Column(db.String(100), nullable=True)
     smiles = db.Column(db.Text, nullable=True)
     mass = db.Column(db.Float, nullable=True)
-    status = db.Column(db.String(50), default='pending')
+    status = db.Column(db.Enum(SampleStatus, name="sample_status"), default='pending')
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -91,8 +102,11 @@ class Sample(db.Model):
     def get_type(self):
         return 'Unknown'
         
-    def get_status(self):
-        return STATUS_NAMES.get(self.status, self.status)
+    def is_pending(self):
+        return self.status == SampleStatus.pending
+        
+    def get_status_name(self):
+        return STATUS_NAMES.get(self.status.name, 'Unknown')
         
     def get_html_formula(self):
         return html_formula(self.formula)
