@@ -34,12 +34,10 @@
                     </ul>
 
                     <div class="d-flex justify-content-center flex-wrap gap-2 my-3">
-                        {% if sample.structure_file %}
-                            <a href="{{ url_for('main.download_file', filename=sample.structure_file) }}"
-                               class="btn btn-primary">
-                                <i class="fas fa-download"></i> Télécharger le fichier
-                            </a>
-                        {% endif %}
+						<a href="{{ url_for('main.generate_pdf', sample_id=sample.id) }}"
+							class="btn btn-primary">
+							<i class="fas fa-file-pdf"></i> Générer la fiche PDF
+						</a>
                         <a href="{{ url_for(sample.analysis_type + '.submit_sample') }}" class="btn btn-outline-secondary">
                             <i class="fas fa-plus"></i> Soumettre un autre échantillon
                         </a>
