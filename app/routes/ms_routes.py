@@ -118,7 +118,7 @@ def success(sample_id):
     if sample.user_id != current_user.id:
         flash('Accès non autorisé', 'error')
         return redirect(url_for('main.index'))
-    return render_template('ms/success.html', sample=sample, user=current_user)
+    return render_template('success.html', sample=sample, user=current_user)
     
 @ms_bp.route('/sample/<int:sample_id>')
 @login_required

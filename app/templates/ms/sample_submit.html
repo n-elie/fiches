@@ -1,179 +1,52 @@
-{% extends "base.html" %}
+{% extends "sample_submit.html" %}
 
-{% block title %}{% if sample %}Éditer {{ sample.reference }}{% else %}Nouvelle Analyse{% endif %}{% endblock %}
+{% if sample %}
+	{% set action = url_for('ms.sample_edit', sample_id=sample.id) %}
+{% else %}
+	{% set action = url_for('ms.submit_sample') %}
+{% endif %}
 
-{% block content %}
-    <div class="form-container">
-        <div class="mb-4">
-            <h2>
-                {% if sample %}
-                    Éditer l'échantillon
-                {% else %}
-                    Soumission d'Échantillon
-                {% endif %}
-            </h2>
-            <p class="text-muted">
-                {% if sample %}
-                    Modifiez les informations de l'échantillon <strong>{{ sample.reference }}</strong>
-                {% else %}
-                    Remplissez le formulaire ci-dessous pour soumettre un nouvel échantillon à l'analyse. Vous pouvez aussi <a href="{{ url_for("ms.import_samples") }}">importer des échantillons par lot</a> à partir d'un fichier Excel.
-                {% endif %}
-            </p>
-        </div>
+{% block extra_header_infos %}
+Vous pouvez aussi <a href="{{ url_for('ms.import_samples') }}">importer des échantillons par lot</a> à partir d'un fichier Excel.
+{% endblock %}
 
-        {% if sample %}
-            {% set action = url_for('ms.sample_edit', sample_id=sample.id) %}
-        {% else %}
-            {% set action = url_for('ms.submit_sample') %}
-        {% endif %}
-        <form method="post"
-              action="{{ action }}"
-              class="sample-form"
-              enctype="multipart/form-data">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-            {% include "partials/_user_info.html" %}
-
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h3 class="h5 mb-3">Informations de l'échantillon</h3>
-
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="reference" class="form-label">Référence de l'échantillon <span class="required-star">*</span></label>
-                            <input type="text"
-                                   class="form-control"
-                                   id="reference"
-                                   name="reference"
-                                   required
-                                   {% if sample %}value="{{ sample.reference }}"{% endif %}
-                                   placeholder="Ex: SAM-2024-001">
-                            <span class="help-text">Référence unique pour identifier votre échantillon</span>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="quantity" class="form-label">Quantité déposée (mg) <span class="required-star">*</span></label>
-                            <input type="number"
-                                   class="form-control"
-                                   id="quantity"
-                                   name="quantity"
-                                   step="0.1"
-                                   required
-                                   {% if sample %} value="{{ sample.quantity }}"{% endif %}
-                                   placeholder="Ex: 1.5"
-                                   min="0.1"
-                                   inputmode="numeric">
-                            <span class="help-text">Quantité déposée dans le tube (en mg)</span>
-                        </div>
-                    </div>
-
-                    <div class="row g-3 mt-0">
-                        <div class="col-12">
-                            <label class="form-label">Solvant utilisé<span class="required-star">*</span></label>
-                            <div id="solvents-container" class="checkbox-group">
-                                {% if sample %}
-                                    {% if sample.solvents %}
-                                        {% set sample_solvents_list = sample.solvents.split(', ') %}
-                                    {% else %}
-                                        {% set sample_solvents_list = [] %}
-                                    {% endif %}
-                                {% endif %}
-                                {% for code, solvent in solvents.items() %}
-                                    <div class="checkbox-item form-check">
-                                        <input type="checkbox"
-                                               class="form-check-input"
-                                               id="solvent_{{ loop.index }}"
-                                               name="solvents"
-                                               value="{{ code }}"
-                                               {% if sample and code in sample_solvents_list %}checked{% endif %}>
-                                        <label class="form-check-label" for="solvent_{{ loop.index }}">{{ solvent | safe }}</label>
-                                    </div>
-                                {% endfor %}
-                                <div class="checkbox-item form-check">
-                                    <input type="checkbox" class="form-check-input" id="other_solvent" name="other_solvent" value="other">
-                                    <label class="form-check-label" for="other_solvent">Autre</label>
-                                    <input type="text"
-                                           class="form-control"
-                                           id="other_solvent_name"
-                                           name="other_solvent_name"
-                                           placeholder="Précisez..."
-                                           disabled="">
-                                </div>
-                            </div>
-                            <span class="help-text">Solvants utilisés pour la préparation d'échantillon</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h3 class="h5 mb-3">Structure chimique</h3>
-
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="structure_file" class="form-label">Fichier de structure{% if sample %} (laisser vide pour conserver l'ancien){% endif %}</label>
-                            <input type="file"
-                                   class="form-control"
-                                   id="structure_file"
-                                   name="structure_file"
-                                   accept=".cdx,.cdxml,.mol,.sdf">
-                            <span class="help-text">Formats acceptés: .cdx, .cdxml, .mol, .sdf (optionnel)</span>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="formula" class="form-label">Formule brute</label>
-                            <input type="text"
-                                   class="form-control"
-                                   id="formula"
-                                   name="formula"
-                                   {% if sample %} value="{{ sample.formula }}"{% endif %}
-                                   placeholder="Ex: C8H10N4O2">
-                            <span class="help-text">Formule chimique de l'échantillon (optionnel)</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h3 class="h5 mb-3">Informations supplémentaires</h3>
-
-                    <div class="mb-3">
-                        <label for="notes" class="form-label">Notes</label>
-                        <textarea class="form-control"
-                                  id="notes"
-                                  name="notes"
-                                  rows="4"
-								  maxlength="500"
-                                  placeholder="Ajoutez des notes ou commentaires sur l'échantillon...">{% if sample %}{{ sample.notes }}{% endif %}</textarea>
-						<span class="help-text">Entrez des informations utiles pour l'opérateur (max. 500 caractères)</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="d-flex flex-wrap gap-2 mb-4">
-                {% if sample %}
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Sauvegarder
-                    </button>
-                    <a href="{{ url_for('ms.sample_detail', sample_id=sample.id) }}"
-                       class="btn btn-outline-secondary">
-                        <i class="fas fa-times"></i> Annuler
-                    </a>
-                {% else %}
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-paper-plane"></i> Soumettre
-                    </button>
-                    <button type="reset" class="btn btn-outline-secondary">
-                        <i class="fas fa-undo"></i> Réinitialiser
-                    </button>
-                {% endif %}
-                <a href="{{ url_for("main.user_samples") }}" class="btn btn-outline-secondary">
-                    <i class="fas fa-list"></i> Mes Échantillons
-                </a>
-            </div>
-        </form>
-    </div>
+{% block form_analysis_specific_fields %}
+<div class="row g-3 mt-0">
+	<div class="col-12">
+		<label class="form-label">Solvant utilisé<span class="required-star">*</span></label>
+		<div id="solvents-container" class="checkbox-group">
+			{% if sample %}
+				{% if sample.solvents %}
+					{% set sample_solvents_list = sample.solvents.split(', ') %}
+				{% else %}
+					{% set sample_solvents_list = [] %}
+				{% endif %}
+			{% endif %}
+			{% for code, solvent in solvents.items() %}
+				<div class="checkbox-item form-check">
+					<input type="checkbox"
+						   class="form-check-input"
+						   id="solvent_{{ loop.index }}"
+						   name="solvents"
+						   value="{{ code }}"
+						   {% if sample and code in sample_solvents_list %}checked{% endif %}>
+					<label class="form-check-label" for="solvent_{{ loop.index }}">{{ solvent | safe }}</label>
+				</div>
+			{% endfor %}
+			<div class="checkbox-item form-check">
+				<input type="checkbox" class="form-check-input" id="other_solvent" name="other_solvent" value="other">
+				<label class="form-check-label" for="other_solvent">Autre</label>
+				<input type="text"
+					   class="form-control"
+					   id="other_solvent_name"
+					   name="other_solvent_name"
+					   placeholder="Précisez..."
+					   disabled="">
+			</div>
+		</div>
+		<span class="help-text">Solvants utilisés pour la préparation d'échantillon</span>
+	</div>
+</div>
 {% endblock %}
 
 {% block scripts %}
