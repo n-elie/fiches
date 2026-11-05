@@ -1,14 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Accueil -{% endblock %}
+{% block title %}Accueil{% endblock %}
 
 {% block content %}
-    <div class="home-container">
-        <h1>Bienvenue sur la plateforme d'analyse chimique</h1>
-        <img src="{{ url_for('static', filename='images/banner.png') }}" />
+    <div class="text-center py-4">
+        <h1 class="display-6 fw-bold">Bienvenue sur la plateforme d'analyse chimique</h1>
+        <img src="{{ url_for('static', filename='images/banner.png') }}"
+             class="img-fluid my-4 rounded"
+             alt="Bannière du service d'analyse chimique">
         {% if not current_user.is_authenticated %}
             <div>
-                <a href="{{ url_for("auth.login") }}" class="btn btn-primary">
+                <a href="{{ url_for("auth.login") }}" class="btn btn-primary btn-lg">
                     <i class="fas fa-sign-in-alt"></i> Se connecter
                 </a>
             </div>

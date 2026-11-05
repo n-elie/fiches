@@ -1,19 +1,19 @@
 {% extends "samples.html" %}
 
-{% block title %}Gestion des Échantillons - {% endblock %}
+{% block title %}Gestion des Échantillons{% endblock %}
 
 {% block header %}
-	<h2>Gestion des Échantillons</h2>
-	<p>Liste complète de tous les échantillons soumis</p>
+    <h2>Gestion des Échantillons</h2>
+    <p class="text-muted">Liste complète de tous les échantillons soumis</p>
 {% endblock %}
 
-{% block extra_batch_actions %}		
-	<form method="POST" action="{{ url_for('admin.export_sample_list') }}" class="batch-form batch-form-margin-auto">
-		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-	
-		<input type="hidden" name="sample_ids" id="batch-sample-ids-export">
-		<button type="submit" class="btn btn-primary" disabled id="batch-export-btn">
-			<i class="fas fa-file-csv"></i> Créer une sample list
-		</button>
-	</form>
+{% block extra_batch_actions %}
+    <form method="POST" action="{{ url_for('admin.export_sample_list') }}" class="batch-form ms-auto">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <input type="hidden" name="sample_ids" id="batch-sample-ids-export">
+        <button type="submit" class="btn btn-primary" disabled id="batch-export-btn">
+            <i class="fas fa-file-csv"></i> Créer une sample list
+        </button>
+    </form>
 {% endblock %}

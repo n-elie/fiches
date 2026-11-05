@@ -4,48 +4,52 @@
 
 {% block content %}
     <div class="form-container">
-        <div class="form-header">
+        <div class="mb-4">
             <h2>Importer des échantillons MS</h2>
-            <p>Téléchargez un fichier Excel contenant les échantillons à importer. Un modèle est disponible <a href="{{ url_for('static', filename='data/samples.xlsx') }}">ici</a></p>
+            <p class="text-muted">Téléchargez un fichier Excel contenant les échantillons à importer. Un modèle est disponible <a href="{{ url_for('static', filename='data/samples.xlsx') }}">ici</a></p>
         </div>
 
-        <div class="form-section">
-            <p><strong>Format attendu:</strong> Le fichier doit contenir au minimum les colonnes suivantes :</p>
-            <ul>
-                <li><strong>reference</strong> (obligatoire) : Référence de l'échantillon</li>
-                <li><strong>quantity</strong> (obligatoire) : Quantité en mg</li>
-                <li><strong>solvent</strong> (optionnel) : Solvant utilisé</li>
-                <li><strong>formula</strong> (optionnel) : Formule brute</li>
-                <li><strong>smiles</strong> (optionnel) : SMILES de la molécule</li>
-                <li><strong>notes</strong> (optionnel) : Notes supplémentaires</li>
-            </ul>
+        <div class="card mb-4">
+            <div class="card-body">
+                <p><strong>Format attendu:</strong> Le fichier doit contenir au minimum les colonnes suivantes :</p>
+                <ul>
+                    <li><strong>reference</strong> (obligatoire) : Référence de l'échantillon</li>
+                    <li><strong>quantity</strong> (obligatoire) : Quantité en mg</li>
+                    <li><strong>solvent</strong> (optionnel) : Solvant utilisé</li>
+                    <li><strong>formula</strong> (optionnel) : Formule brute</li>
+                    <li><strong>smiles</strong> (optionnel) : SMILES de la molécule</li>
+                    <li><strong>notes</strong> (optionnel) : Notes supplémentaires</li>
+                </ul>
+            </div>
         </div>
 
         <form method="post" enctype="multipart/form-data" class="sample-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-            <div class="form-section">
-                <h3>Paramètres d'import</h3>
+			{% include "partials/_user_info.html" %}
 
-                {% include "partials/_user_info.html" %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3 class="h5 mb-3">Paramètres d'import</h3>
 
-                <div class="form-group required">
-                    <label for="excel_file">Fichier Excel:</label>
-                    <input type="file"
-                           class="form-control"
-                           id="excel_file"
-                           name="excel_file"
-                           accept=".xlsx,.xls,.ods,.csv"
-                           required>
-                    <span class="help-text">Formats acceptés: .xlsx, .xls, .ods, .csv</span>
+                    <div class="mb-3">
+                        <label for="excel_file" class="form-label">Fichier Excel: <span class="required-star">*</span></label>
+                        <input type="file"
+                               class="form-control"
+                               id="excel_file"
+                               name="excel_file"
+                               accept=".xlsx,.xls,.ods,.csv"
+                               required>
+                        <span class="help-text">Formats acceptés: .xlsx, .xls, .ods, .csv</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="form-actions">
+            <div class="d-flex flex-wrap gap-2 mb-4">
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-upload"></i> Importer
                 </button>
-                <a href="{{ url_for("ms.user_samples") }}" class="btn btn-secondary">
+                <a href="{{ url_for("ms.user_samples") }}" class="btn btn-outline-secondary">
                     <i class="fas fa-times"></i> Annuler
                 </a>
             </div>

@@ -238,3 +238,7 @@ uploads/
 /*.xlsx
 /*.csv
 /*.ods
+
+# Backup files
+*.bak
+*.old
