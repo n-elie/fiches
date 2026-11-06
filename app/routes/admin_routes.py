@@ -170,20 +170,6 @@ def export_excel():
         as_attachment=True,
         download_name=f'samples_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
     )
-    
-def _pending_ms_samples(search_filter: str = '', user_filter: str = '') -> list[Sample]:
-    """Échantillons MS 'en attente' correspondant aux critères de recherche"""
-    
-    stmt = db.select(Sample).join(User).where(
-        Sample.status == SampleStatus.pending,
-        Sample.analysis_type == 'ms'
-    )
-    if search_filter:
-        stmt = stmt.where(Sample.reference.ilike(f'%{search_filter}%'))
-    if user_filter:
-        stmt = stmt.where(Sample.user_id == user_filter)
-    stmt = stmt.order_by(desc(Sample.created_at))
-    return db.session.scalars(stmt).all()
 
 @admin_bp.route('/sample-list')
 @login_required
@@ -193,13 +179,11 @@ def sample_list():
     search_filter = request.args.get('search', '').strip()
     user_filter = request.args.get('user', '')
 
-    samples = _pending_ms_samples(search_filter, user_filter)
     users = db.session.scalars(
         db.select(User).order_by(User.username)
     ).all()
 
     return render_template('admin/sample_list.html',
-                           samples=samples,
                            users=users,
                            search_filter=search_filter,
                            user_filter=user_filter,
@@ -213,7 +197,17 @@ def sample_list_search():
     search_filter = request.args.get('search', '').strip()
     user_filter = request.args.get('user', '')
 
-    samples = _pending_ms_samples(search_filter, user_filter)
+    stmt = db.select(Sample).join(User).where(
+        Sample.status == SampleStatus.pending,
+        Sample.analysis_type == 'ms'
+    )
+    if search_filter:
+        stmt = stmt.where(Sample.reference.ilike(f'%{search_filter}%'))
+    if user_filter:
+        stmt = stmt.where(Sample.user_id == user_filter)
+    stmt = stmt.order_by(desc(Sample.created_at))
+    samples = db.session.scalars(stmt).all()
+    
     return jsonify([{
         'id': sample.id,
         'reference': sample.reference,

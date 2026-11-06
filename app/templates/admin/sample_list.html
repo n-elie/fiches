@@ -62,13 +62,13 @@
                     </div>
                 </div>
 
-                <div class="mb-3" id="bulk-add-wrapper" {% if not samples %}style="display:none;"{% endif %}>
+                <div class="mb-3" id="bulk-add-wrapper" style="display:none;">
                     <button type="button" class="btn btn-primary" id="add-selected-btn" disabled>
                         <i class="fas fa-cart-plus"></i> Ajouter la sélection (<span id="selected-count">0</span>)
                     </button>
                 </div>
 
-                <div class="table-responsive" id="results-table-wrapper" {% if not samples %}style="display:none;"{% endif %}>
+                <div class="table-responsive" id="results-table-wrapper" style="display:none;">
                     <table class="table table-striped table-hover align-middle">
                         <thead class="table-dark">
                             <tr>
@@ -83,41 +83,14 @@
                             </tr>
                         </thead>
                         <tbody id="results-body">
-                            {% for sample in samples %}
-                                <tr>
-                                    <td>
-                                        <input type="checkbox"
-                                               class="form-check-input result-checkbox"
-                                               data-id="{{ sample.id }}"
-                                               data-reference="{{ sample.reference }}"
-                                               data-team="{{ sample.team }}"
-                                               data-user="{{ sample.user.full_name }}">
-                                    </td>
-                                    <td>{{ sample.team }}</td>
-                                    <td>{{ sample.user.full_name }}</td>
-                                    <td>{{ sample.reference }}</td>
-                                    <td><span>{{ sample.get_html_formula()|safe or '-' }}</span></td>
-                                    <td>{{ sample.quantity }} mg</td>
-                                    <td>{{ sample.created_at.strftime("%d/%m/%Y %H:%M") }}</td>
-                                    <td class="text-center">
-                                        <button type="button"
-                                                class="btn btn-outline-primary btn-sm add-sample-btn"
-                                                data-id="{{ sample.id }}"
-                                                data-reference="{{ sample.reference }}"
-                                                data-team="{{ sample.team }}"
-                                                data-user="{{ sample.user.full_name }}">
-                                            <i class="fas fa-plus"></i> Ajouter
-                                        </button>
-                                    </td>
-                                </tr>
-                            {% endfor %}
+							<!--La liste d'échantillon va ici-->
                         </tbody>
                     </table>
                 </div>
-                <p class="text-muted" id="results-count" {% if not samples %}style="display:none;"{% endif %}>
-                    {{ samples|length }} échantillon{% if samples|length > 1 %}s{% endif %} MS en attente
+                <p class="text-muted" id="results-count" style="display:none;">
+                    <!--Le nombre d'échantillons trouvés-->
                 </p>
-                <div class="card text-center" id="no-results" {% if samples %}style="display:none;"{% endif %}>
+                <div class="card text-center" id="no-results" style="display:none;">
                     <div class="card-body py-5">
                         <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                         <h3 class="h5">Aucun échantillon MS en attente trouvé</h3>
