@@ -218,52 +218,37 @@ def sample_list_search():
         'created_at': sample.created_at.strftime('%d/%m/%Y %H:%M')
     } for sample in samples])
 
-@admin_bp.route('/samples/export-sample-list', methods=['POST'])
+@admin_bp.route('/samples/export-sample-list')
 @login_required
 def export_sample_list():
-    """Créer une sample list à partir des échantillons sélectionnés (admin only)"""
+    """Route AJAX : renvoie en JSON la référence et l'uuid des échantillons
+    sélectionnés (paramètre 'ids', séparés par des virgules), dans l'ordre demandé (admin only)"""
 
-    sample_ids = request.form.get('sample_ids', '')
-    if not sample_ids:
-        flash('Aucun échantillon sélectionné', 'error')
-        redirect(request.referrer)
-
+    raw_ids = request.args.get('ids', '')
     try:
-        sample_ids = [int(sid.strip()) for sid in sample_ids.split(',') if sid.strip()]
+        sample_ids = [int(sid.strip()) for sid in raw_ids.split(',') if sid.strip()]
     except ValueError:
-        flash('ID d\'échantillon invalide', 'error')
-        redirect(request.referrer)
+        return jsonify({'error': 'ID d\'échantillon invalide'}), 400
 
     if not sample_ids:
-        flash('Aucun échantillon valide sélectionné', 'error')
-        redirect(request.referrer)
+        return jsonify({'error': 'Aucun échantillon sélectionné'}), 400
 
-    # Récupérer les échantillons sélectionnés avec leurs utilisateurs
     samples = db.session.scalars(
-        db.select(Sample).where(Sample.id.in_(sample_ids)).join(User)
+        db.select(Sample).where(Sample.id.in_(sample_ids))
     ).all()
 
     if not samples:
-        flash('Aucun échantillon trouvé', 'error')
-        redirect(request.referrer)
+        return jsonify({'error': 'Aucun échantillon trouvé'}), 404
 
     # Conserver l'ordre de la liste construite côté client
     samples_by_id = {sample.id: sample for sample in samples}
-    samples = [samples_by_id[sid] for sid in sample_ids if sid in samples_by_id]
+    ordered_samples = [samples_by_id[sid] for sid in sample_ids if sid in samples_by_id]
 
-    def callback(sample: Sample | None) -> list:
-        if sample is None:
-            return
-        return [sample.reference, sample.uuid]
-                
-    output = _export_data(samples, callback, 'csv')
-
-    return send_file(
-        output,
-        mimetype='text/csv',
-        as_attachment=True,
-        download_name=f'sample_list_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
-    )
+    return jsonify([{
+        'id': sample.id,
+        'reference': sample.reference,
+        'uuid': str(sample.uuid)
+    } for sample in ordered_samples])
 
 @admin_bp.route('/sample/<int:sample_id>/update', methods=['POST'])
 @login_required

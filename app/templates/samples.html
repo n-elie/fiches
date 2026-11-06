@@ -239,8 +239,6 @@
                             <input type="hidden" name="sample_ids" id="selected-sample-ids-pdf">
                         </form>
 
-                        {% block extra_batch_actions %}{% endblock %}
-
                         <form method="post"
                               action="{{ url_for('main.batch_delete_samples') }}"
                               onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ces échantillons ? Cette action est irréversible.');"
