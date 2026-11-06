@@ -8,7 +8,7 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="{{ url_for("admin.dashboard") }}"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
+                        <a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
                     </li>
                     <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-list"></i> Échantillons</li>
                 </ol>
@@ -17,7 +17,7 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="{{ url_for("main.index") }}"><i class="fas fa-home"></i> Accueil</a>
+                        <a href="{{ url_for('main.index') }}"><i class="fas fa-home"></i> Accueil</a>
                     </li>
                     <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-list"></i> Échantillons</li>
                 </ol>
@@ -86,7 +86,7 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-check"></i> Filtrer
                             </button>
-                            <a href="{{ url_for("main.user_samples") }}" class="btn btn-outline-secondary">
+                            <a href="{{ url_for('main.user_samples') }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-times"></i> Réinitialiser
                             </a>
                         </div>
@@ -203,7 +203,7 @@
                     </h3>
                     <div class="d-flex flex-wrap gap-2">
                         <form method="post"
-                              action="{{ url_for("main.batch_generate_pdf") }}"
+                              action="{{ url_for('main.batch_generate_pdf') }}"
                               class="batch-form">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-primary" disabled id="batch-pdf-btn">
@@ -215,7 +215,7 @@
                         {% block extra_batch_actions %}{% endblock %}
 
                         <form method="post"
-                              action="{{ url_for("main.batch_delete_samples") }}"
+                              action="{{ url_for('main.batch_delete_samples') }}"
                               onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ces échantillons ? Cette action est irréversible.');"
                               class="batch-form">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

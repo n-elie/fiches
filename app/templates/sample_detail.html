@@ -8,10 +8,10 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="{{ url_for("admin.dashboard") }}"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
+                        <a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="{{ url_for("admin.all_samples") }}"><i class="fas fa-list"></i> Échantillons</a>
+                        <a href="{{ url_for('admin.all_samples') }}"><i class="fas fa-list"></i> Échantillons</a>
                     </li>
                     <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-file-alt"></i> {{ sample.reference }}</li>
                 </ol>
@@ -20,10 +20,10 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="{{ url_for("main.index") }}"><i class="fas fa-home"></i> Accueil</a>
+                        <a href="{{ url_for('main.index') }}"><i class="fas fa-home"></i> Accueil</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="{{ url_for("main.user_samples") }}"><i class="fas fa-list"></i> Mes échantillons</a>
+                        <a href="{{ url_for('main.user_samples') }}"><i class="fas fa-list"></i> Mes échantillons</a>
                     </li>
                     <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-file-alt"></i> {{ sample.reference }}</li>
                 </ol>

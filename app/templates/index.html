@@ -10,7 +10,7 @@
              alt="Bannière du service d'analyse chimique">
         {% if not current_user.is_authenticated %}
             <div>
-                <a href="{{ url_for("auth.login") }}" class="btn btn-primary btn-lg">
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
                     <i class="fas fa-sign-in-alt"></i> Se connecter
                 </a>
             </div>

@@ -13,7 +13,7 @@
                         <p class="text-muted mb-0">Connectez-vous avec vos identifiants LDAP</p>
                     </div>
 
-                    <form method="post" action="{{ url_for("auth.login") }}" class="login-form">
+                    <form method="post" action="{{ url_for('auth.login') }}" class="login-form">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                         <div class="mb-3">

@@ -16,7 +16,7 @@
     <body class="d-flex flex-column min-vh-100">
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container-fluid">
-                <a class="navbar-brand" href="{{ url_for("main.index") }}">
+                <a class="navbar-brand" href="{{ url_for('main.index') }}">
                     <i class="fas fa-vial"></i> Service d'Analyse Chimique
                 </a>
                 <button class="navbar-toggler"
@@ -41,12 +41,12 @@
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li>
-                                        <a class="dropdown-item" href="{{ url_for("ms.submit_sample") }}">
+                                        <a class="dropdown-item" href="{{ url_for('ms.submit_sample') }}">
                                             <i class="fas fa-chart-column"></i> Spectrométrie de Masse
                                         </a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item" href="{{ url_for("nmr.submit_sample") }}">
+                                        <a class="dropdown-item" href="{{ url_for('nmr.submit_sample') }}">
                                             <i class="fas fa-magnet"></i> RMN
                                         </a>
                                     </li>
@@ -62,18 +62,18 @@
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
 									<li>
-										<a class="dropdown-item" href="{{ url_for("main.user_samples") }}">
+										<a class="dropdown-item" href="{{ url_for('main.user_samples') }}">
 											<i class="fas fa-vials"></i> Tous les échantillons
 										</a>
 									</li>
 									<li><hr class="dropdown-divider"></li>
                                     <li>
-                                        <a class="dropdown-item" href="{{ url_for("ms.user_samples") }}">
+                                        <a class="dropdown-item" href="{{ url_for('ms.user_samples') }}">
                                             <i class="fas fa-chart-column"></i> Spectrométrie de Masse
                                         </a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item" href="{{ url_for("nmr.user_samples") }}">
+                                        <a class="dropdown-item" href="{{ url_for('nmr.user_samples') }}">
                                             <i class="fas fa-magnet"></i> RMN
                                         </a>
                                     </li>
@@ -123,7 +123,7 @@
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li>
-                                        <a class="dropdown-item" href="{{ url_for("auth.logout") }}">
+                                        <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
                                             <i class="fas fa-sign-out-alt"></i> Déconnexion
                                         </a>
                                     </li>
@@ -131,7 +131,7 @@
                             </li>
                         {% else %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for("auth.login") }}">
+                                <a class="nav-link" href="{{ url_for('auth.login') }}">
                                     <i class="fas fa-sign-in-alt"></i> Connexion
                                 </a>
                             </li>
