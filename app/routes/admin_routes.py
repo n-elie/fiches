@@ -33,10 +33,13 @@ def dashboard():
         db.select(db.func.count()).select_from(User)
     )
     pending_samples = db.session.scalar(
-        db.select(db.func.count()).select_from(User).where(Sample.status == 'pending')
+        db.select(db.func.count()).select_from(Sample).where(Sample.status == SampleStatus.pending)
+    )
+    analysing_samples = db.session.scalar(
+    db.select(db.func.count()).select_from(Sample).where(Sample.status == SampleStatus.analysing)
     )
     completed_samples = db.session.scalar(
-        db.select(db.func.count()).select_from(User).where(Sample.status == 'completed')
+        db.select(db.func.count()).select_from(Sample).where(Sample.status == SampleStatus.completed)
     )
     recent_samples = db.session.scalars(
         db.select(Sample).order_by(desc(Sample.created_at)).limit(10)
@@ -49,6 +52,7 @@ def dashboard():
                          total_samples=total_samples,
                          total_users=total_users,
                          pending_samples=pending_samples,
+                         analysing_samples=analysing_samples,
                          completed_samples=completed_samples,
                          recent_samples=recent_samples,
                          users=users,

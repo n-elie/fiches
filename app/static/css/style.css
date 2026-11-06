@@ -169,3 +169,21 @@
 footer {
     background-color: #ffffff;
 }
+
+.fa-custom-layers {
+	position: relative;
+	display: inline-block;
+}
+
+.fa-custom-layers i:first-child {
+	font-size: 100%;
+}
+
+.fa-custom-layers i:last-child {
+	font-size: 75%; 
+	position: absolute; 
+	bottom: 0; 
+	right: 0;
+	background: white;
+	border-radius: 50%;
+}

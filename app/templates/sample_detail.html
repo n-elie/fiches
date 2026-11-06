@@ -33,7 +33,7 @@
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
             <div class="d-flex align-items-center gap-2">
                 <h1 class="h3 mb-0">
-                    <i class="fas fa-{{ 'atom' if sample.analysis_type == 'ms' else 'magnet' }}"></i> {{ sample.reference }}
+                    <i class="fas fa-{{ 'chart-column' if sample.analysis_type == 'ms' else 'magnet' }}"></i> {{ sample.reference }}
                 </h1>
                 <span class="badge bg-secondary">
                     <i class="fas fa-tag"></i> {{ sample.get_type() }}
@@ -317,7 +317,7 @@
 							<div class="col-md-6 col-lg-4">
 								<div class="d-flex align-items-center gap-3">
 									<div class="detail-icon">
-										<i class="fas fa-atom"></i>
+										<i class="fas fa-share-nodes"></i>
 									</div>
 									<div>
 										<div class="text-muted small">Formule brute</div>

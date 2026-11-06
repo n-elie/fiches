@@ -8,7 +8,7 @@
         <link rel="stylesheet"
               href="{{ url_for('static', filename='css/bootstrap.custom.min.css') }}">
         <link rel="stylesheet"
-              href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+              href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
         <link rel="stylesheet"
               href="{{ url_for('static', filename='css/style.css') }}">
         {% block css %}{% endblock %}
@@ -42,7 +42,7 @@
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li>
                                         <a class="dropdown-item" href="{{ url_for("ms.submit_sample") }}">
-                                            <i class="fas fa-atom"></i> Spectrométrie de Masse
+                                            <i class="fas fa-chart-column"></i> Spectrométrie de Masse
                                         </a>
                                     </li>
                                     <li>
@@ -58,18 +58,18 @@
                                    role="button"
                                    data-bs-toggle="dropdown"
                                    aria-expanded="false">
-                                    <i class="fas fa-list"></i> Mes Échantillons
+                                    <i class="fas fa-vials"></i> Mes Échantillons
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
 									<li>
 										<a class="dropdown-item" href="{{ url_for("main.user_samples") }}">
-											<i class="fas fa-list"></i> Tous les échantillons
+											<i class="fas fa-vials"></i> Tous les échantillons
 										</a>
 									</li>
 									<li><hr class="dropdown-divider"></li>
                                     <li>
                                         <a class="dropdown-item" href="{{ url_for("ms.user_samples") }}">
-                                            <i class="fas fa-atom"></i> Spectrométrie de Masse
+                                            <i class="fas fa-chart-column"></i> Spectrométrie de Masse
                                         </a>
                                     </li>
                                     <li>
@@ -90,18 +90,24 @@
                                     </a>
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li>
-                                            <a class="dropdown-item" href="{{ url_for("admin.dashboard") }}">
+                                            <a class="dropdown-item" href="{{ url_for('admin.dashboard') }}">
                                                 <i class="fas fa-tachometer-alt"></i> Tableau de bord
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" href="{{ url_for("admin.all_samples") }}">
-                                                <i class="fas fa-list"></i> Gérer les échantillons
+                                            <a class="dropdown-item" href="{{ url_for('admin.all_samples') }}">
+                                                <span class="fa-custom-layers">
+												  <i class="fa-solid fa-vials"></i>
+												  <i class="fa-solid fa-gear""></i>
+												</span> Gérer les échantillons
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" href="{{ url_for("admin.all_users") }}">
-                                                <i class="fas fa-users"></i> Gérer les utilisateurs
+                                            <a class="dropdown-item" href="{{ url_for('admin.all_users') }}">
+                                                <span class="fa-custom-layers">
+												  <i class="fa-solid fa-users"></i>
+												  <i class="fa-solid fa-gear""></i>
+												</span> Gérer les utilisateurs
                                             </a>
                                         </li>
                                     </ul>
