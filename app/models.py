@@ -105,6 +105,9 @@ class Sample(db.Model):
     def is_pending(self):
         return self.status == SampleStatus.pending
         
+    def is_analysed(self):
+        return self.status == SampleStatus.analysed
+        
     def get_status_name(self):
         return STATUS_NAMES.get(self.status.name, 'Unknown')
         

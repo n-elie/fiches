@@ -140,7 +140,7 @@
                                     {% endif %}
                                 </a>
                             </th>
-                            <th>Actions</th>
+                            <th colspan="6" class="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -163,32 +163,47 @@
                                     </span>
                                 </td>
                                 <td>{{ sample.created_at.strftime("%d/%m/%Y %H:%M") }}</td>
-                                <td class="text-nowrap">
-                                    <a href="{{ url_for(sample.analysis_type + '.sample_detail', sample_id=sample.id) }}"
-                                       class="btn-icon"
-                                       title="Voir les détails"><i class="fas fa-eye"></i></a>
-                                    <a href="{{ url_for(sample.analysis_type + '.sample_edit', sample_id=sample.id) }}"
-                                       class="btn-icon"
-                                       title="Éditer"><i class="fas fa-edit"></i></a>
-                                    <a href="{{ url_for('main.generate_pdf', sample_id=sample.id) }}"
-                                       class="btn-icon"
-                                       title="Générer PDF"><i class="fas fa-file-pdf"></i></a>
-                                    {% if sample.structure_file %}
-                                        <a href="{{ url_for('main.download_file', filename=sample.structure_file) }}"
-                                           class="btn-icon"
-                                           title="Télécharger le fichier"><i class="fas fa-download"></i></a>
-                                    {% endif %}
-                                    {% if sample.is_pending() %}
-                                        <form method="post"
-                                              action="{{ url_for('main.delete_sample', sample_id=sample.id) }}"
-                                              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet échantillon ? Cette action est irréversible.');"
-                                              class="action-form">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="btn-icon btn-delete" title="Supprimer">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    {% endif %}
+                                <td class="text-center">
+									{% if sample.analysis_type == 'ms' and sample.is_analysed() %}
+										<a href="{{ url_for('ms.sample_spectrum', sample_id=sample.id) }}"
+											class="btn-icon"
+											title="Voir les resultats"><i class="fas fa-chart-column"></i></a>
+									{% endif %}
+								</td>
+								<td class="text-center">
+									<a href="{{ url_for(sample.analysis_type + '.sample_detail', sample_id=sample.id) }}"
+									   class="btn-icon"
+									   title="Voir les détails"><i class="fas fa-eye"></i></a>
+							    </td>
+								<td class="text-center">
+									<a href="{{ url_for(sample.analysis_type + '.sample_edit', sample_id=sample.id) }}"
+									   class="btn-icon"
+									   title="Éditer"><i class="fas fa-edit"></i></a>
+								</td>
+								<td class="text-center">
+									<a href="{{ url_for('main.generate_pdf', sample_id=sample.id) }}"
+									   class="btn-icon"
+									   title="Générer PDF"><i class="fas fa-file-pdf"></i></a>
+							    </td>
+								<td class="text-center">
+									{% if sample.structure_file %}
+										<a href="{{ url_for('main.download_file', filename=sample.structure_file) }}"
+										   class="btn-icon"
+										   title="Télécharger le fichier"><i class="fas fa-download"></i></a>
+									{% endif %}
+								</td>
+								<td class="text-center border-start">
+									{% if sample.is_pending() %}
+										<form method="post"
+											  action="{{ url_for('main.delete_sample', sample_id=sample.id) }}"
+											  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet échantillon ? Cette action est irréversible.');"
+											  class="action-form">
+											<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+											<button type="submit" class="btn-icon btn-delete" title="Supprimer">
+												<i class="fas fa-trash"></i>
+											</button>
+										</form>
+									{% endif %}
                                 </td>
                             </tr>
                         {% endfor %}
@@ -217,7 +232,7 @@
                         <form method="post"
                               action="{{ url_for('main.batch_delete_samples') }}"
                               onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ces échantillons ? Cette action est irréversible.');"
-                              class="batch-form">
+                              class="batch-form ms-auto">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-danger" disabled id="batch-delete-btn">
                                 <i class="fas fa-trash"></i> Supprimer la sélection

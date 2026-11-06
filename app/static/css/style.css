@@ -91,7 +91,6 @@
     background-color: transparent;
     color: #3498db;
     text-decoration: none;
-    margin-right: 0.25rem;
 }
 
 .btn-icon:hover {
@@ -127,7 +126,7 @@
     flex-shrink: 0;
 }
 
-/* Tableaux : conteneur blanc à angles arrondis, en-tête couleur navbar (#2c3e50) */
+/* Tableaux : conteneur blanc à angles arrondis */
 .table-responsive {
     background-color: #ffffff;
     border: 1px solid #bdc3c7;

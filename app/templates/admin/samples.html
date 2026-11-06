@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block extra_batch_actions %}
-    <form method="POST" action="{{ url_for('admin.export_sample_list') }}" class="batch-form ms-auto">
+    <form method="POST" action="{{ url_for('admin.export_sample_list') }}" class="batch-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
         <input type="hidden" name="sample_ids" id="batch-sample-ids-export">

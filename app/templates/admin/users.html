@@ -48,7 +48,7 @@
                     <th>Type</th>
                     <th>Dernière connexion</th>
                     <th>Échantillons</th>
-                    <th>Actions</th>
+                    <th colspan="3" class="text-center">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -80,24 +80,28 @@
                         {% endif %}
                     </td>
                     <td>{{ user.samples|length }}</td>
-                    <td class="text-nowrap">
-                        <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn-icon" title="Éditer">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        <a href="{{ url_for('admin.all_samples') }}?user={{ user.id }}" class="btn-icon" title="Voir les échantillons">
-                            <i class="fas fa-flask"></i>
-                        </a>
-                        {% if not user.is_ldap %}
-                            <form method="POST"
-                                  action="{{ url_for('admin.delete_user', user_id=user.id) }}"
-                                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.');"
-                                  class="action-form">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn-icon btn-delete" title="Supprimer">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
-                        {% endif %}
+                    <td class="text-center">
+						<a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn-icon" title="Éditer">
+							<i class="fas fa-edit"></i>
+						</a>
+					</td>
+					<td class="text-center">
+						<a href="{{ url_for('admin.all_samples') }}?user={{ user.id }}" class="btn-icon" title="Voir les échantillons">
+							<i class="fas fa-vials"></i>
+						</a>
+					</td>
+					<td class="text-center border-start">
+						{% if not user.is_ldap %}
+							<form method="POST"
+								  action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+								  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.');"
+								  class="action-form">
+								<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+								<button type="submit" class="btn-icon btn-delete" title="Supprimer">
+									<i class="fas fa-trash"></i>
+								</button>
+							</form>
+						{% endif %}
                     </td>
                 </tr>
                 {% endfor %}
