@@ -22,6 +22,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
 from .mol import html_formula, mol_to_img, mol_from_smiles
+from ..models import Sample
 
 # Enregistrer les polices si nécessaire
 try:

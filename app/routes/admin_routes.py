@@ -1,6 +1,7 @@
 import csv
 import io
 from collections.abc import Callable
+from datetime import datetime
 
 from werkzeug.security import generate_password_hash
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, current_app, jsonify
@@ -76,7 +77,7 @@ def all_users():
     ).all()
     return render_template('admin/users.html', users=users, user=current_user)
     
-def _export_data(samples:list[Sample], callback:Callable[Sample | None], data_format:str='csv'):
+def _export_data(samples:list[Sample], callback:Callable[[Sample | None], list], data_format:str='csv'):
     """ Exporter les données en CSV ou Excel """
     match data_format:
         case 'csv':
@@ -170,6 +171,59 @@ def export_excel():
         download_name=f'samples_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
     )
     
+def _pending_ms_samples(search_filter: str = '', user_filter: str = '') -> list[Sample]:
+    """Échantillons MS 'en attente' correspondant aux critères de recherche"""
+    
+    stmt = db.select(Sample).join(User).where(
+        Sample.status == SampleStatus.pending,
+        Sample.analysis_type == 'ms'
+    )
+    if search_filter:
+        stmt = stmt.where(Sample.reference.ilike(f'%{search_filter}%'))
+    if user_filter:
+        stmt = stmt.where(Sample.user_id == user_filter)
+    stmt = stmt.order_by(desc(Sample.created_at))
+    return db.session.scalars(stmt).all()
+
+@admin_bp.route('/sample-list')
+@login_required
+def sample_list():
+    """Rechercher des échantillons MS 'en attente' pour construire une sample list"""
+
+    search_filter = request.args.get('search', '').strip()
+    user_filter = request.args.get('user', '')
+
+    samples = _pending_ms_samples(search_filter, user_filter)
+    users = db.session.scalars(
+        db.select(User).order_by(User.username)
+    ).all()
+
+    return render_template('admin/sample_list.html',
+                           samples=samples,
+                           users=users,
+                           search_filter=search_filter,
+                           user_filter=user_filter,
+                           user=current_user)
+
+@admin_bp.route('/sample-list/search')
+@login_required
+def sample_list_search():
+    """Recherche AJAX (JSON) des échantillons MS 'en attente'"""
+
+    search_filter = request.args.get('search', '').strip()
+    user_filter = request.args.get('user', '')
+
+    samples = _pending_ms_samples(search_filter, user_filter)
+    return jsonify([{
+        'id': sample.id,
+        'reference': sample.reference,
+        'team': sample.team,
+        'user': sample.user.full_name,
+        'formula': sample.get_html_formula(),
+        'quantity': sample.quantity,
+        'created_at': sample.created_at.strftime('%d/%m/%Y %H:%M')
+    } for sample in samples])
+
 @admin_bp.route('/samples/export-sample-list', methods=['POST'])
 @login_required
 def export_sample_list():
@@ -178,17 +232,17 @@ def export_sample_list():
     sample_ids = request.form.get('sample_ids', '')
     if not sample_ids:
         flash('Aucun échantillon sélectionné', 'error')
-        return redirect(url_for('admin.all_samples'))
+        redirect(request.referrer)
 
     try:
         sample_ids = [int(sid.strip()) for sid in sample_ids.split(',') if sid.strip()]
     except ValueError:
         flash('ID d\'échantillon invalide', 'error')
-        return redirect(url_for('admin.all_samples'))
+        redirect(request.referrer)
 
     if not sample_ids:
         flash('Aucun échantillon valide sélectionné', 'error')
-        return redirect(url_for('admin.all_samples'))
+        redirect(request.referrer)
 
     # Récupérer les échantillons sélectionnés avec leurs utilisateurs
     samples = db.session.scalars(
@@ -197,7 +251,11 @@ def export_sample_list():
 
     if not samples:
         flash('Aucun échantillon trouvé', 'error')
-        return redirect(url_for('admin.all_samples'))
+        redirect(request.referrer)
+
+    # Conserver l'ordre de la liste construite côté client
+    samples_by_id = {sample.id: sample for sample in samples}
+    samples = [samples_by_id[sid] for sid in sample_ids if sid in samples_by_id]
 
     def callback(sample: Sample | None) -> list:
         if sample is None:

@@ -169,6 +169,7 @@ footer {
     background-color: #ffffff;
 }
 
+/* Icône composites */
 .fa-custom-layers {
 	position: relative;
 	display: inline-block;
@@ -185,4 +186,41 @@ footer {
 	right: 0;
 	background: white;
 	border-radius: 50%;
+}
+
+/* Liste d'échantillons réorganisable (sample list admin) */
+.sample-list {
+    list-style: none;
+    margin: 0 0 1rem 0;
+    padding: 0;
+    min-height: 2.5rem;
+}
+
+.sample-list-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+    background-color: #ffffff;
+    border: 1px solid #dfe4ea;
+    border-radius: 4px;
+}
+
+.sample-list-item .drag-handle {
+    cursor: grab;
+    color: #95a5a6;
+}
+
+.sample-list-item .sample-list-ref {
+    font-weight: 600;
+}
+
+.sample-list-placeholder {
+    height: 2.75rem;
+    margin-bottom: 0.5rem;
+    border: 2px dashed #3498db;
+    border-radius: 4px;
+    background-color: rgba(52, 152, 219, 0.08);
+    visibility: visible !important;
 }
