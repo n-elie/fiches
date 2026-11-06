@@ -84,13 +84,7 @@ def download_spectra(self):
                 # Apply peak picking and lock mass correction
                 data_scan = peak_picking(data_scan) 
                 if data_scan.peaklist:
-                    try:
-                        data_scan = lock_mass_correct(data_scan, ls_scan, ionisation_mode)
-                    except ValueError as e:
-                        print(str(e))
-                        print(sr)
-                        print(specinfos['MS LockSpray Reference Data'])
-                        raise e
+                    data_scan = lock_mass_correct(data_scan, ls_scan, ionisation_mode)
                 spectra[ionisation_mode] = data_scan
                         
                 if {'+', '-'} <= spectra.keys():
@@ -98,8 +92,17 @@ def download_spectra(self):
             
             exp = mspy_to_openms(spectra.values())
             oms.MzMLFile().store(mzml_file, exp)
-            num_spectra = len(spectra)
-            logger.info(f"{num_spectra} {'spectra' if num_spectra>1 else 'spectrum'} successfully saved to '{mzml_file}'.")
+            sample.status = SampleStatus.analysed
+            
+            try:
+                db.session.commit()
+                num_spectra = len(spectra)
+                logger.info(f"{num_spectra} {'spectra' if num_spectra>1 else 'spectrum'} successfully saved to '{mzml_file}'.")
+            except Exception as e:
+                db.session.rollback()
+                if os.path.exists(mzml_file):
+                    os.path.remove(mzml_file)
+                logger.warning(f"File was not saved because the following error occured: {e}")
         
         return {'status': 'success'}
     finally:
