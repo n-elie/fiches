@@ -224,3 +224,22 @@ footer {
     background-color: rgba(52, 152, 219, 0.08);
     visibility: visible !important;
 }
+
+/* Curseur « interdit » au survol des boutons et liens désactivés */
+.btn:disabled,
+.btn.disabled,
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled,
+[disabled] {
+    cursor: not-allowed !important;
+}
+
+/* Bootstrap pose pointer-events: none sur les éléments désactivés, ce qui
+   empêcherait l'affichage du curseur : on le réactive. Les <button> natifs
+   désactivés n'émettent de toute façon aucun clic */
+.btn:disabled,
+.btn.disabled {
+    pointer-events: auto !important;
+}
