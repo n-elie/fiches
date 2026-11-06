@@ -249,6 +249,42 @@ def export_sample_list():
         'reference': sample.reference,
         'uuid': str(sample.uuid)
     } for sample in ordered_samples])
+    
+@admin_bp.route('/sample-list/validate', methods=['POST'])
+@login_required
+def validate_sample_list():
+    """Route AJAX : passe les échantillons sélectionnés ('pending') en statut 'analysing' (admin only)"""
+
+    raw_ids = request.form.get('ids', '')
+    try:
+        sample_ids = [int(sid.strip()) for sid in raw_ids.split(',') if sid.strip()]
+    except ValueError:
+        return jsonify({'error': 'ID d\'échantillon invalide'}), 400
+
+    if not sample_ids:
+        return jsonify({'error': 'Aucun échantillon sélectionné'}), 400
+
+    samples = db.session.scalars(
+        db.select(Sample).where(
+            Sample.id.in_(sample_ids),
+            Sample.status == SampleStatus.pending
+        )
+    ).all()
+
+    if not samples:
+        return jsonify({'error': 'Aucun échantillon en attente trouvé'}), 404
+
+    for sample in samples:
+        sample.status = SampleStatus.analysing
+    db.session.commit()
+
+    return jsonify({
+        'updated': [{
+            'id': sample.id,
+            'reference': sample.reference,
+            'status': sample.status.name
+        } for sample in samples]
+    })
 
 @admin_bp.route('/sample/<int:sample_id>/update', methods=['POST'])
 @login_required

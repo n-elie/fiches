@@ -140,6 +140,7 @@
                 </div>
                 <div class="modal-body">
                     <p class="text-muted" id="popup-count"></p>
+                    <p id="validate-feedback" class="alert alert-success d-none mb-2"></p>
                     <div class="table-responsive">
                         <table class="table table-striped table-hover align-middle mb-0">
                             <thead class="table-dark">
@@ -156,6 +157,9 @@
                 <div class="modal-footer">
 					<button type="button" class="btn btn-outline-primary" id="copy-table-btn">
                         <i class="fas fa-copy"></i> Copier
+                    </button>
+					<button type="button" class="btn btn-success" id="validate-list-btn" disabled>
+                        <i class="fas fa-check"></i> Valider la sample list
                     </button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
                 </div>
@@ -177,6 +181,11 @@
 			const $showListBtn = $('#show-list-btn');
             const selectedIds = new Set();
 			let popupSamples = [];
+			let hasCopied = false;
+
+			function updateValidateBtn() {
+                $('#validate-list-btn').prop('disabled', popupSamples.length === 0 || !hasCopied);
+            }
 
             function renderResults(samples) {
                 const $tbody = $('#results-body');
@@ -336,8 +345,11 @@
                 if (ids.length === 0) {
                     return;
                 }
+				hasCopied = false;
                 $.getJSON("{{ url_for('admin.export_sample_list') }}", { ids: ids.join(',') }, function(samples) {
 					popupSamples = samples;
+					updateValidateBtn();
+					$('#validate-feedback').addClass('d-none').text('');
                     const $tbody = $('#popup-sample-tbody');
                     $tbody.empty();
                     samples.forEach(function(sample, i) {
@@ -349,6 +361,51 @@
                     });
                     $('#popup-count').text(samples.length + ' échantillon' + (samples.length > 1 ? 's' : ''));
                     bootstrap.Modal.getOrCreateInstance(document.getElementById('sample-list-modal')).show();
+                });
+            });
+			
+			$('#validate-list-btn').on('click', function() {
+                if (popupSamples.length === 0) {
+                    return;
+                }
+                if (!confirm('Passer les ' + popupSamples.length + ' échantillon(s) de la sample list en « En cours d\'analyse » ?')) {
+                    return;
+                }
+                const ids = popupSamples.map(function(sample) { return sample.id; });
+                $.ajax({
+                    url: "{{ url_for('admin.validate_sample_list') }}",
+                    method: 'POST',
+                    data: {
+                        csrf_token: "{{ csrf_token() }}",
+                        ids: ids.join(',')
+                    },
+                    success: function(resp) {
+                        const validated = new Set(resp.updated.map(function(u) { return String(u.id); }));
+                        validated.forEach(function(id) { selectedIds.delete(id); });
+                        $list.children('li').each(function() {
+                            if (validated.has(String($(this).data('id')))) {
+                                $(this).remove();
+                            }
+                        });
+                        refreshExport();
+                        refreshAddButtons();
+                        refreshSelection();
+                        runSearch();
+
+                        $('#popup-sample-tbody').empty();
+                        popupSamples = [];
+						hasCopied = false;
+						updateValidateBtn();
+                        $('#popup-count').text('0 échantillon');
+                        $('#validate-list-btn').prop('disabled', true);
+                        $('#validate-feedback')
+                            .removeClass('d-none')
+                            .text(resp.updated.length + ' échantillon(s) passé(s) en « En cours d\'analyse ».');
+                    },
+                    error: function(xhr) {
+                        const msg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Erreur lors de la validation';
+                        $('#validate-feedback').removeClass('d-none').removeClass('alert-success').addClass('alert-danger').text(msg);
+                    }
                 });
             });
 			
@@ -368,6 +425,8 @@
                 }).join('\n');
 
                 const done = function() {
+					hasCopied = true;
+                    updateValidateBtn();
                     $btn.html('<i class="fas fa-check"></i> Copié !');
                     setTimeout(function() {
                         $btn.html('<i class="fas fa-copy"></i> Copier');
