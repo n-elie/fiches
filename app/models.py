@@ -98,7 +98,8 @@ class Sample(db.Model):
 
     def __repr__(self):
         return f'<Sample {self.reference}>'
-        
+      
+    @classmethod      
     def get_type(self):
         return 'Unknown'
         
@@ -128,6 +129,7 @@ class MSSample(Sample):
         'polymorphic_identity': 'ms'  # Identifiant pour MS
     }
     
+    @classmethod
     def get_type(self):
         return 'MS'
     
@@ -148,6 +150,7 @@ class NMRSample(Sample):
         'polymorphic_identity': 'nmr'  # Identifiant pour RMN
     }
     
+    @classmethod
     def get_type(self):
         return 'RMN'
 

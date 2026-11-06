@@ -61,7 +61,7 @@ def samples(template='samples.html', show_users='current', sample_type=Sample):
                          pagination=paginated_samples,     # Objet de pagination
                          user=current_user,
                          users=users,
-                         show_type=show_type,
+                         sample_type=sample_type.get_type() if sample_type is not Sample else None,
                          status_filter=status_filter,
                          type_filter=type_filter,
                          user_filter=user_filter if current_user.is_admin else '',

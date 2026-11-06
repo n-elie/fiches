@@ -25,7 +25,19 @@
         {% endif %}
 
         {% block header %}
-            <h2>Mes Échantillons</h2>
+		    {% if sample_type is not none %}
+				{% if sample_type == 'MS' %}
+					{% set icon='fa-chart-column' %}
+				{% elif sample_type == 'RMN' %}
+					{% set icon='fa-magnet' %}
+				{% endif %}
+			{% endif %}
+            <h2>
+				{% if icon is defined %}
+					<i class="fas {{icon}}"></i>
+				{% endif %}
+				Mes Échantillons
+			</h2>
             <p class="text-muted">Liste de tous vos échantillons soumis pour analyse</p>
         {% endblock %}
 
@@ -36,7 +48,7 @@
                         <i class="fas fa-filter"></i> Filtrer les échantillons
                     </h3>
                     <div class="row g-3 align-items-end">
-                        {% if show_type %}
+                        {% if sample_type is none %}
                             <div class="col-md-auto">
                                 <label for="type" class="form-label"><i class="fas fa-tag"></i> Type :</label>
                                 <select id="type" name="type" class="form-select">
@@ -103,7 +115,7 @@
                             <th>
                                 <input type="checkbox" id="select-all" class="form-check-input" title="Sélectionner tout">
                             </th>
-                            {% if show_type %}
+                            {% if sample_type is none %}
                                 <th>
                                     <a href="?sort=analysis_type&order={% if sort_by == 'analysis_type' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-white text-decoration-none">
                                         Type
@@ -152,7 +164,7 @@
                                            class="sample-checkbox form-check-input"
                                            {% if sample.status.name != 'pending' %}disabled title="Seuls les échantillons 'pending' peuvent être supprimés"{% endif %}>
                                 </td>
-                                {% if show_type %}<td>{{ sample.get_type() }}</td>{% endif %}
+                                {% if sample_type is none %}<td>{{ sample.get_type() }}</td>{% endif %}
                                 {% if user.is_admin and users is defined %}<td>{{ sample.user.full_name }}</td>{% endif %}
                                 <td>{{ sample.reference }}</td>
                                 <td><span>{{ sample.get_html_formula()|safe or '-' }}</span></td>
@@ -167,7 +179,7 @@
 									{% if sample.analysis_type == 'ms' and sample.is_analysed() %}
 										<a href="{{ url_for('ms.sample_spectrum', sample_id=sample.id) }}"
 											class="btn-icon"
-											title="Voir les resultats"><i class="fas fa-chart-column"></i></a>
+											title="Voir les résultats"><i class="fas fa-chart-column"></i></a>
 									{% endif %}
 								</td>
 								<td class="text-center">
