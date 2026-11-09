@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Sample List{% endblock %}
+{% block title %}{{ _('Sample List') }}{% endblock %}
 
 {% block css %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui-1.14.2.min.css') }}">
@@ -11,14 +11,14 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item">
-                    <a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
+                    <a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> {{ _('Dashboard') }}</a>
                 </li>
-                <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-list-ol"></i> Sample list</li>
+                <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-list-ol"></i> {{ _('Sample List') }}</li>
             </ol>
         </nav>
 
-        <h2><i class="fas fa-chart-column"></i> Créer une sample list</h2>
-        <p class="text-muted">Recherchez des échantillons MS « en attente », ajoutez-les à la liste, réorganisez-les, puis exportez la liste.</p>
+        <h2><i class="fas fa-chart-column"></i> {{ _('Create a Sample List') }}</h2>
+        <p class="text-muted">{{ _('Search for “pending” MS samples, add them to the list, reorder them, and then export the list.') }}</p>
 
         <div class="row g-4">
             <div class="col-lg-7">
@@ -26,13 +26,13 @@
                     <div class="card-body">
                         <form id="search-form">
                             <h3 class="h6 mb-3">
-                                <i class="fas fa-filter"></i> Rechercher des échantillons MS en attente
+                                <i class="fas fa-filter"></i> {{ _('Search for pending MS samples') }}
                             </h3>
                             <div class="row g-3 align-items-end">
                                 <div class="col-md-auto">
-                                    <label for="user" class="form-label"><i class="fas fa-user"></i> Utilisateur :</label>
+                                    <label for="user" class="form-label"><i class="fas fa-user"></i> {{ _('User:') }}</label>
                                     <select id="user" name="user" class="form-select">
-                                        <option value="">Tous les utilisateurs</option>
+                                        <option value="">{{ _('All users') }}</option>
                                         {% for u in users %}
                                             <option value="{{ u.id }}" {% if user_filter == u.id|string %}selected{% endif %}>{{ u.username }}</option>
                                         {% endfor %}
@@ -40,21 +40,21 @@
                                 </div>
 
                                 <div class="col-md-auto">
-                                    <label for="search" class="form-label"><i class="fas fa-search"></i> Référence :</label>
+                                    <label for="search" class="form-label"><i class="fas fa-search"></i> {{ _('Reference:') }}</label>
                                     <input type="text"
                                            id="search"
                                            name="search"
                                            class="form-control"
-                                           placeholder="Rechercher..."
+                                           placeholder="{{ _('Search...') }}"
                                            value="{{ search_filter }}">
                                 </div>
 
                                 <div class="col-md-auto d-flex gap-2">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-check"></i> Rechercher
+                                        <i class="fas fa-check"></i> {{ _('Search') }}
                                     </button>
                                     <button type="button" id="reset-search-btn" class="btn btn-outline-secondary">
-                                        <i class="fas fa-times"></i> Réinitialiser
+                                        <i class="fas fa-times"></i> {{ _('Reset') }}
                                     </button>
                                 </div>
                             </div>
@@ -64,13 +64,13 @@
 
                 <div class="d-flex flex-wrap gap-2 mb-3" id="bulk-add-wrapper" style="display:none;">
                     <button type="button" class="btn btn-primary" id="add-selected-btn" disabled>
-                        <i class="fas fa-cart-plus"></i> Ajouter la sélection (<span id="selected-count">0</span>)
+                        <i class="fas fa-cart-plus"></i> {{ _('Add selection') }} (<span id="selected-count">0</span>)
                     </button>
 					<button type="button" class="btn btn-primary" id="show-list-btn" disabled>
-						<i class="fas fa-list-ol"></i> Créer la sample list
+						<i class="fas fa-list-ol"></i> {{ _('Create Sample List') }}
 					</button>
 					<button type="button" class="btn btn-outline-danger btn-sm ms-auto" id="clear-list-btn" disabled>
-						<i class="fas fa-trash"></i> Vider la liste
+						<i class="fas fa-trash"></i> {{ _('Clear List') }}
 					</button>
                 </div>
 
@@ -79,13 +79,13 @@
                         <thead class="table-dark">
                             <tr>
                                 <th><input type="checkbox" id="select-all-results" class="form-check-input" title="Tout sélectionner"></th>
-                                <th>Équipe</th>
-                                <th>Utilisateur</th>
-                                <th>Référence</th>
-                                <th>Formule</th>
-                                <th>Quantité</th>
-                                <th>Date de soumission</th>
-                                <th class="text-center">Action</th>
+                                <th>{{ _('Team') }}</th>
+                                <th>{{ _('User') }}</th>
+                                <th>{{ _('Reference') }}</th>
+                                <th>{{ _('Formula') }}</th>
+                                <th>{{ _('Quantity') }}</th>
+                                <th>{{ _('Submission Date') }}</th>
+                                <th class="text-center">{{ _('Action') }}</th>
                             </tr>
                         </thead>
                         <tbody id="results-body">
@@ -99,8 +99,8 @@
                 <div class="card text-center" id="no-results" style="display:none;">
                     <div class="card-body py-5">
                         <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                        <h3 class="h5">Aucun échantillon MS en attente trouvé</h3>
-                        <p class="text-muted mb-0">Aucun échantillon MS « en attente » ne correspond à vos critères de recherche.</p>
+                        <h3 class="h5">{{ _('No pending MS sample found') }}</h3>
+                        <p class="text-muted mb-0">{{ _('No ”pending" MS samples match your search criteria.') }}</p>
                     </div>
                 </div>
             </div>
@@ -109,17 +109,17 @@
                 <div class="card sticky-top" style="top: 1rem;">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h3 class="h5 mb-0">
-                            <i class="fas fa-list-ol"></i> Ma sample list
+                            <i class="fas fa-list-ol"></i> {{ _('My Sample List') }}
                         </h3>
                         <span class="badge bg-primary" id="list-count">0</span>
                     </div>
                     <div class="card-body">
                         <p class="text-muted small">
-                            <i class="fas fa-grip-vertical"></i> Glissez-déposez les échantillons pour réorganiser la liste.
+                            <i class="fas fa-grip-vertical"></i> {{ _('Drag and drop the samples to reorder the list.') }}
                         </p>
                         
                         <p id="empty-list-message" class="text-muted text-center mt-2">
-                            Aucun échantillon dans la liste. Utilisez le bouton « Ajouter ».
+                            {{ _('No samples in the list. Use the “Add” button.') }}
                         </p>
                         
                         <ul id="sample-list" class="sample-list mt-2"></ul>
@@ -134,7 +134,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="sample-list-modal-label">
-                        <i class="fas fa-list-ol"></i> Sample list
+                        <i class="fas fa-list-ol"></i> {{ _('Sample List') }}
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                 </div>
@@ -146,8 +146,8 @@
                             <thead class="table-dark">
                                 <tr>
                                     <th>#</th>
-                                    <th>Référence</th>
-                                    <th>UUID</th>
+                                    <th>{{ _('Reference') }}</th>
+                                    <th>{{ _('UUID') }}</th>
                                 </tr>
                             </thead>
                             <tbody id="popup-sample-tbody"></tbody>
@@ -156,10 +156,10 @@
                 </div>
                 <div class="modal-footer">
 					<button type="button" class="btn btn-outline-primary" id="copy-table-btn">
-                        <i class="fas fa-copy"></i> Copier
+                        <i class="fas fa-copy"></i> {{ _('Copy') }}
                     </button>
 					<button type="button" class="btn btn-success" id="validate-list-btn" disabled>
-                        <i class="fas fa-check"></i> Valider la sample list
+                        <i class="fas fa-check"></i> {{ _('Validate Sample List') }}
                     </button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
                 </div>
@@ -216,7 +216,12 @@
                 $('#results-table-wrapper').toggle(samples.length > 0);
                 $('#bulk-add-wrapper').toggle(samples.length > 0);
                 $('#results-count').toggle(samples.length > 0)
-                    .text(samples.length + ' échantillon' + (samples.length > 1 ? 's' : '') + ' MS en attente');
+					.text(
+						samples.length + ' ' +
+						(samples.length > 1
+							? {{ ngettext('MS pending sample', 'MS pending samples', 2) | tojson }}
+							: {{ ngettext('MS pending sample', 'MS pending samples', 1) | tojson }})
+					);
                 $('#no-results').toggle(samples.length === 0);
                 refreshAddButtons();
                 refreshSelection();
@@ -270,8 +275,8 @@
                     $btn.toggleClass('btn-outline-primary', !inList);
                     $btn.toggleClass('btn-success', inList);
                     $btn.html(inList
-                        ? '<i class="fas fa-check"></i> Ajouté'
-                        : '<i class="fas fa-plus"></i> Ajouter');
+                        ? '<i class="fas fa-check"></i> {{ _('Added') }}'
+                        : '<i class="fas fa-plus"></i> {{ _('Add') }}');
                 });
             }
 
@@ -306,11 +311,11 @@
                 selectedIds.add(id);
 
                 const $item = $('<li class="sample-list-item"></li>').attr('data-id', id);
-                $item.append('<span class="drag-handle" title="Déplacer"><i class="fas fa-grip-vertical"></i></span>');
+                $item.append('<span class="drag-handle" title="{{ _('Move') }}"><i class="fas fa-grip-vertical"></i></span>');
                 $item.append($('<span class="sample-list-ref"></span>').text(reference));
                 $item.append($('<span class="text-muted small sample-list-meta"></span>')
                     .text(team + ' — ' + user));
-                $item.append('<button type="button" class="btn-icon btn-delete remove-sample-btn ms-auto" title="Retirer de la liste"><i class="fas fa-times"></i></button>');
+                $item.append('<button type="button" class="btn-icon btn-delete remove-sample-btn ms-auto" title="{{ _('Remove from list' )}}"><i class="fas fa-times"></i></button>');
 
                 $list.append($item);
             }
@@ -359,7 +364,12 @@
                         $row.append($('<td></td>').text(sample.uuid));
                         $tbody.append($row);
                     });
-                    $('#popup-count').text(samples.length + ' échantillon' + (samples.length > 1 ? 's' : ''));
+                    $('#popup-count').text(
+						samples.length + ' ' +
+						(samples.length > 1
+							? {{ ngettext('sample', 'samples', 2) | tojson }}
+							: {{ ngettext('sample', 'samples', 1) | tojson }})
+					);
                     bootstrap.Modal.getOrCreateInstance(document.getElementById('sample-list-modal')).show();
                 });
             });
@@ -368,7 +378,7 @@
                 if (popupSamples.length === 0) {
                     return;
                 }
-                if (!confirm('Passer les ' + popupSamples.length + ' échantillon(s) de la sample list en « En cours d\'analyse » ?')) {
+                if (!confirm({{ _('Mark the {num_samples} sample(s) from sample list as “Analysing“?') | tojson }}.replace('{num_samples}', popupSamples.length))) {
                     return;
                 }
                 const ids = popupSamples.map(function(sample) { return sample.id; });
@@ -400,10 +410,10 @@
                         $('#validate-list-btn').prop('disabled', true);
                         $('#validate-feedback')
                             .removeClass('d-none')
-                            .text(resp.updated.length + ' échantillon(s) passé(s) en « En cours d\'analyse ».');
+							.text({{ _('{updated} sample(s) marked as “Analysing“.') | tojson }}.replace('{updated}', resp.updated.length));
                     },
                     error: function(xhr) {
-                        const msg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Erreur lors de la validation';
+                        const msg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : {{ _('Validation error') | tojson }};
                         $('#validate-feedback').removeClass('d-none').removeClass('alert-success').addClass('alert-danger').text(msg);
                     }
                 });
@@ -427,9 +437,9 @@
                 const done = function() {
 					hasCopied = true;
                     updateValidateBtn();
-                    $btn.html('<i class="fas fa-check"></i> Copié !');
+                    $btn.html('<i class="fas fa-check"></i> {{ _('Copied') }} !');
                     setTimeout(function() {
-                        $btn.html('<i class="fas fa-copy"></i> Copier');
+                        $btn.html('<i class="fas fa-copy"></i> {{ _('Copy') }}');
                     }, 2000);
                 };
 

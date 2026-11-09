@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}Accueil{% endblock %}
+{% block title %}{{ _('Home') }}{% endblock %}
 
 {% block content %}
     <div class="text-center py-4">
-        <h1 class="display-6 fw-bold">Bienvenue sur la plateforme d'analyse chimique</h1>
+        <h1 class="display-6 fw-bold">{{ _('Welcome to the chemical analysis platform') }}</h1>
         <img src="{{ url_for('static', filename='images/banner.png') }}"
              class="img-fluid my-4 rounded home-banner"
-             alt="Bannière du service d'analyse chimique">
+             alt="{{ _('Chemical analysis service banner') }}">
         {% if not current_user.is_authenticated %}
             <div>
                 <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-sign-in-alt"></i> Se connecter
+                    <i class="fas fa-sign-in-alt"></i> {{ _('Log in') }}
                 </a>
             </div>
         {% endif %}

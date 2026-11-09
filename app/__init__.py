@@ -1,6 +1,7 @@
 import os
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request, session
+from flask_babel import Babel, lazy_gettext as _l
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
@@ -14,6 +15,18 @@ from .auth import dap_auth
 login_manager = LoginManager()
 migrate = Migrate()
 csrf = CSRFProtect()
+babel = Babel()
+
+SUPPORTED_LOCALES = ['fr', 'en']
+DEFAULT_LOCALE = 'fr'
+
+def get_locale():
+    # 1. Choix explicite de l'utilisateur (stocké en session)
+    lang = session.get('lang')
+    if lang in SUPPORTED_LOCALES:
+        return lang
+    # 2. Sinon, négociation via l'en-tête Accept-Language du navigateur
+    return request.accept_languages.best_match(SUPPORTED_LOCALES) or DEFAULT_LOCALE
 
 def create_app():
     """Créer et configurer l'application Flask"""
@@ -27,16 +40,20 @@ def create_app():
                static_folder=static_folder)
 
     app.config.from_object(config)
+    app.config['BABEL_DEFAULT_LOCALE'] = DEFAULT_LOCALE
+    app.config['BABEL_SUPPORTED_LOCALES'] = SUPPORTED_LOCALES
 
     # Initialiser les extensions
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
     csrf.init_app(app)
+    babel.init_app(app, locale_selector=get_locale)
+    app.jinja_env.globals['get_locale'] = get_locale
     
     # Configuration de Flask-Login
     login_manager.login_view = 'auth.login'
-    login_manager.login_message = 'Veuillez vous connecter pour accéder à cette page'
+    login_manager.login_message = _l('Please log in to access this page')
     login_manager.login_message_category = 'info'
 
     # Initialiser l'authentification LDAP

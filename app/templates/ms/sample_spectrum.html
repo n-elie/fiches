@@ -75,7 +75,7 @@
 
                 yAxis: {
                     type: 'value',
-                    name: 'Intensité relative (%)',
+                    name: {{ _('Relative intensity (%)') | tojson }},
                     nameLocation: 'middle',
                     nameGap: 45,
                     min: 0,
@@ -106,7 +106,7 @@
                             }
                         },
                         restore: {
-                            title: 'Restore Zoom'
+                            title: {{ _('Restore zoom') | tojson }}
                         },
                         mySpacer1: {
                             show: true,
@@ -118,7 +118,7 @@
                         },
                         mySelectAll: {
                             show: true,
-                            title: 'Select All',
+                            title: {{ _('Select all') | tojson }},
                             icon: 'path://m74.3164 90.752v10.4551h10.625V90.752Zm8.4021 2.3303-4.3429 4.3434-2.4365-2.4365-.4243.4243 2.8608 2.8608 4.7682-4.7677z',
                             onclick: function() {
                                 selected.clear();
@@ -130,7 +130,7 @@
                         },
                         myClearSelection: {
                             show: true,
-                            title: 'Effacer la sélection',
+                            title: {{ _('Clear selection') | tojson }},
                             icon: 'path://M6 6l12 12M18 6L6 18',
                             onclick: function() {
                                 selected.clear();

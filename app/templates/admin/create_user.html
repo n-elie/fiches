@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Créer un utilisateur{% endblock %}
+{% block title %}{{ _('Add a new user') }}{% endblock %}
 
 {% block content %}
 <div class="form-container">
     <div class="mb-4">
-        <h2>Créer un nouvel utilisateur</h2>
-        <p class="text-muted">Créez un compte utilisateur local (non-LDAP)</p>
+        <h2>{{ _('Add a new user') }}</h2>
+        <p class="text-muted">{{ _('Add local user account (non-LDAP)') }}</p>
     </div>
 
     <form method="POST" action="{{ url_for('admin.create_user') }}" class="sample-form">
@@ -14,35 +14,36 @@
 
         <div class="card mb-4">
             <div class="card-body">
-                <h3 class="h5 mb-3">Informations de base</h3>
+                <h3 class="h5 mb-3">{{ _('Main Information') }}</h3>
 
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label for="username" class="form-label">Nom d'utilisateur <span class="required-star">*</span></label>
+                        <label for="username" class="form-label">{{ _('Username') }} <span class="required-star">*</span></label>
                         <input type="text" class="form-control" id="username" name="username" required
-                               placeholder="Ex: jdupont" pattern="[a-zA-Z0-9_]+"
-                               title="Caractères alphanumériques et underscores uniquement">
-                        <span class="help-text">Nom d'utilisateur unique pour la connexion</span>
+                               placeholder="{{ _('Ex: jdoe') }}" pattern="[a-zA-Z0-9_]+"
+                               title="{{ _('Alphanumeric characters and underscores only') }}">
+                        <span class="help-text">{{ _('Unique username for login') }}</span>
                     </div>
 
                     <div class="col-md-6">
-                        <label for="email" class="form-label">Email <span class="required-star">*</span></label>
+                        <label for="email" class="form-label">{{ _('Email') }} <span class="required-star">*</span></label>
                         <input type="email" class="form-control" id="email" name="email" required
-                               placeholder="Ex: jdupont@domaine.fr">
+                               placeholder="{{ _('Ex: jdoe@domain.com') }} ">
                     </div>
 
                     <div class="col-md-6">
-                        <label for="full_name" class="form-label">Nom complet</label>
+                        <label for="full_name" class="form-label">{{ _('Full Name') }}</label>
                         <input type="text" class="form-control" id="full_name" name="full_name"
-                               placeholder="Ex: Jean Dupont">
-                        <span class="help-text">Nom et prénom de l'utilisateur</span>
+                               placeholder="{{ _('Ex: John Doe') }}">
+                        <span class="help-text">{{ _("User's first and last name") }}</span>
+                    </div>
                     </div>
 
                     <div class="col-md-6">
-                        <label for="teams" class="form-label">Équipes</label>
+                        <label for="teams" class="form-label">{{ _('Teams') }}</label>
                         <input type="text" class="form-control" id="teams" name="teams"
-                               placeholder="Ex: Chimie,Biologie">
-                        <span class="help-text">Équipes séparées par des virgules</span>
+                               placeholder="{{ _('Ex: Chemistry,Biology') }}">
+                        <span class="help-text">{{ _('Teams separated by commas') }}</span>
                     </div>
                 </div>
             </div>
@@ -50,18 +51,18 @@
 
         <div class="card mb-4">
             <div class="card-body">
-                <h3 class="h5 mb-3">Mot de passe</h3>
+                <h3 class="h5 mb-3">{{ _('Password') }}</h3>
 
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label for="password" class="form-label">Mot de passe <span class="required-star">*</span></label>
+                        <label for="password" class="form-label">{{ _('Password') }} <span class="required-star">*</span></label>
                         <input type="password" class="form-control" id="password" name="password" required
-                               minlength="8" placeholder="Minimum 8 caractères">
-                        <span class="help-text">Le mot de passe doit contenir au moins 8 caractères</span>
+                               minlength="8" placeholder="{{ _('At least 8 characters') }}">
+                        <span class="help-text">{{ _('The password must be at least 8 characters long') }}</span>
                     </div>
 
                     <div class="col-md-6">
-                        <label for="confirm_password" class="form-label">Confirmer le mot de passe <span class="required-star">*</span></label>
+                        <label for="confirm_password" class="form-label">{{ _('Confirm password') }} <span class="required-star">*</span></label>
                         <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
                     </div>
                 </div>
@@ -70,22 +71,22 @@
 
         <div class="card mb-4">
             <div class="card-body">
-                <h3 class="h5 mb-3">Permissions</h3>
+                <h3 class="h5 mb-3">{{ _('Privileges') }}</h3>
 
                 <div class="form-check">
                     <input type="checkbox" class="form-check-input" id="is_admin" name="is_admin">
-                    <label class="form-check-label" for="is_admin">Administrateur</label>
-                    <span class="help-text">Cocher pour donner des droits d'administrateur</span>
+                    <label class="form-check-label" for="is_admin">{{ _('Administrator') }}</label>
+                    <span class="help-text">{{ _('Check this box to grant administrator privileges') }}</span>
                 </div>
             </div>
         </div>
 
         <div class="d-flex flex-wrap gap-2 mb-4">
             <button type="submit" class="btn btn-primary">
-                <i class="fas fa-user-plus"></i> Créer l'utilisateur
+                <i class="fas fa-user-plus"></i> {{ _('Add user') }}
             </button>
             <a href="{{ url_for('admin.all_users') }}" class="btn btn-outline-secondary">
-                <i class="fas fa-times"></i> Annuler
+                <i class="fas fa-times"></i> {{ _('Cancel') }}
             </a>
         </div>
     </form>

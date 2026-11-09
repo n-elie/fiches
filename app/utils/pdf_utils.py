@@ -1,11 +1,14 @@
 """"
-Utilitaire pour generer des fiches d'analyse au format PDF
+Utilitaire pour générer des fiches d'analyse au format PDF
 """
+
 import os
 import tempfile
 import io
 from datetime import datetime
 from urllib.parse import urljoin
+
+from flask_babel import gettext as _, format_datetime
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, A5, landscape
@@ -208,14 +211,14 @@ def create_sheet_content(sample, upload_folder, service_name=None, responsible_n
     elements.append(Paragraph(service_name, title_style))
     elements.append(Spacer(1, 1*mm))
 
-    elements.append(Paragraph(f"Poste: {phone_number} - {responsible_name}", title_style))
+    elements.append(Paragraph(f"{_('Phone')}: {phone_number} - {responsible_name}", title_style))
     elements.append(hr)
     
     elements.append("{{placeholder}}")  # {{placeholder}} sera remplacé par le sous-titre de la fiche
     elements.append(hr)
 
     # INFORMATIONS PRINCIPALES
-    elements.append(Paragraph("INFORMATIONS PRINCIPALES", subtitle_style))
+    elements.append(Paragraph(_("MAIN INFORMATION"), subtitle_style))
     elements.append(Spacer(1, 0.5*mm))
 
     # Tableau pour les informations de base
@@ -223,11 +226,11 @@ def create_sheet_content(sample, upload_folder, service_name=None, responsible_n
 
     # Champs communs a tous les echantillons
     common_fields = [
-        ("Équipe", sample.team or "Non précisé"),
-        ("Référence", sample.reference or "N/A"),
-        ("Quantité", f"{sample.quantity} mg" if sample.quantity else "N/A"),
-        ("Notes", sample.notes or "Aucune"),
-        ("Date de creation", sample.created_at.strftime('%d/%m/%Y a %H:%M') if sample.created_at else "N/A"),
+        (_("Team"), sample.team or _("Not specified")),
+        (_("Reference"), sample.reference or "N/A"),
+        (_("Quantity"), f"{sample.quantity} mg" if sample.quantity else "N/A"),
+        (_("Notes"), sample.notes or _("None")),
+        (_("Creation date"), format_datetime(sample.created_at) if sample.created_at else "N/A"),
     ]
 
     for label, value in common_fields:
@@ -244,7 +247,7 @@ def create_sheet_content(sample, upload_folder, service_name=None, responsible_n
     elements.append(Spacer(1, 2*mm))
     
     # INFORMATIONS STRUCTURALES
-    elements.append(Paragraph("INFORMATIONS STRUCTURALES", subtitle_style))
+    elements.append(Paragraph(_("STRUCTURAL INFORMATION"), subtitle_style))
     elements.append(Spacer(1, 0.5*mm))
 
     # Tableau pour les informations de base
@@ -252,16 +255,16 @@ def create_sheet_content(sample, upload_folder, service_name=None, responsible_n
 
     # Champs communs a tous les echantillons
     structural_fields = [
-        ("Formule", html_formula(sample.formula) or "Non précisée"),
+        (_("Formula"), html_formula(sample.formula) or _("Not specified")),
     ]
     match sample.analysis_type:
         case 'nmr':
             structural_fields.append(
-                ("Masse", f"{round(sample.mass)}" if sample.mass else "N/A"),
+                (_("Mass"), f"{round(sample.mass)}" if sample.mass else "N/A"),
             )
         case 'ms':
             structural_fields.append(
-                ("Masse Exacte", f"{sample.mass:.4f} Da" if sample.mass else "N/A"),
+                (_("Exact mass"), f"{sample.mass:.4f} Da" if sample.mass else "N/A"),
             )
 
     for label, value in structural_fields:
@@ -281,21 +284,21 @@ def create_sheet_content(sample, upload_folder, service_name=None, responsible_n
 
     # Pour les echantillons RMN
     if hasattr(sample, 'solvent') and sample.analysis_type == 'nmr':
-        elements.append(Paragraph("INFORMATIONS RMN", subtitle_style))
+        elements.append(Paragraph(_("NMR INFORMATION"), subtitle_style))
         elements.append(Spacer(1, 0.5*mm))
 
         nmr_data = []
 
         # Stabilite
-        stability_map = {0: "Inconnue", 1: "Stable", 2: "Instable", 3: "Tres stable"}
-        stability_text = stability_map.get(sample.stability, "Non précisée")
-        nmr_data.append([Paragraph("Stabilite", label_style), Paragraph(stability_text, value_style)])
+        stability_map = {0: _("Unknown"), 1: _("Stable"), 2: _("Unstable"), 3: _("Very stable")} # TODO: get this from config
+        stability_text = stability_map.get(sample.stability, _("Not specified"))
+        nmr_data.append([Paragraph(_("Stability"), label_style), Paragraph(stability_text, value_style)])
 
         # Solvant
-        nmr_data.append([Paragraph("Solvant", label_style), Paragraph(sample.solvent or "Non précisé", value_style)])
+        nmr_data.append([Paragraph(_("Solvent"), label_style), Paragraph(sample.solvent or _("Not specified"), value_style)])
 
         # Frequence
-        nmr_data.append([Paragraph("Frequence", label_style), Paragraph(f"{sample.frequency} MHz", value_style)])
+        nmr_data.append([Paragraph(_("Frequency"), label_style), Paragraph(f"{sample.frequency} MHz", value_style)])
 
         # Experiences
         experiments = sample.experiments or ""
@@ -305,8 +308,8 @@ def create_sheet_content(sample, upload_folder, service_name=None, responsible_n
             all_experiments.extend(experiments.split(', '))
         if other_experiment:
             all_experiments.append(other_experiment)
-        experiments_text = ", ".join(all_experiments) if all_experiments else "Aucune"
-        nmr_data.append([Paragraph("Experiences", label_style), Paragraph(experiments_text, value_style)])
+        experiments_text = ", ".join(all_experiments) if all_experiments else _("None")
+        nmr_data.append([Paragraph(_("Experiments"), label_style), Paragraph(experiments_text, value_style)])
 
         nmr_table = Table(nmr_data, colWidths=[40*mm, 55*mm])
         nmr_table.setStyle(table_style)
@@ -315,7 +318,7 @@ def create_sheet_content(sample, upload_folder, service_name=None, responsible_n
 
     # Pour les echantillons MS
     elif hasattr(sample, 'solvents') and sample.analysis_type == 'ms':
-        elements.append(Paragraph("INFORMATIONS MS", subtitle_style))
+        elements.append(Paragraph(_("MS INFORMATION"), subtitle_style))
         elements.append(Spacer(1, 0.5*mm))
 
         ms_data = []
@@ -328,8 +331,8 @@ def create_sheet_content(sample, upload_folder, service_name=None, responsible_n
             all_solvents.extend(solvents.split(', '))
         if other_solvent:
             all_solvents.append(other_solvent)
-        solvents_text = ", ".join(all_solvents) if all_solvents else "Aucun"
-        ms_data.append([Paragraph("Solvants", label_style), Paragraph(solvents_text, value_style)])
+        solvents_text = ", ".join(all_solvents) if all_solvents else _("None")
+        ms_data.append([Paragraph(_("Solvents"), label_style), Paragraph(solvents_text, value_style)])
 
         ms_table = Table(ms_data, colWidths=[40*mm, 55*mm])
         ms_table.setStyle(table_style)
@@ -338,7 +341,7 @@ def create_sheet_content(sample, upload_folder, service_name=None, responsible_n
 
     # STRUCTURE CHIMIQUE
     if sample.structure_file:
-        elements.append(Paragraph("STRUCTURE CHIMIQUE", subtitle_style))
+        elements.append(Paragraph(_("CHEMICAL STRUCTURE"), subtitle_style))
 
         # Chemin complet du fichier
         file_path = os.path.join(upload_folder, sample.structure_file)
@@ -350,13 +353,13 @@ def create_sheet_content(sample, upload_folder, service_name=None, responsible_n
             elements.append(Image(mol_to_img(mol), width=50*mm, height=50*mm))
             elements.append(Spacer(1, 1*mm))
         else:
-            elements.append(Paragraph("Structure: Impossible de charger la structure", value_style))
+            elements.append(Paragraph(_("Structure: unable to load the structure"), value_style))
 
         elements.append(Spacer(1, 1*mm))
 
     # Pied de page
     elements.append(Spacer(1, 0.5*mm))
-    elements.append(Paragraph("Généré le " + datetime.now().strftime('%d/%m/%Y a %H:%M'), footer_style))
+    elements.append(Paragraph(_('Generated on %(date)s', date=format_datetime(datetime.now())), footer_style))
 
     return elements
 
@@ -410,7 +413,7 @@ def create_analysis_sheet_pdf(samples: list[Sample], upload_folder: str, service
     )
 
     # Configuration du document en A4 landscape
-    title = f"Fiche de dépôt - {samples[0].reference}" if len(samples) == 1 else "Fiches de dépôt"
+    title = _('Analysis sheet - %(ref)s', ref=samples[0].reference) if len(samples) == 1 else _('Analysis sheets')
     doc = TwoA5DocTemplate(
         buffer,
         pagesize=landscape(A4),
@@ -437,10 +440,10 @@ def create_analysis_sheet_pdf(samples: list[Sample], upload_folder: str, service
         # Chaque frame va recevoir son propre contenu
         lr_elements = []
         
-        left_sheet_content = [element if element != "{{placeholder}}" else Paragraph("Fiche de dépôt", title_style) for element in sheet_content]
+        left_sheet_content = [element if element != "{{placeholder}}" else Paragraph(_("Analysis sheet"), title_style) for element in sheet_content]
         lr_elements.extend(left_sheet_content)
         lr_elements.append(FrameBreak())
-        right_sheet_content = [element if element != "{{placeholder}}" else Paragraph("Fiche à conserver", title_style) for element in sheet_content]
+        right_sheet_content = [element if element != "{{placeholder}}" else Paragraph(_("Sheet to keep"), title_style) for element in sheet_content]
         lr_elements.extend(right_sheet_content)
 
         all_elements.extend(lr_elements)

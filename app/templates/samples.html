@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Mes Échantillons{% endblock %}
+{% block title %}{{ _('My Samples') }}{% endblock %}
 
 {% block content %}
     <div class="samples-container">
@@ -8,18 +8,18 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
+                        <a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> {{ _('Dashboard') }}</a>
                     </li>
-                    <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-list"></i> Échantillons</li>
+                    <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-list"></i> {{ _('Samples') }}</li>
                 </ol>
             </nav>
         {% else %}
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="{{ url_for('main.index') }}"><i class="fas fa-home"></i> Accueil</a>
+                        <a href="{{ url_for('main.index') }}"><i class="fas fa-home"></i> {{ _('Home') }}</a>
                     </li>
-                    <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-list"></i> Échantillons</li>
+                    <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-list"></i> {{ _('Samples') }}</li>
                 </ol>
             </nav>
         {% endif %}
@@ -36,46 +36,46 @@
 				{% if icon is defined %}
 					<i class="fas {{icon}}"></i>
 				{% endif %}
-				Mes Échantillons
+				{{ _('My Samples') }}
 			</h2>
-            <p class="text-muted">Liste de tous vos échantillons soumis pour analyse</p>
+            <p class="text-muted">{{ _('List of all your samples submitted for analysis') }}</p>
         {% endblock %}
 
         <div class="card mb-4">
             <div class="card-body">
                 <form method="get" action="">
                     <h3 class="h6 mb-3">
-                        <i class="fas fa-filter"></i> Filtrer les échantillons
+                        <i class="fas fa-filter"></i> {{ _('Filter samples') }}
                     </h3>
                     <div class="row g-3 align-items-end">
                         {% if sample_type is none %}
                             <div class="col-md-auto">
-                                <label for="type" class="form-label"><i class="fas fa-tag"></i> Type :</label>
+                                <label for="type" class="form-label"><i class="fas fa-tag"></i> {{ _('Type:') }}</label>
                                 <select id="type" name="type" class="form-select">
-                                    <option value="">Tous les types</option>
+                                    <option value="">{{ _('All types') }}</option>
                                     <option value="ms"
-                                            {% if type_filter == 'ms' %}selected{% endif %}>Spectrométrie de masse</option>
-                                    <option value="nmr" {% if type_filter == 'nmr' %}selected{% endif %}>RMN</option>
+                                            {% if type_filter == 'ms' %}selected{% endif %}>{{ _('Mass spectrometry') }}</option>
+                                    <option value="nmr" {% if type_filter == 'nmr' %}selected{% endif %}>{{ _('NMR') }}</option>
                                 </select>
                             </div>
                         {% endif %}
 
                         <div class="col-md-auto">
-                            <label for="status" class="form-label"><i class="fas fa-circle"></i> Statut :</label>
+                            <label for="status" class="form-label"><i class="fas fa-circle"></i> {{ _('Status:') }}</label>
                             <select id="status" name="status" class="form-select">
-                                <option value="">Tous les statuts</option>
+                                <option value="">{{ _('All statuses') }}</option>
                                 {% for status, name in status_names.items() %}
                                     <option value="{{ status }}"
-                                            {% if status_filter == status %}selected{% endif %}>{{ name }}</option>
+                                            {% if status_filter == status %}selected{% endif %}>{{ _(name) }}</option>
                                 {% endfor %}
                             </select>
                         </div>
 
                         {% if user.is_admin and users is defined %}
                             <div class="col-md-auto">
-                                <label for="user" class="form-label"><i class="fas fa-user"></i> Utilisateur :</label>
+                                <label for="user" class="form-label"><i class="fas fa-user"></i> {{ _('User:') }}</label>
                                 <select id="user" name="user" class="form-select">
-                                    <option value="">Tous les utilisateurs</option>
+                                    <option value="">{{ _('All users') }}</option>
                                     {% for user in users %}
                                         <option value="{{ user.id }}"
                                                 {% if user_filter == user.id|string %}selected{% endif %}>{{ user.username }}</option>
@@ -85,21 +85,21 @@
                         {% endif %}
 
                         <div class="col-md-auto">
-                            <label for="search" class="form-label"><i class="fas fa-search"></i> Référence :</label>
+                            <label for="search" class="form-label"><i class="fas fa-search"></i> {{ _('Reference:') }}</label>
                             <input type="text"
                                    id="search"
                                    name="search"
                                    class="form-control"
-                                   placeholder="Rechercher..."
+                                   placeholder="{{ _('Search...') }}"
                                    value="{{ search_filter }}">
                         </div>
 
                         <div class="col-md-auto d-flex gap-2">
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-check"></i> Filtrer
+                                <i class="fas fa-check"></i> {{ _('Filter') }}
                             </button>
                             <a href="{{ url_for('main.user_samples') }}" class="btn btn-outline-secondary">
-                                <i class="fas fa-times"></i> Réinitialiser
+                                <i class="fas fa-times"></i> {{ _('Reset') }}
                             </a>
                         </div>
                     </div>
@@ -113,32 +113,32 @@
                     <thead class="table-dark">
                         <tr>
                             <th>
-                                <input type="checkbox" id="select-all" class="form-check-input" title="Sélectionner tout">
+                                <input type="checkbox" id="select-all" class="form-check-input" title="{{ _('Select all') }}">
                             </th>
                             {% if sample_type is none %}
                                 <th>
                                     <a href="?sort=analysis_type&order={% if sort_by == 'analysis_type' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-white text-decoration-none">
-                                        Type
+                                        {{ _('Type') }}
                                         {% if sort_by == "analysis_type" %}
                                             <i class="fas fa-sort-{{ sort_order }}"></i>
                                         {% endif %}
                                     </a>
                                 </th>
                             {% endif %}
-                            {% if user.is_admin and users is defined %}<th>Utilisateur</th>{% endif %}
+                            {% if user.is_admin and users is defined %}<th>{{ _('User') }}</th>{% endif %}
                             <th>
                                 <a href="?sort=reference&order={% if sort_by == 'reference' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-white text-decoration-none">
-                                    Référence
+                                    {{ _('Reference') }}
                                     {% if sort_by == "reference" %}
                                         <i class="fas fa-sort-{{ sort_order }}"></i>
                                     {% endif %}
                                 </a>
                             </th>
-                            <th>Formule</th>
-                            <th>Quantité</th>
+                            <th>{{ _('Formula') }}</th>
+                            <th>{{ _('Quantity') }}</th>
                             <th>
                                 <a href="?sort=status&order={% if sort_by == 'status' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-white text-decoration-none">
-                                    Statut
+                                    {{ _('Status') }}
                                     {% if sort_by == "status" %}
                                         <i class="fas fa-sort-{{ sort_order }}"></i>
                                     {% endif %}
@@ -146,13 +146,13 @@
                             </th>
                             <th>
                                 <a href="?sort=created_at&order={% if sort_by == 'created_at' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-white text-decoration-none">
-                                    Date de soumission
+                                    {{ _('Submission date') }}
                                     {% if sort_by == "created_at" %}
                                         <i class="fas fa-sort-{{ sort_order }}"></i>
                                     {% endif %}
                                 </a>
                             </th>
-                            <th colspan="6" class="text-center">Actions</th>
+                            <th colspan="6" class="text-center">{{ _('Actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -162,7 +162,7 @@
                                     <input type="checkbox"
                                            value="{{ sample.id }}"
                                            class="sample-checkbox form-check-input"
-                                           {% if sample.status.name != 'pending' %}disabled title="Seuls les échantillons 'pending' peuvent être supprimés"{% endif %}>
+                                           {% if sample.status.name != 'pending' %}disabled title="{{ _('Only pending samples can be deleted') }}"{% endif %}>
                                 </td>
                                 {% if sample_type is none %}<td>{{ sample.get_type() }}</td>{% endif %}
                                 {% if user.is_admin and users is defined %}<td>{{ sample.user.full_name }}</td>{% endif %}
@@ -174,44 +174,44 @@
                                         {{ sample.get_status_name() }}
                                     </span>
                                 </td>
-                                <td>{{ sample.created_at.strftime("%d/%m/%Y %H:%M") }}</td>
+                                <td>{{ sample.created_at | datetimeformat('short') }}</td>
                                 <td class="text-center">
 									{% if sample.analysis_type == 'ms' and sample.is_analysed() %}
 										<a href="{{ url_for('ms.sample_spectrum', sample_id=sample.id) }}"
 											class="btn-icon"
-											title="Voir les résultats"><i class="fas fa-chart-column"></i></a>
+											title="{{ _('View results') }}"><i class="fas fa-chart-column"></i></a>
 									{% endif %}
 								</td>
 								<td class="text-center">
 									<a href="{{ url_for(sample.analysis_type + '.sample_detail', sample_id=sample.id) }}"
 									   class="btn-icon"
-									   title="Voir les détails"><i class="fas fa-eye"></i></a>
+									   title="{{ _('View details') }}"><i class="fas fa-eye"></i></a>
 							    </td>
 								<td class="text-center">
 									<a href="{{ url_for(sample.analysis_type + '.sample_edit', sample_id=sample.id) }}"
 									   class="btn-icon"
-									   title="Éditer"><i class="fas fa-edit"></i></a>
+									   title="{{ _('Edit') }}"><i class="fas fa-edit"></i></a>
 								</td>
 								<td class="text-center">
 									<a href="{{ url_for('main.generate_pdf', sample_id=sample.id) }}"
 									   class="btn-icon"
-									   title="Générer PDF"><i class="fas fa-file-pdf"></i></a>
+									   title="{{ _('Generate PDF') }}"><i class="fas fa-file-pdf"></i></a>
 							    </td>
 								<td class="text-center">
 									{% if sample.structure_file %}
 										<a href="{{ url_for('main.download_file', filename=sample.structure_file) }}"
 										   class="btn-icon"
-										   title="Télécharger le fichier"><i class="fas fa-download"></i></a>
+										   title="{{ _('Download file') }}"><i class="fas fa-download"></i></a>
 									{% endif %}
 								</td>
 								<td class="text-center border-start">
 									{% if sample.is_pending() %}
 										<form method="post"
 											  action="{{ url_for('main.delete_sample', sample_id=sample.id) }}"
-											  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet échantillon ? Cette action est irréversible.');"
+											  onsubmit='return confirm({{ _('Are you sure you want to delete this sample? This action is irreversible.') | tojson }});'
 											  class="action-form">
 											<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-											<button type="submit" class="btn-icon btn-delete" title="Supprimer">
+											<button type="submit" class="btn-icon btn-delete" title="{{ _('Delete') }}">
 												<i class="fas fa-trash"></i>
 											</button>
 										</form>
@@ -226,7 +226,7 @@
             <div class="card mb-3">
                 <div class="card-body">
                     <h3 class="h6 mb-3">
-                        <i class="fas fa-gear"></i> Actions par lot
+                        <i class="fas fa-gear"></i> {{ _('Bulk actions') }}
                     </h3>
                     <div class="d-flex flex-wrap gap-2">
                         <form method="post"
@@ -234,18 +234,18 @@
                               class="batch-form">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-primary" disabled id="batch-pdf-btn">
-                                <i class="fas fa-file-pdf"></i> Générer PDFs
+                                <i class="fas fa-file-pdf"></i> {{ _('Generate PDFs') }}
                             </button>
                             <input type="hidden" name="sample_ids" id="selected-sample-ids-pdf">
                         </form>
 
                         <form method="post"
                               action="{{ url_for('main.batch_delete_samples') }}"
-                              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ces échantillons ? Cette action est irréversible.');"
+                              onsubmit='return confirm({{ _('Are you sure you want to delete these samples? This action is irreversible.') | tojson }});'
                               class="batch-form ms-auto">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-danger" disabled id="batch-delete-btn">
-                                <i class="fas fa-trash"></i> Supprimer la sélection
+                                <i class="fas fa-trash"></i> {{ _('Delete selected samples') }}
                             </button>
                             <input type="hidden" name="sample_ids" id="selected-sample-ids">
                         </form>
@@ -254,7 +254,7 @@
             </div>
 
             {% if pagination.pages > 1 %}
-                <nav aria-label="Pagination des échantillons">
+                <nav aria-label="{{ _('Sample pagination') }}">
                     <ul class="pagination justify-content-center">
                         <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
                             <a href="{{ url_for('main.user_samples',
@@ -310,15 +310,14 @@
             {% endif %}
 
             <p class="text-muted text-center">
-                Affichage de {{ samples|length }} échantillon{% if samples|length > 1 %}s{% endif %} (total : {{ pagination.total }})
+                {{ _('Showing') }} {{ samples|length }} {{ ngettext('sample', 'samples', samples|length) }} ({{ _('total') }}: {{ pagination.total }})
             </p>
-
         {% else %}
             <div class="card text-center">
                 <div class="card-body py-5">
                     <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                    <h3 class="h5">Aucun échantillon trouvé</h3>
-                    <p class="text-muted mb-0">Aucun échantillon ne correspond à vos critères de recherche.</p>
+                    <h3 class="h5">{{ _('No sample found') }}</h3>
+                    <p class="text-muted mb-0">{{ _('No sample matches your search criteria.') }}</p>
                 </div>
             </div>
         {% endif %}

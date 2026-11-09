@@ -1,6 +1,7 @@
 from flask import (Blueprint, render_template, request, redirect,
                    url_for, flash, send_from_directory, current_app,
-                   make_response)
+                   make_response, session)
+from flask_babel import gettext as _, ngettext
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from sqlalchemy import desc
@@ -11,6 +12,12 @@ from ..models import db, Sample, User, STATUS_NAMES, MSSample, NMRSample
 from ..utils.pdf_utils import create_analysis_sheet_pdf
 
 main_bp = Blueprint('main', __name__)
+
+@main_bp.route('/lang/<lang>')
+def set_language(lang):
+    if lang in current_app.config['BABEL_SUPPORTED_LOCALES']:
+        session['lang'] = lang
+    return redirect(request.referrer or url_for('main.index'))
 
 def allowed_file(filename):
     """Vérifier si le fichier a une extension autorisée"""
@@ -97,12 +104,12 @@ def _delete_samples(samples):
     for sample in samples:
         # Vérifier que l'utilisateur est le propriétaire ou admin
         if sample.user_id != current_user.id and not current_user.is_admin:
-            errors.append(f"{sample.reference} : Accès non autorisé")
+            errors.append(_('%(ref)s: access denied', ref=sample.reference))
             continue
         
         # Vérifier que le statut est "pending"
-        if sample.is_pending():
-            errors.append(f"{sample.reference} : Seuls les échantillons en attente peuvent être supprimés")
+        if not sample.is_pending():
+            errors.append(_('%(ref)s: only pending samples can be deleted', ref=sample.reference))
             continue
 
         # Supprimer le fichier de structure si il existe
@@ -112,7 +119,7 @@ def _delete_samples(samples):
                 try:
                     os.remove(filepath)
                 except Exception as e:
-                    errors.append(f"{sample.reference} : Erreur suppression fichier - {str(e)}")
+                    errors.append(_('%(ref)s: file deletion error - %(err)s', ref=sample.reference, err=str(e)))
                     continue
 
         # Supprimer l'échantillon de la base
@@ -121,13 +128,13 @@ def _delete_samples(samples):
             deleted_count += 1
         except Exception as e:
             db.session.rollback()
-            errors.append(f"{sample.reference} : Erreur suppression BD - {str(e)}")
+            errors.append(_('%(ref)s: database deletion error - %(err)s', ref=sample.reference, err=str(e)))
             continue
 
     db.session.commit()
 
     if deleted_count > 0:
-        flash(f'{deleted_count} échantillon{"s" if deleted_count > 1 else ""} supprimé{"s" if deleted_count > 1 else ""} avec succès', 'success')
+        flash(ngettext('%(num)s sample deleted successfully', '%(num)s samples deleted successfully', num=deleted_count), 'success')
 
     for error in errors:
         flash(error, 'error')
@@ -152,12 +159,12 @@ def batch_delete_samples():
 
     sample_ids = request.form.get('sample_ids', '')
     if not sample_ids:
-        flash('Aucun échantillon sélectionné', 'error')
+        flash(_('No sample selected'), 'error')
         return redirect(url_for('main.user_samples'))
 
     sample_ids = [int(sid.strip()) for sid in sample_ids.split(',') if sid.strip()]
     if not sample_ids:
-        flash('Aucun échantillon valide sélectionné', 'error')
+        flash(_('No valid sample selected'), 'error')
         return redirect(url_for('main.user_samples'))
 
     # Récupérer les échantillons
@@ -166,7 +173,7 @@ def batch_delete_samples():
     ).all()
 
     if not samples:
-        flash('Aucun échantillon trouvé', 'error')
+        flash(_('No sample found'), 'error')
         return redirect(url_for('main.user_samples'))
 
     redirection = _delete_samples(samples)
@@ -184,7 +191,7 @@ def download_file(filename):
         db.select(Sample).filter_by(structure_file=filename).limit(1)
     ).first()
     if not sample or (sample.user_id != current_user.id and not current_user.is_admin):
-        flash('Accès non autorisé', 'error')
+        flash(_('Access denied'), 'error')
         return redirect(url_for('main.index'))
     return send_from_directory(os.path.join(current_app.config['UPLOAD_FOLDER'], sample.analysis_type, 'structures'), filename, as_attachment=True)
     
@@ -198,7 +205,7 @@ def generate_pdf(sample_id):
     
     # Vérifier les permissions
     if sample.user_id != current_user.id and not current_user.is_admin:
-        flash('Accès non autorisé', 'error')
+        flash(_('Access denied'), 'error')
         return redirect(url_for('main.index'))
     
     try:
@@ -224,7 +231,7 @@ def generate_pdf(sample_id):
         
         return response
     except Exception as e:
-        flash(f'Erreur lors de la génération du PDF: {str(e)}', 'error')
+        flash(_('Error while generating the PDF: %(err)s', err=str(e)), 'error')
         return redirect(request.referrer)
         
 @main_bp.route('/samples/batch-pdf', methods=['POST'])
@@ -237,12 +244,12 @@ def batch_generate_pdf():
     sample_ids = request.form.get('sample_ids', '')
 
     if not sample_ids:
-        flash('Aucun échantillon sélectionné', 'error')
+        flash(_('No sample selected'), 'error')
         return redirect(url_for('main.user_samples'))
 
     sample_ids = [int(sid.strip()) for sid in sample_ids.split(',') if sid.strip()]
     if not sample_ids:
-        flash('Aucun échantillon valide sélectionné', 'error')
+        flash(_('No valid sample selected'), 'error')
         return redirect(url_for('main.user_samples'))
 
     # Récupérer les échantillons (filtrer par utilisateur si non-admin)
@@ -252,13 +259,13 @@ def batch_generate_pdf():
 
     samples = db.session.scalars(stmt).all()
     if not samples:
-        flash('Aucun échantillon trouvé', 'error')
+        flash(_('No sample found'), 'error')
         return redirect(url_for('main.user_samples'))
 
     # Vérifier que tous les échantillons appartiennent à l'utilisateur ou que l'utilisateur est admin
     for sample in samples:
         if sample.user_id != current_user.id and not current_user.is_admin:
-            flash(f"Accès non autorisé pour l'échantillon {sample.reference}", 'error')
+            flash(_('Access denied for sample %(ref)s', ref=sample.reference), 'error')
             return redirect(url_for('main.user_samples'))
 
     try:
@@ -285,5 +292,5 @@ def batch_generate_pdf():
         return response
 
     except Exception as e:
-        flash(f'Erreur lors de la génération du PDF par lot: {str(e)}', 'error')
+        flash(_('Error while generating the batch PDF: %(err)s', err=str(e)), 'error')
         return redirect(url_for('main.user_samples'))

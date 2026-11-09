@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_from_directory, current_app
+from flask_babel import gettext as _, ngettext
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from sqlalchemy import desc
@@ -36,19 +37,19 @@ def submit_sample():
         valid_experiments = nmr_config['experiments_by_frequency'].get(frequency, [])
         for exp in experiments:
             if exp not in valid_experiments:
-                flash(f'L\'expérience "{exp}" n\'est pas disponible à {frequency} MHz', 'error')
+                flash(_('The experiment "%(exp)s" is not available at %(freq)s MHz', exp=exp, freq=frequency), 'error')
                 return redirect(url_for('nmr.submit_sample'))
 
         if not experiments and ((other_experiment and not other_experiment_name) or not other_experiment):
-            flash('Veuillez sélectionner au moins une expérience', 'error')
+            flash(_('Please select at least one experiment'), 'error')
             return redirect(url_for('nmr.submit_sample'))
 
         if not reference or not quantity:
-            flash('Veuillez remplir tous les champs obligatoires', 'error')
+            flash(_('Please fill in all required fields'), 'error')
             return redirect(url_for('nmr.submit_sample'))
 
         if 'structure_file' not in request.files:
-            flash('Aucun fichier de structure fourni', 'error')
+            flash(_('No structure file provided'), 'error')
             return redirect(url_for('nmr.submit_sample'))
 
         unique_filename = None
@@ -62,7 +63,7 @@ def submit_sample():
                     filepath = os.path.join(structures_folder, unique_filename)
                     file.save(filepath)
                 else:
-                    flash('Type de fichier non autorisé. Formats acceptés: .cdx, .cdxml, .mol, .sdf', 'error')
+                    flash(_('File type not allowed. Accepted formats:') + ' .cdx, .cdxml, .mol, .sdf', 'error')
                     return redirect(url_for('nmr.submit_sample'))
 
         try:
@@ -83,11 +84,11 @@ def submit_sample():
             db.session.add(sample)
             current_user.last_team_used = team
             db.session.commit()
-            flash('Échantillon soumis avec succès!', 'success')
+            flash(_('Sample submitted successfully!'), 'success')
             return redirect(url_for('nmr.success', sample_id=sample.id))
         except Exception as e:
             db.session.rollback()
-            flash(f'Erreur lors de la soumission: {str(e)}', 'error')
+            flash(_('Error during submission: %(err)s', err=str(e)), 'error')
             return redirect(url_for('nmr.submit_sample'))
 
     return render_template('nmr/sample_submit.html',
@@ -103,7 +104,7 @@ def success(sample_id):
     
     sample = db.get_or_404(NMRSample, sample_id)
     if sample.user_id != current_user.id:
-        flash('Accès non autorisé', 'error')
+        flash(_('Access denied'), 'error')
         return redirect(url_for('main.index'))
     return render_template('success.html', sample=sample, user=current_user)
     
@@ -118,7 +119,7 @@ def sample_detail(sample_id):
     stability = nmr_config['stabilities'].get(str(sample.stability), None)
     
     if sample.user_id != current_user.id and not current_user.is_admin:
-        flash('Accès non autorisé', 'error')
+        flash(_('Access denied'), 'error')
         return redirect(url_for('main.index'))
     return render_template('sample_detail.html',
                            sample=sample,
@@ -147,7 +148,7 @@ def sample_edit(sample_id):
     
     # Vérifier que l'utilisateur est le propriétaire ou admin
     if sample.user_id != current_user.id and not current_user.is_admin:
-        flash('Accès non autorisé', 'error')
+        flash(_('Access denied'), 'error')
         return redirect(url_for('main.index'))
     
     if request.method == 'POST':
@@ -167,15 +168,15 @@ def sample_edit(sample_id):
         valid_experiments = EXPERIMENTS_BY_FREQUENCY.get(frequency, [])
         for exp in experiments:
             if exp not in valid_experiments:
-                flash(f'L\'expérience "{exp}" n\'est pas disponible à {frequency} MHz', 'error')
+                flash(_('The experiment "%(exp)s" is not available at %(freq)s MHz', exp=exp, freq=frequency), 'error')
                 return redirect(url_for('nmr.sample_edit', sample_id=sample_id))
 
         if not experiments and ((other_experiment and not other_experiment_name) or not other_experiment):
-            flash('Veuillez sélectionner au moins une expérience', 'error')
+            flash(_('Please select at least one experiment'), 'error')
             return redirect(url_for('nmr.sample_edit', sample_id=sample_id))
         
         if not reference or not quantity:
-            flash('Veuillez remplir tous les champs obligatoires', 'error')
+            flash(_('Please fill in all required fields'), 'error')
             return redirect(url_for('nmr.sample_edit', sample_id=sample_id))
         
         # Gestion du fichier (optionnel)
@@ -209,11 +210,11 @@ def sample_edit(sample_id):
         
         try:
             db.session.commit()
-            flash('Échantillon mis à jour avec succès!', 'success')
+            flash(_('Sample submitted successfully!'), 'success')
             return redirect(url_for('nmr.sample_detail', sample_id=sample_id))
         except Exception as e:
             db.session.rollback()
-            flash(f'Erreur lors de la mise à jour: {str(e)}', 'error')
+            flash(_('Error during update: %(err)s', err=str(e)), 'error')
             return redirect(url_for('nmr.sample_edit', sample_id=sample_id))
     
     # GET: Afficher le formulaire pré-rempli

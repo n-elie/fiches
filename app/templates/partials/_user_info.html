@@ -1,10 +1,10 @@
 <div class="card mb-4">
     <div class="card-body">
-        <h3 class="h5 mb-3">Informations de l'utilisateur</h3>
+        <h3 class="h5 mb-3">{{ _('User information') }}</h3>
 
         <div class="row g-3">
             <div class="col-md-4">
-                <label for="username" class="form-label">Nom d'utilisateur</label>
+                <label for="username" class="form-label">{{ _('Username') }}</label>
                 <input type="text"
                        class="form-control"
                        id="username"
@@ -15,7 +15,7 @@
             </div>
 
             <div class="col-md-4">
-                <label for="email" class="form-label">Adresse Email</label>
+                <label for="email" class="form-label">{{ _('Email address') }}</label>
                 <input type="email"
                        class="form-control"
                        id="email"
@@ -28,7 +28,7 @@
             {% set user_teams = user.get_teams() %}
             {% if user_teams and user_teams|length > 1 %}
                 <div class="col-md-4">
-                    <label for="team" class="form-label">Équipe <span class="required-star">*</span></label>
+                    <label for="team" class="form-label">{{ _('Team') }} <span class="required-star">*</span></label>
                     <select id="team" name="team" class="form-select" required>
                         {% if sample is defined %}
                             {# Edit #}
@@ -44,7 +44,7 @@
                             {% endfor %}
                         {% endif %}
                     </select>
-                    <span class="help-text">Sélectionnez l'équipe associée à cette analyse</span>
+                    <span class="help-text">{{ _('Select the team associated with this analysis') }}</span>
                 </div>
             {% elif user.teams and user_teams|length == 1 %}
                 <div class="col-md-4">
@@ -60,7 +60,7 @@
                 </div>
             {% else %}
                 <div class="col-md-4">
-                    <label for="team" class="form-label">Équipe</label>
+                    <label for="team" class="form-label">{{ _('Team') }}</label>
                     <input type="text"
                            class="form-control"
                            id="team"

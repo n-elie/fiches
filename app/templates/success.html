@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Soumission Réussie{% endblock %}
+{% block title %}{{ _('Submission Successful') }}{% endblock %}
 
 {% block content %}
     <div class="row justify-content-center">
@@ -9,25 +9,25 @@
                 <div class="card-body p-4">
                     <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
 
-                    <h2 class="h4">Soumission Réussie !</h2>
-                    <p class="text-muted">Votre échantillon a été soumis avec succès au service d'analyse.</p>
+                    <h2 class="h4">{{ _('Submission Successful!') }}</h2>
+                    <p class="text-muted">{{ _('Your sample has been successfully submitted to the analysis service.') }}</p>
 
                     <ul class="list-group list-group-flush text-start my-4">
                         <li class="list-group-item d-flex justify-content-between px-0">
-                            <span class="text-muted">Référence :</span>
+                            <span class="text-muted">{{ _('Reference:') }}</span>
                             <span class="fw-semibold">{{ sample.reference }}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between px-0">
-                            <span class="text-muted">Quantité :</span>
+                            <span class="text-muted">{{ _('Quantity:') }}</span>
                             <span class="fw-semibold">{{ sample.quantity }} mg</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between px-0">
-                            <span class="text-muted">Date de soumission :</span>
-                            <span class="fw-semibold">{{ sample.created_at.strftime("%d/%m/%Y à %H:%M") }}</span>
+                            <span class="text-muted">{{ _('Submission date:') }}</span>
+                            <span class="fw-semibold">{{ sample.created_at | datetimeformat }}</span>
                         </li>
                         {% if sample.structure_file %}
                             <li class="list-group-item d-flex justify-content-between px-0">
-                                <span class="text-muted">Fichier :</span>
+                                <span class="text-muted">{{ _('File:') }}</span>
                                 <span class="fw-semibold">{{ sample.structure_file }}</span>
                             </li>
                         {% endif %}
@@ -36,19 +36,19 @@
                     <div class="d-flex justify-content-center flex-wrap gap-2 my-3">
 						<a href="{{ url_for('main.generate_pdf', sample_id=sample.id) }}"
 							class="btn btn-primary">
-							<i class="fas fa-file-pdf"></i> Générer la fiche PDF
+							<i class="fas fa-file-pdf"></i> {{ _('Generate the PDF sheet') }}
 						</a>
                         <a href="{{ url_for(sample.analysis_type + '.submit_sample') }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-plus"></i> Soumettre un autre échantillon
+                            <i class="fas fa-plus"></i> {{ _('Submit another sample') }}
                         </a>
                         <a href="{{ url_for('main.user_samples') }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-list"></i> Voir mes échantillons
+                            <i class="fas fa-list"></i> {{ _('View my samples') }}
                         </a>
                     </div>
 
                     <div class="text-muted small">
-                        <p class="mb-1"><strong>Statut actuel :</strong> <span class="status-badge status-{{ sample.status.name }}">{{ sample.get_status_name() }}</span></p>
-                        <p class="mb-0">Vous recevrez une notification par email lorsque l'analyse sera terminée.</p>
+                        <p class="mb-1"><strong>{{ _('Current status:') }}</strong> <span class="status-badge status-{{ sample.status.name }}">{{ sample.get_status_name() }}</span></p>
+                        <p class="mb-0">{{ _('You will receive an email notification when the analysis is complete.') }}</p>
                     </div>
                 </div>
             </div>

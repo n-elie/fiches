@@ -7,13 +7,13 @@
 {% endif %}
 
 {% block extra_header_infos %}
-Vous pouvez aussi <a href="{{ url_for('ms.import_samples') }}">importer des échantillons par lot</a> à partir d'un fichier Excel.
+{% trans template_url=url_for('ms.import_samples') %}You can also <a href="{{template_url}}">import samples in bulk</a> from an Excel file'.{% endtrans %}
 {% endblock %}
 
 {% block form_analysis_specific_fields %}
 <div class="row g-3 mt-0">
 	<div class="col-12">
-		<label class="form-label">Solvant utilisé<span class="required-star">*</span></label>
+		<label class="form-label">{{ _('Solvent used') }}<span class="required-star">*</span></label>
 		<div id="solvents-container" class="checkbox-group">
 			{% if sample %}
 				{% if sample.solvents %}
@@ -30,21 +30,21 @@ Vous pouvez aussi <a href="{{ url_for('ms.import_samples') }}">importer des éch
 						   name="solvents"
 						   value="{{ code }}"
 						   {% if sample and code in sample_solvents_list %}checked{% endif %}>
-					<label class="form-check-label" for="solvent_{{ loop.index }}">{{ solvent | safe }}</label>
+					<label class="form-check-label" for="solvent_{{ loop.index }}">{{ _(solvent) | safe }}</label>
 				</div>
 			{% endfor %}
 			<div class="checkbox-item form-check">
 				<input type="checkbox" class="form-check-input" id="other_solvent" name="other_solvent" value="other">
-				<label class="form-check-label" for="other_solvent">Autre</label>
+				<label class="form-check-label" for="other_solvent">{{ _('Other') }}</label>
 				<input type="text"
 					   class="form-control"
 					   id="other_solvent_name"
 					   name="other_solvent_name"
-					   placeholder="Précisez..."
+					   placeholder="{{ _('Specify...') }}"
 					   disabled="">
 			</div>
 		</div>
-		<span class="help-text">Solvants utilisés pour la préparation d'échantillon</span>
+		<span class="help-text">{{ _('Solvents used for sample preparation') }}</span>
 	</div>
 </div>
 {% endblock %}
@@ -84,7 +84,7 @@ Vous pouvez aussi <a href="{{ url_for('ms.import_samples') }}">importer des éch
                 const $checkboxInput = $('.checkbox-item > input[type=checkbox]').first().get(0);
                 if ($('.checkbox-item > input[type=checkbox]:checked').length == 0) {
                     isValid = false;
-                    $checkboxInput.setCustomValidity("Veuillez cocher au moins une case");
+                    $checkboxInput.setCustomValidity({{ _('Please check at least one box') | tojson }});
                     $checkboxInput.reportValidity();
                     $checkboxInput.setCustomValidity("");
                 }
@@ -93,7 +93,7 @@ Vous pouvez aussi <a href="{{ url_for('ms.import_samples') }}">importer des éch
                 const $chkOtherName = $(".checkbox-item > input[type=text]#other_solvent_name");
                 if (($chkOther.checked == true) && ($chkOtherName.val().length == 0)) {
                     isValid = false;
-                    $chkOther.setCustomValidity("Veuillez préciser le solvant");
+                    $chkOther.setCustomValidity({{ _('Please specify the solvent') | tojson }});
                     $chkOther.reportValidity();
                     $chkOther.setCustomValidity("");
                 }

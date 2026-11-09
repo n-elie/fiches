@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_from_directory, current_app, jsonify, session
+from flask_babel import gettext as _, ngettext
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from sqlalchemy import desc
@@ -36,19 +37,19 @@ def submit_sample():
         valid_solvents = ms_config['solvents'].keys()
         for solvent in solvents:
             if solvent not in valid_solvents:
-                flash(f'Le solvant n\'est pas disponible.', 'error')
+                flash(_('The solvent is not available.'), 'error')
                 return redirect(url_for('ms.submit_sample'))
 
         if not solvents and ((other_solvent and not other_solvent_name) or not other_solvent):
-            flash('Veuillez sélectionner au moins un solvant', 'error')
+            flash(_('Please select at least one solvent'), 'error')
             return redirect(url_for('ms.submit_sample'))
 
         if not reference or not quantity:
-            flash('Veuillez remplir tous les champs obligatoires', 'error')
+            flash(_('Please fill in all required fields'), 'error')
             return redirect(url_for('ms.submit_sample'))
 
         if 'structure_file' not in request.files:
-            flash('Aucun fichier de structure fourni', 'error')
+            flash(_('No structure file provided'), 'error')
             return redirect(url_for('ms.submit_sample'))
 
         unique_filename = None
@@ -72,13 +73,13 @@ def submit_sample():
                         flash(str(e), 'error')
                         return redirect(url_for('ms.submit_sample'))
                 else:
-                    flash('Type de fichier non autorisé. Formats acceptés: .cdx, .cdxml, .mol, .sdf', 'error')
+                    flash(_('File type not allowed. Accepted formats:') + ' .cdx, .cdxml, .mol, .sdf', 'error')
                     return redirect(url_for('ms.submit_sample'))
                     
         if formula is not None:
             mass = formula_to_mass(formula)
         else:
-            flash('Veuillez sélectionner un fichier de structure ou entrer une formule brute')
+            flash(_('Please select a structure file or enter a molecular formula'))
             return redirect(url_for('ms.submit_sample'))
 
         try:
@@ -98,11 +99,11 @@ def submit_sample():
             db.session.add(sample)
             current_user.last_team_used = team
             db.session.commit()
-            flash('Échantillon soumis avec succès!', 'success')
+            flash(_('Sample submitted successfully!'), 'success')
             return redirect(url_for('ms.success', sample_id=sample.id))
         except Exception as e:
             db.session.rollback()
-            flash(f'Erreur lors de la soumission: {str(e)}', 'error')
+            flash(_('Error during submission: %(err)s', err=str(e)), 'error')
             return redirect(url_for('ms.submit_sample'))
 
     return render_template('ms/sample_submit.html',
@@ -116,7 +117,7 @@ def success(sample_id):
     
     sample = db.get_or_404(MSSample, sample_id)
     if sample.user_id != current_user.id:
-        flash('Accès non autorisé', 'error')
+        flash(_('Access denied'), 'error')
         return redirect(url_for('main.index'))
     return render_template('success.html', sample=sample, user=current_user)
     
@@ -129,7 +130,7 @@ def sample_detail(sample_id):
     sample = db.get_or_404(MSSample, sample_id)
     
     if sample.user_id != current_user.id and not current_user.is_admin:
-        flash('Accès non autorisé', 'error')
+        flash(_('Access denied'), 'error')
         return redirect(url_for('main.index'))
     return render_template('sample_detail.html',
                            sample=sample,
@@ -168,7 +169,7 @@ def sample_edit(sample_id):
     
     # Vérifier que l'utilisateur est le propriétaire ou admin
     if sample.user_id != current_user.id and not current_user.is_admin:
-        flash('Accès non autorisé', 'error')
+        flash(_('Access denied'), 'error')
         return redirect(url_for('main.index'))
     
     if request.method == 'POST':
@@ -186,15 +187,15 @@ def sample_edit(sample_id):
         valid_solvents = ms_config['solvents'].keys()
         for solvent in solvents:
             if solvent not in valid_solvents:
-                flash(f'Le solvant n\'est pas disponible.', 'error')
+                flash(_('The solvent is not available.'), 'error')
                 return redirect(url_for('ms.submit_sample'))
 
         if not solvents and ((other_solvent and not other_solvent_name) or not other_solvent):
-            flash('Veuillez sélectionner au moins un solvant', 'error')
+            flash(_('Please select at least one solvent'), 'error')
             return redirect(url_for('ms.submit_sample'))
         
         if not reference or not quantity:
-            flash('Veuillez remplir tous les champs obligatoires', 'error')
+            flash(_('Please fill in all required fields'), 'error')
             return redirect(url_for('ms.sample_edit', sample_id=sample_id))
         
         # Gestion du fichier (optionnel)
@@ -226,11 +227,11 @@ def sample_edit(sample_id):
         
         try:
             db.session.commit()
-            flash('Échantillon mis à jour avec succès!', 'success')
+            flash(_('Sample updated successfully!'), 'success')
             return redirect(url_for('ms.sample_detail', sample_id=sample_id))
         except Exception as e:
             db.session.rollback()
-            flash(f'Erreur lors de la mise à jour: {str(e)}', 'error')
+            flash(_('Error during update: %(err)s', err=str(e)), 'error')
             return redirect(url_for('ms.sample_edit', sample_id=sample_id))
     
     # GET: Afficher le formulaire pré-rempli
@@ -259,7 +260,7 @@ def _parse_import_file(file) -> tuple[list[dict], list[str]]:
         case 'application/vnd.oasis.opendocument.spreadsheet':
             filetype = 'ods'
         case _:
-            raise ValueError('Type de fichier non autorisé. Formats acceptés: .xlsx, .xls, .ods, .csv')
+            raise ValueError(_('File type not allowed. Accepted formats:') + ' .xlsx, .xls, .ods, .csv')
 
     # Lire le fichier avec pandas
     try:
@@ -272,13 +273,13 @@ def _parse_import_file(file) -> tuple[list[dict], list[str]]:
         df.columns = df.columns.str.lower()  # Normaliser les noms de colonnes
         df = df.replace(float('nan'), None)
     except Exception as e:
-        raise ValueError(f'Erreur lors de la lecture du fichier: {str(e)}')
+        raise ValueError(_('Error while reading the file: %(err)s', err=str(e)))
 
     # Vérifier que les colonnes requises sont présentes
     required_columns = ['reference', 'quantity']
     missing_columns = [col for col in required_columns if col not in df.columns]
     if missing_columns:
-        raise ValueError(f'Colonnes manquantes dans le fichier: {", ".join(missing_columns)}')
+        raise ValueError(_('Missing columns in the file: %(cols)s', cols=", ".join(missing_columns)))
 
     rows = []
     errors = []
@@ -293,7 +294,7 @@ def _parse_import_file(file) -> tuple[list[dict], list[str]]:
 
             # Validation
             if not reference or not quantity:
-                errors.append(f"Ligne {line}: référence et quantité sont obligatoires")
+                errors.append(_('Line %(line)s: reference and quantity are required', line=line))
                 continue
 
             # Calculer la formule si le SMILES est fourni
@@ -317,7 +318,7 @@ def _parse_import_file(file) -> tuple[list[dict], list[str]]:
                 'notes': str(notes) if notes else '',
             })
         except Exception as e:
-            errors.append(f"Ligne {line}: {str(e)}")
+            errors.append(_('Line %(line)s: %(err)s', line=line, err=str(e)))
 
     return rows, errors
     
@@ -333,12 +334,12 @@ def import_samples():
     if request.method == 'POST':
         # Verifier qu'un fichier est fourni
         if 'excel_file' not in request.files:
-            flash('Aucun fichier Excel fourni', 'error')
+            flash(_('No Excel file provided'), 'error')
             return redirect(url_for('ms.import_samples'))
 
         file = request.files['excel_file']
         if file.filename == '':
-            flash('Veuillez selectionner un fichier Excel', 'error')
+            flash(_('Please select an Excel file'), 'error')
             return redirect(url_for('ms.import_samples'))
 
         # Lecture et validation du fichier (commun avec l'aperçu AJAX)
@@ -350,7 +351,7 @@ def import_samples():
 
         team = request.form.get('team')
         if not team:
-            flash('Veuillez selectionner une équipe', 'error')
+            flash(_('Please select a team'), 'error')
             return redirect(url_for('ms.import_samples'))
 
         # Créer les échantillons
@@ -372,7 +373,7 @@ def import_samples():
                 db.session.flush()  # pour récupérer l'ID
                 created_samples.append(sample)
             except Exception as e:
-                errors.append(f"Ligne {sample_data['line']}: {str(e)}")
+                errors.append(_('Line %(line)s: %(err)s', line=sample_data['line'], err=str(e)))
                 db.session.rollback()
                 continue
 
@@ -381,7 +382,7 @@ def import_samples():
             db.session.commit()
             # Mémoriser les échantillons créés pour la page de confirmation
             session['imported_sample_ids'] = [s.id for s in created_samples]
-            flash(f'{created_count} échantillon{"s" if created_count > 1 else ""} importé{"s" if created_count > 1 else ""} avec succès!', 'success')
+            flash(ngettext('%(num)s sample imported successfully!', '%(num)s samples imported successfully!', num=created_count), 'success')
 
         for error in errors:
             flash(error, 'error')
@@ -402,11 +403,11 @@ def import_samples_preview():
     sans rien créer en base"""
 
     if 'excel_file' not in request.files:
-        return jsonify({'error': 'Aucun fichier fourni'}), 400
+        return jsonify({'error': _('No file provided')}), 400
 
     file = request.files['excel_file']
     if file.filename == '':
-        return jsonify({'error': 'Veuillez sélectionner un fichier'}), 400
+        return jsonify({'error': _('Please select a file')}), 400
 
         # Lecture et validation du fichier (commun avec l'import réel)
     try:

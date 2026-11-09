@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Connexion{% endblock %}
+{% block title %}{{ _('Log in') }}{% endblock %}
 
 {% block content %}
     <div class="row justify-content-center">
@@ -9,8 +9,8 @@
                 <div class="card-body p-4">
                     <div class="text-center mb-4">
                         <i class="fas fa-sign-in-alt fa-3x text-primary mb-3"></i>
-                        <h2 class="h4">Connexion</h2>
-                        <p class="text-muted mb-0">Connectez-vous avec vos identifiants LDAP</p>
+                        <h2 class="h4">{{ _('Log in') }}</h2>
+                        <p class="text-muted mb-0">{{ _('Sign in with your LDAP credentials') }}</p>
                     </div>
 
                     <form method="post" action="{{ url_for('auth.login') }}" class="login-form">
@@ -18,44 +18,44 @@
 
                         <div class="mb-3">
                             <label for="username" class="form-label">
-                                <i class="fas fa-user"></i> Nom d'utilisateur
+                                <i class="fas fa-user"></i> {{ _('Username') }}
                             </label>
                             <input type="text"
                                    class="form-control"
                                    id="username"
                                    name="username"
                                    required
-                                   placeholder="Entrez votre nom d'utilisateur"
+                                   placeholder="{{ _('Enter your username') }}"
                                    autocomplete="username">
                         </div>
 
                         <div class="mb-3">
                             <label for="password" class="form-label">
-                                <i class="fas fa-lock"></i> Mot de passe
+                                <i class="fas fa-lock"></i> {{ _('Password') }}
                             </label>
                             <input type="password"
                                    class="form-control"
                                    id="password"
                                    name="password"
                                    required
-                                   placeholder="Entrez votre mot de passe"
+                                   placeholder="{{ _('Enter your password') }}"
                                    autocomplete="current-password">
                         </div>
 
                         <div class="form-check mb-3">
                             <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                            <label class="form-check-label" for="remember">Se souvenir de moi</label>
+                            <label class="form-check-label" for="remember">{{ _('Remember me') }}</label>
                         </div>
 
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-sign-in-alt"></i> Se connecter
+                                <i class="fas fa-sign-in-alt"></i> {{ _('Log in') }}
                             </button>
                         </div>
                     </form>
 
                     <div class="text-center mt-3">
-                        <small class="text-muted">Problème de connexion ? Contactez l'administrateur système.</small>
+                        <small class="text-muted">{{ _('Having trouble logging in? Contact the system administrator.') }}</small>
                     </div>
                 </div>
             </div>

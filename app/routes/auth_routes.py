@@ -23,7 +23,7 @@ def login():
         password = request.form.get('password')
 
         if not username or not password:
-            flash('Veuillez fournir un nom d\'utilisateur et un mot de passe', 'error')
+            flash(_('Please provide a username and a password'), 'error')
             return redirect(url_for('auth.login'))
 
         user = dap_auth.authenticate(username, password)
@@ -37,7 +37,7 @@ def login():
             else:
                 return redirect(url_for('main.submit_sample'))
         else:
-            flash('Nom d\'utilisateur ou mot de passe incorrect', 'error')
+            flash(_('Incorrect username or password'), 'error')
             return redirect(url_for('auth.login'))
 
     return render_template('login.html')
@@ -47,5 +47,5 @@ def login():
 def logout():
     """Déconnexion"""
     logout_user()
-    flash('Vous avez été déconnecté avec succès', 'success')
+    flash(_('You have been logged out successfully'), 'success')
     return redirect(url_for('auth.login'))

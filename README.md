@@ -1,62 +1,78 @@
-# Application de Spectrométrie de Masse
+# Mass Spectrometry Application
 
-Application web pour la gestion des analyses chimiques par spectrométrie de masse.
+Web application for managing chemical analyses using mass spectrometry.
 
-## Structure du projet
+## Project Structure
 
 spectrometrie_app/
 ├── backend/
-│   ├── app.py              # Point d'entrée Flask
+│   ├── app.py              # Flask entry point
 │   ├── config.py           # Configuration
-│   ├── models.py           # Modèles de base de données
-│   ├── auth.py             # Authentification LDAP
+│   ├── models.py           # Database models
+│   ├── auth.py             # LDAP authentication
 │   ├── routes/
-│   │   ├── main_routes.py  # Routes principales
-│   │   └── admin_routes.py # Routes d'administration
-│   └── requirements.txt    # Dépendances Python
+│   │   ├── main_routes.py  # Main routes
+│   │   └── admin_routes.py # Admin routes
+│   └── requirements.txt    # Python dependencies
 ├── frontend/
 │   ├── static/
 │   │   ├── css/
-│   │   │   └── style.css   # Styles CSS
+│   │   │   └── style.css   # CSS styles
 │   │   └── js/
-│   │       └── script.js   # Scripts JavaScript
+│   │       └── script.js   # JavaScript scripts
 │   └── templates/
-│       ├── index.html      # Page d'accueil
-│       ├── login.html      # Page de connexion
-│       ├── form.html       # Formulaire de soumission
-│       ├── success.html    # Page de confirmation
+│       ├── index.html      # Home page
+│       ├── login.html      # Login page
+│       ├── form.html       # Submission form
+│       ├── success.html    # Confirmation page
 │       └── admin/
 │           ├── dashboard.html
 │           └── export.html
 ├── database/
-│   └── schema.sql          # Schéma de la base de données
+│   └── schema.sql          # Database schema
 └── README.md
 
-## Prérequis
+## Prerequisites
 
 - Python 3.8+
 - MySQL 8.0+
-- Serveur LDAP
-- Node.js (optionnel, pour le développement frontend)
+- LDAP server
+- Node.js (optional, for front-end development)
 
 ## Installation
 
-1. Cloner le dépôt
-2. Créer un environnement virtuel : `python -m venv venv`
-3. Activer l'environnement : `source venv/bin/activate` (Linux/Mac) ou `venv\Scripts\activate` (Windows)
-4. Installer les dépendances : `pip install -r backend/requirements.txt`
-5. Configurer les variables d'environnement dans `.env`
-6. Créer la base de données MySQL et importer le schéma
-7. Démarrer l'application : `python backend/app.py`
+1. Clone the repository
+2. Create a virtual environment: `python -m venv venv`
+3. Activate the environment: `source venv/bin/activate` (Linux/Mac) or `venv\Scripts\activate` (Windows)
+4. Install the dependencies: `pip install -r backend/requirements.txt`
+5. Configure the environment variables in `.env`
+6. Create the MySQL database and import the schema
+7. Start the application: `python backend/app.py`
 
 ## Configuration
 
-Copier `.env.example` en `.env` et adapter les valeurs selon votre environnement.
+Copy `.env.example` to `.env` and adjust the values according to your environment.
 
-## Fonctionnalités
+## Features
 
-- Authentification via LDAP
-- Soumission de formulaires d'analyse
-- Gestion des échantillons
-- Interface d'administration
-- Export des données (CSV, Excel)
+- LDAP authentication
+- Analysis form submission
+- Sample management
+- Administration interface
+- Data export (CSV, Excel)
+
+## Internationalization (i18n)
+
+The application is bilingual **English (default) / French**, powered by Flask-Babel.
+
+- Default locale: `en` (`BABEL_DEFAULT_LOCALE` in `app/__init__.py`). The user can switch language with the selector in the navbar (`/set-language/<lang>`, stored in the session); without a choice, the `Accept-Language` header is used, falling back to English.
+- Source strings are in English (`msgid`). The French catalogue lives in `app/translations/fr/LC_MESSAGES/messages.po` (compiled to `.mo`).
+- In templates use `{{ _('...') }}`, `{{ ngettext('singular', 'plural', n) }}`, `{{ value   datetimeformat }}`; in Python use `from flask_babel import gettext as _` (and `lazy_gettext` outside request contexts). Client-side JS strings are exposed through `window.I18N` in `base.html`.
+- To update the catalogues after changing strings:
+
+```bash
+pybabel extract -F babel.cfg -k _l -o messages.pot .
+pybabel update -i messages.pot -d app/translations
+# edit app/translations/fr/LC_MESSAGES/messages.po, then:
+pybabel compile -d app/translations
+```

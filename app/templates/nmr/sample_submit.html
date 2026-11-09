@@ -9,46 +9,46 @@
 {% block form_analysis_specific_fields %}
 <div class="row g-3 mt-0">
 	<div class="col-md-4">
-		<label for="stability" class="form-label">Stabilité</label>
+		<label for="stability" class="form-label">{{ _('Stability') }}</label>
 		<select id="stability" name="stability" class="form-select" required>
 			{% for code, stability in stabilities.items() %}
 				<option value="{{ code }}"
-						{% if sample and sample.stability == code %}selected{% endif %}>{{ stability }}</option>
+						{% if sample and sample.stability == code %}selected{% endif %}>{{ _(stability) }}</option>
 			{% endfor %}
 		</select>
-		<span class="help-text">Sélectionnez la stabilité de l'échantillon</span>
+		<span class="help-text">{{ _('Select the sample stability') }}</span>
 	</div>
 
 	<div class="col-md-4">
-		<label for="solvent" class="form-label">Solvant</label>
+		<label for="solvent" class="form-label">{{ _('Solvent') }}</label>
 		<select id="solvent" name="solvent" class="form-select">
 			{% for code, solvent in solvents.items() %}
 				<option value="{{ code }}"
-						{% if sample and sample.solvent == code %}selected{% endif %}>{{ solvent }}</option>
+						{% if sample and sample.solvent == code %}selected{% endif %}>{{ _(solvent) }}</option>
 			{% endfor %}
 		</select>
-		<span class="help-text">Sélectionnez le solvant utilisé pour préparer l'échantillon</span>
+		<span class="help-text">{{ _('Select the solvent used to prepare the sample') }}</span>
 	</div>
 
 	<div class="col-md-4">
-		<label for="frequency" class="form-label">Fréquence de l'instrument <span class="required-star">*</span></label>
+		label for="frequency" class="form-label">{{ _('Instrument frequency') }} <span class="required-star">*</span></label>
 		<select id="frequency" name="frequency" class="form-select" required>
 			{% for frequency in experiments_by_frequency.keys() %}
 				<option value="{{ frequency }}"
 						{% if sample and sample.frequency == frequency %}selected{% endif %}>{{ frequency }} MHz</option>
 			{% endfor %}
 		</select>
-		<span class="help-text">Sélectionnez la fréquence de l'instrument</span>
+		<span class="help-text">{{ _('Select the instrument frequency') }}</span>
 	</div>
 </div>
 
 <div class="row g-3 mt-0">
 	<div class="col-12">
-		<label class="form-label">Expériences demandées <span class="required-star">*</span></label>
+		<label class="form-label">{{ _('Requested experiments') }} <span class="required-star">*</span></label>
 		<div class="checkbox-group" id="experiments-container">
 			{# Les checkboxes sont générées dynamiquement par JavaScript #}
 		</div>
-		<span class="help-text">Sélectionnez une ou plusieurs expériences (au moins une obligatoire)</span>
+		<span class="help-text">{{ _('Select one or more experiments (at least one required)') }}</span>
 	</div>
 </div>
 {% endblock %}
@@ -117,7 +117,7 @@
                     class: 'form-check-input',
                     id: 'other_experiment',
                     name: 'other_experiment',
-                    value: 'Autre',
+                    value: {{ _('Other') | tojson }},
                     prop: {
                         checked: !!sampleOtherExperiment
                     }
@@ -126,7 +126,7 @@
                 const otherLabel = $('<label>', {
                     class: 'form-check-label',
                     for: 'other_experiment',
-                    text: 'Autre'
+                    text: {{ _('Other') | tojson }}
                 });
 
                 const otherInputText = $('<input>', {
@@ -134,7 +134,7 @@
                     class: 'form-control',
                     id: 'other_experiment_name',
                     name: 'other_experiment_name',
-                    placeholder: "Précisez l'expérience...",
+                    placeholder: {{ _('Specify the experiment...') | tojson }},
                     val: sampleOtherExperiment || '',
                     prop: {
                         disabled: !sampleOtherExperiment
@@ -173,7 +173,7 @@
                 const $checkboxInput = $('.checkbox-item > input[type=checkbox]').first().get(0);
                 if ($('.checkbox-item > input[type=checkbox]:checked').length == 0) {
                     isValid = false;
-                    $checkboxInput.setCustomValidity("Veuillez cocher au moins une case");
+                    $checkboxInput.setCustomValidity({{ _('Please check at least one box') | tojson }});
                     $checkboxInput.reportValidity();
                     $checkboxInput.setCustomValidity("");
                 }
@@ -182,7 +182,7 @@
                 const $chkOtherName = $(".checkbox-item > input[type=text]#other_experiment_name");
                 if (($chkOther.checked == true) && ($chkOtherName.val().length == 0)) {
                     isValid = false;
-                    $chkOther.setCustomValidity("Veuillez préciser l'expérience");
+                    $chkOther.setCustomValidity({{ _('Please specify the experiment') | tojson }});
                     $chkOther.reportValidity();
                     $chkOther.setCustomValidity("");
                 }

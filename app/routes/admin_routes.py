@@ -5,6 +5,7 @@ from datetime import datetime
 
 from werkzeug.security import generate_password_hash
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, current_app, jsonify
+from flask_babel import gettext as _
 from flask_login import login_required, current_user
 from celery.result import AsyncResult
 from sqlalchemy import desc
@@ -19,7 +20,7 @@ admin_bp = Blueprint('admin', __name__)
 @admin_bp.before_request
 def require_admin():
     if not current_user.is_authenticated or not current_user.is_admin:
-        flash('Accès réservé aux administrateurs.', 'danger')
+        flash(_('Access restricted to administrators.'), 'danger')
         return redirect(url_for('main.index'))
 
 @admin_bp.route('/dashboard')
@@ -228,17 +229,17 @@ def export_sample_list():
     try:
         sample_ids = [int(sid.strip()) for sid in raw_ids.split(',') if sid.strip()]
     except ValueError:
-        return jsonify({'error': 'ID d\'échantillon invalide'}), 400
+        return jsonify({'error': _('Invalid sample ID')}), 400
 
     if not sample_ids:
-        return jsonify({'error': 'Aucun échantillon sélectionné'}), 400
+        return jsonify({'error': _('No sample selected')}), 400
 
     samples = db.session.scalars(
         db.select(Sample).where(Sample.id.in_(sample_ids))
     ).all()
 
     if not samples:
-        return jsonify({'error': 'Aucun échantillon trouvé'}), 404
+        return jsonify({'error': _('No sample found')}), 404
 
     # Conserver l'ordre de la liste construite côté client
     samples_by_id = {sample.id: sample for sample in samples}
@@ -259,10 +260,10 @@ def validate_sample_list():
     try:
         sample_ids = [int(sid.strip()) for sid in raw_ids.split(',') if sid.strip()]
     except ValueError:
-        return jsonify({'error': 'ID d\'échantillon invalide'}), 400
+        return jsonify({'error': _('Invalid sample ID')}), 400
 
     if not sample_ids:
-        return jsonify({'error': 'Aucun échantillon sélectionné'}), 400
+        return jsonify({'error': _('No sample selected')}), 400
 
     samples = db.session.scalars(
         db.select(Sample).where(
@@ -272,7 +273,7 @@ def validate_sample_list():
     ).all()
 
     if not samples:
-        return jsonify({'error': 'Aucun échantillon en attente trouvé'}), 404
+        return jsonify({'error': _('No pending sample found')}), 404
 
     for sample in samples:
         sample.status = SampleStatus.analysing
@@ -297,9 +298,9 @@ def update_sample_status(sample_id):
     if new_status in SampleStatus:
         sample.status = new_status
         db.session.commit()
-        flash('Statut mis à jour avec succès', 'success')
+        ash(_('Status updated successfully'), 'success')
     else:
-        flash('Statut invalide', 'error')
+        flash(_('Invalid status'), 'error')
 
     return redirect(request.referrer)
     
@@ -319,17 +320,17 @@ def create_user():
         # Validation
         errors = []
         if not username:
-            errors.append('Le nom d\'utilisateur est obligatoire')
+            errors.append(_('Username is required'))
         if not email:
-            errors.append('L\'email est obligatoire')
+            errors.append(_('Email is required'))
         if not password:
-            errors.append('Le mot de passe est obligatoire')
+            errors.append(_('Password is required'))
         if password and password != confirm_password:
-            errors.append('Les mots de passe ne correspondent pas')
+            errors.append(_('Passwords do not match'))
         if db.session.scalar_one_or_none(db.select(User).where(User.username == username)) is not None:
-            errors.append('Ce nom d\'utilisateur existe déjà')
+            errors.append(_('This username already exists'))
         if db.session.scalars(db.select(User).where(User.email == email).limit(1)).first():
-            errors.append('Cet email est déjà utilisé')
+            errors.append(_('This email is already in use'))
 
         if errors:
             for error in errors:
@@ -351,7 +352,7 @@ def create_user():
         db.session.add(user)
         db.session.commit()
 
-        flash(f'Utilisateur {username} créé avec succès !', 'success')
+        flash(_('User %(username)s created successfully!', username=username), 'success')
         return redirect(url_for('admin.all_users'))
 
     return render_template('admin/create_user.html', user=current_user)
@@ -376,11 +377,11 @@ def edit_user(user_id):
             if password == confirm_password:
                 user.set_password(password)
             else:
-                flash('Les mots de passe ne correspondent pas', 'error')
+                flash(_('Passwords do not match'), 'error')
                 return redirect(url_for('admin.edit_user', user_id=user_id))
 
         db.session.commit()
-        flash(f'Utilisateur {user.username} mis à jour avec succès !', 'success')
+        flash(_('User %(username)s updated successfully!', username=user.username), 'success')
         return redirect(url_for('admin.all_users'))
 
     return render_template('admin/edit_user.html', user=user, current_user=current_user)
@@ -393,7 +394,7 @@ def delete_user(user_id):
 
     # Empêcher la suppression des utilisateurs LDAP
     if user.is_ldap:
-        flash('Impossible de supprimer un utilisateur LDAP. Modifiez-le via LDAP.', 'error')
+        flash(_('Cannot delete an LDAP user. Edit it via LDAP.'), 'error')
         return redirect(url_for('admin.all_users'))
 
     # Réattribuer les échantillons de l'utilisateur
@@ -407,7 +408,7 @@ def delete_user(user_id):
     db.session.delete(user)
     db.session.commit()
 
-    flash(f'Utilisateur {user.username} supprimé avec succès !', 'success')
+    flash(_('User %(username)s deleted successfully!', username=user.username), 'success')
     return redirect(url_for('admin.all_users'))
     
 @admin_bp.route('/analysis/create', methods=['GET', 'POST'])
@@ -420,12 +421,12 @@ def create_analysis():
 
         # Validation
         if not sample_id:
-            flash('Le sample_id est obligatoire', 'error')
+            flash(_('Sample ID is required'), 'error')
             return redirect(url_for('admin.create_analysis'))
 
         sample = db.session.get(Sample, sample_id)
         if not sample:
-            flash('Échantillon introuvable', 'error')
+            flash(_('Sample not found'), 'error')
             return redirect(url_for('admin.create_analysis'))
 
         # Créer l'Analysis
@@ -437,7 +438,7 @@ def create_analysis():
         db.session.add(analysis)
         db.session.commit()
 
-        flash(f'Analysis créée avec succès pour {sample.reference}', 'success')
+        flash(_('Analysis created successfully for %(ref)s', ref=sample.reference), 'success')
         return redirect(url_for('admin.create_analysis', sample_id=sample_id))
 
     # GET: Afficher le formulaire
@@ -460,7 +461,7 @@ def start_analysis_task(sample_id):
     sample.celery_task_id = task.id
     db.session.commit()
 
-    flash(f'Tâche d\'analyse lancée pour {sample.reference} (ID: {task.id})', 'success')
+    flash(_('Analysis task started for %(ref)s (ID: %(task_id)s)', ref=sample.reference, task_id=task.id), 'success')
     return redirect(request.referrer)
 
 @admin_bp.route('/analysis/task/<task_id>/status')
@@ -470,9 +471,9 @@ def check_task_status(task_id):
     
     task = AsyncResult(task_id)
 
-    if task.state == 'PENDING':
-        response = {'state': task.state, 'status': 'En attente...'}
-    elif task.state != 'FAILURE':
+    if task.state == 'pending':
+        response = {'state': task.state, 'status': _('Pending...')}
+    elif task.state != 'failure':
         response = {
             'state': task.state,
             'result': task.result

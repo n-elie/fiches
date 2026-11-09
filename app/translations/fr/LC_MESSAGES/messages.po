@@ -1,0 +1,1511 @@
+# French translations for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-11-09 22:42+0100\n"
+"PO-Revision-Date: 2026-11-09 23:02+0100\n"
+"Last-Translator: \n"
+"Language-Team: fr <LL@li.org>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Generated-By: Babel 2.18.0\n"
+"X-Generator: Poedit 3.10\n"
+
+#: app/__init__.py:56
+msgid "Please log in to access this page"
+msgstr "Veuillez vous connecter pour accéder à cette page"
+
+#: app/models.py:114 app/utils/pdf_utils.py:293
+msgid "Unknown"
+msgstr "Inconnu"
+
+#: app/routes/admin_routes.py:23
+msgid "Access restricted to administrators."
+msgstr "Accès réservé aux administrateurs."
+
+#: app/routes/admin_routes.py:232 app/routes/admin_routes.py:263
+msgid "Invalid sample ID"
+msgstr "ID d'échantillon invalide"
+
+#: app/routes/admin_routes.py:235 app/routes/admin_routes.py:266 app/routes/main_routes.py:162
+#: app/routes/main_routes.py:247
+msgid "No sample selected"
+msgstr "Aucun échantillon sélectionné"
+
+#: app/routes/admin_routes.py:242 app/routes/main_routes.py:176 app/routes/main_routes.py:262
+#: app/templates/samples.html:319
+msgid "No sample found"
+msgstr "Aucun échantillon trouvé"
+
+#: app/routes/admin_routes.py:276
+msgid "No pending sample found"
+msgstr "Aucun échantillon en attente trouvé"
+
+#: app/routes/admin_routes.py:301
+msgid "Status updated successfully"
+msgstr "Statut mis à jour avec succès"
+
+#: app/routes/admin_routes.py:303
+msgid "Invalid status"
+msgstr "Statut invalide"
+
+#: app/routes/admin_routes.py:323
+msgid "Username is required"
+msgstr "Le nom d'utilisateur est requis"
+
+#: app/routes/admin_routes.py:325
+msgid "Email is required"
+msgstr "L'email est requis"
+
+#: app/routes/admin_routes.py:327
+msgid "Password is required"
+msgstr "Le mot de passe est requis"
+
+#: app/routes/admin_routes.py:329 app/routes/admin_routes.py:380
+msgid "Passwords do not match"
+msgstr "Les mots de passe ne correspondent pas"
+
+#: app/routes/admin_routes.py:331
+msgid "This username already exists"
+msgstr "Ce nom d'utilisateur existe déjà"
+
+#: app/routes/admin_routes.py:333
+msgid "This email is already in use"
+msgstr "Cet email est déjà utilisé"
+
+#: app/routes/admin_routes.py:355
+#, python-format
+msgid "User %(username)s created successfully!"
+msgstr "Utilisateur %(username)s créé avec succès !"
+
+#: app/routes/admin_routes.py:384
+#, python-format
+msgid "User %(username)s updated successfully!"
+msgstr "Utilisateur %(username)s mis à jour avec succès !"
+
+#: app/routes/admin_routes.py:397
+msgid "Cannot delete an LDAP user. Edit it via LDAP."
+msgstr "Impossible de supprimer un utilisateur LDAP. Modifiez-le via LDAP."
+
+#: app/routes/admin_routes.py:411
+#, python-format
+msgid "User %(username)s deleted successfully!"
+msgstr "Utilisateur %(username)s supprimé avec succès !"
+
+#: app/routes/admin_routes.py:424
+msgid "Sample ID is required"
+msgstr "L'identifiant de l'échantillon est requis"
+
+#: app/routes/admin_routes.py:429
+msgid "Sample not found"
+msgstr "Échantillon introuvable"
+
+#: app/routes/admin_routes.py:441
+#, python-format
+msgid "Analysis created successfully for %(ref)s"
+msgstr "Analysis créée avec succès pour %(ref)s"
+
+#: app/routes/admin_routes.py:464
+#, python-format
+msgid "Analysis task started for %(ref)s (ID: %(task_id)s)"
+msgstr "Tâche d'analyse lancée pour %(ref)s (ID : %(task_id)s)"
+
+#: app/routes/admin_routes.py:475
+msgid "Pending..."
+msgstr "En attente..."
+
+#: app/routes/auth_routes.py:26
+msgid "Please provide a username and a password"
+msgstr "Veuillez fournir un nom d'utilisateur et un mot de passe"
+
+#: app/routes/auth_routes.py:40
+msgid "Incorrect username or password"
+msgstr "Nom d'utilisateur ou mot de passe incorrect"
+
+#: app/routes/auth_routes.py:50
+msgid "You have been logged out successfully"
+msgstr "Vous avez été déconnecté avec succès"
+
+#: app/routes/main_routes.py:107
+#, python-format
+msgid "%(ref)s: access denied"
+msgstr "%(ref)s : accès non autorisé"
+
+#: app/routes/main_routes.py:112
+#, python-format
+msgid "%(ref)s: only pending samples can be deleted"
+msgstr "%(ref)s : seuls les échantillons en attente peuvent être supprimés"
+
+#: app/routes/main_routes.py:122
+#, python-format
+msgid "%(ref)s: file deletion error - %(err)s"
+msgstr "%(ref)s : erreur de suppression du fichier - %(err)s"
+
+#: app/routes/main_routes.py:131
+#, python-format
+msgid "%(ref)s: database deletion error - %(err)s"
+msgstr "%(ref)s : erreur de suppression en base - %(err)s"
+
+#: app/routes/main_routes.py:137
+#, python-format
+msgid "%(num)s sample deleted successfully"
+msgid_plural "%(num)s samples deleted successfully"
+msgstr[0] "%(num)s échantillon supprimé avec succès"
+msgstr[1] "%(num)s échantillons supprimés avec succès"
+
+#: app/routes/main_routes.py:167 app/routes/main_routes.py:252
+msgid "No valid sample selected"
+msgstr "Aucun échantillon valide sélectionné"
+
+#: app/routes/main_routes.py:194 app/routes/main_routes.py:208 app/routes/ms_routes.py:120
+#: app/routes/ms_routes.py:133 app/routes/ms_routes.py:172 app/routes/nmr_routes.py:107
+#: app/routes/nmr_routes.py:122 app/routes/nmr_routes.py:151
+msgid "Access denied"
+msgstr "Accès non autorisé"
+
+#: app/routes/main_routes.py:234
+#, python-format
+msgid "Error while generating the PDF: %(err)s"
+msgstr "Erreur lors de la génération du PDF : %(err)s"
+
+#: app/routes/main_routes.py:268
+#, python-format
+msgid "Access denied for sample %(ref)s"
+msgstr "Accès non autorisé pour l'échantillon %(ref)s"
+
+#: app/routes/main_routes.py:295
+#, python-format
+msgid "Error while generating the batch PDF: %(err)s"
+msgstr "Erreur lors de la génération du PDF par lot : %(err)s"
+
+#: app/routes/ms_routes.py:40 app/routes/ms_routes.py:190
+msgid "The solvent is not available."
+msgstr "Le solvant n'est pas disponible."
+
+#: app/routes/ms_routes.py:44 app/routes/ms_routes.py:194
+msgid "Please select at least one solvent"
+msgstr "Veuillez sélectionner au moins un solvant"
+
+#: app/routes/ms_routes.py:48 app/routes/ms_routes.py:198 app/routes/nmr_routes.py:48
+#: app/routes/nmr_routes.py:179
+msgid "Please fill in all required fields"
+msgstr "Veuillez remplir tous les champs obligatoires"
+
+#: app/routes/ms_routes.py:52 app/routes/nmr_routes.py:52
+msgid "No structure file provided"
+msgstr "Aucun fichier de structure fourni"
+
+#: app/routes/ms_routes.py:76 app/routes/ms_routes.py:263 app/routes/nmr_routes.py:66
+msgid "File type not allowed. Accepted formats:"
+msgstr "Type de fichier non autorisé. Formats acceptés :"
+
+#: app/routes/ms_routes.py:82
+msgid "Please select a structure file or enter a molecular formula"
+msgstr "Veuillez sélectionner un fichier de structure ou entrer une formule brute"
+
+#: app/routes/ms_routes.py:102 app/routes/nmr_routes.py:87 app/routes/nmr_routes.py:213
+msgid "Sample submitted successfully!"
+msgstr "Échantillon soumis avec succès !"
+
+#: app/routes/ms_routes.py:106 app/routes/nmr_routes.py:91
+#, python-format
+msgid "Error during submission: %(err)s"
+msgstr "Erreur lors de la soumission : %(err)s"
+
+#: app/routes/ms_routes.py:230
+msgid "Sample updated successfully!"
+msgstr "Échantillon mis à jour avec succès !"
+
+#: app/routes/ms_routes.py:234 app/routes/nmr_routes.py:217
+#, python-format
+msgid "Error during update: %(err)s"
+msgstr "Erreur lors de la mise à jour : %(err)s"
+
+#: app/routes/ms_routes.py:276
+#, python-format
+msgid "Error while reading the file: %(err)s"
+msgstr "Erreur lors de la lecture du fichier : %(err)s"
+
+#: app/routes/ms_routes.py:282
+#, python-format
+msgid "Missing columns in the file: %(cols)s"
+msgstr "Colonnes manquantes dans le fichier : %(cols)s"
+
+#: app/routes/ms_routes.py:297
+#, python-format
+msgid "Line %(line)s: reference and quantity are required"
+msgstr "Ligne %(line)s : référence et quantité sont obligatoires"
+
+#: app/routes/ms_routes.py:321 app/routes/ms_routes.py:376
+#, python-format
+msgid "Line %(line)s: %(err)s"
+msgstr "Ligne %(line)s : %(err)s"
+
+#: app/routes/ms_routes.py:337
+msgid "No Excel file provided"
+msgstr "Aucun fichier Excel fourni"
+
+#: app/routes/ms_routes.py:342
+msgid "Please select an Excel file"
+msgstr "Veuillez sélectionner un fichier Excel"
+
+#: app/routes/ms_routes.py:354
+msgid "Please select a team"
+msgstr "Veuillez sélectionner une équipe"
+
+#: app/routes/ms_routes.py:385
+#, python-format
+msgid "%(num)s sample imported successfully!"
+msgid_plural "%(num)s samples imported successfully!"
+msgstr[0] "%(num)s échantillon importé avec succès !"
+msgstr[1] "%(num)s échantillons importés avec succès !"
+
+#: app/routes/ms_routes.py:406
+msgid "No file provided"
+msgstr "Aucun fichier fourni"
+
+#: app/routes/ms_routes.py:410
+msgid "Please select a file"
+msgstr "Veuillez sélectionner un fichier"
+
+#: app/routes/nmr_routes.py:40 app/routes/nmr_routes.py:171
+#, python-format
+msgid "The experiment \"%(exp)s\" is not available at %(freq)s MHz"
+msgstr "L'expérience \"%(exp)s\" n'est pas disponible à %(freq)s MHz"
+
+#: app/routes/nmr_routes.py:44 app/routes/nmr_routes.py:175
+msgid "Please select at least one experiment"
+msgstr "Veuillez sélectionner au moins une expérience"
+
+#: app/templates/404.html:3
+msgid "404 - Page not found"
+msgstr "404 - Page non trouvée"
+
+#: app/templates/404.html:12
+msgid "Page not found"
+msgstr "Page non trouvée"
+
+#: app/templates/404.html:13
+msgid "Sorry, the page you are looking for does not exist or has been moved."
+msgstr "Désolé, la page que vous cherchez n'existe pas ou a été déplacée."
+
+#: app/templates/404.html:16
+msgid "Back to home"
+msgstr "Retour à l'accueil"
+
+#: app/templates/404.html:20 app/templates/base.html:61 app/templates/sample_detail.html:26
+#: app/templates/sample_submit.html:133 app/templates/samples.html:3 app/templates/samples.html:39
+msgid "My Samples"
+msgstr "Mes Échantillons"
+
+#: app/templates/base.html:6 app/templates/base.html:20
+msgid "Chemical Analysis Service"
+msgstr "Service d'Analyse Chimique"
+
+#: app/templates/base.html:28
+msgid "Toggle navigation"
+msgstr "Basculer la navigation"
+
+#: app/templates/base.html:40
+msgid "New"
+msgstr "Nouveau"
+
+#: app/templates/base.html:45 app/templates/base.html:72
+msgid "Mass Spectrometry"
+msgstr "Spectrométrie de Masse"
+
+#: app/templates/base.html:50 app/templates/base.html:77 app/templates/samples.html:58
+msgid "NMR"
+msgstr "RMN"
+
+#: app/templates/base.html:66
+msgid "All samples"
+msgstr "Tous les échantillons"
+
+#: app/templates/base.html:89
+msgid "Admin"
+msgstr "Admin"
+
+#: app/templates/admin/sample_list.html:14 app/templates/base.html:94
+#: app/templates/sample_detail.html:11 app/templates/samples.html:11
+msgid "Dashboard"
+msgstr "Tableau de bord"
+
+#: app/templates/base.html:102
+msgid "Manage samples"
+msgstr "Gérer les échantillons"
+
+#: app/templates/admin/dashboard.html:172 app/templates/base.html:107
+msgid "Create a sample list"
+msgstr "Créer une Sample list"
+
+#: app/templates/admin/dashboard.html:118 app/templates/base.html:115
+msgid "Manage users"
+msgstr "Gérer les utilisateurs"
+
+#: app/templates/base.html:132
+msgid "Log out"
+msgstr "Déconnexion"
+
+#: app/templates/base.html:140
+msgid "Login in"
+msgstr "Connexion"
+
+#: app/templates/base.html:171 app/templates/ms/import_samples.html:66
+msgid "Close"
+msgstr "Fermer"
+
+#: app/templates/base.html:187
+msgid "The file is too large. Maximum allowed size is 16 MB."
+msgstr "Le fichier est trop volumineux. La taille maximale autorisée est de 16 Mo."
+
+#: app/templates/index.html:3 app/templates/sample_detail.html:23 app/templates/samples.html:20
+msgid "Home"
+msgstr "Accueil"
+
+#: app/templates/index.html:7
+msgid "Welcome to the chemical analysis platform"
+msgstr "Bienvenue sur la plateforme d'analyse chimique"
+
+#: app/templates/index.html:10
+msgid "Chemical analysis service banner"
+msgstr "Bannière du service d'analyse chimique"
+
+#: app/templates/index.html:14 app/templates/login.html:3 app/templates/login.html:12
+#: app/templates/login.html:52
+msgid "Log in"
+msgstr "Connexion"
+
+#: app/templates/login.html:13
+msgid "Sign in with your LDAP credentials"
+msgstr "Connectez-vous avec vos identifiants LDAP"
+
+#: app/templates/admin/create_user.html:21 app/templates/admin/edit_user.html:23
+#: app/templates/admin/users.html:43 app/templates/login.html:21
+#: app/templates/partials/_user_info.html:7
+msgid "Username"
+msgstr "Nom d'utilisateur"
+
+#: app/templates/login.html:28
+msgid "Enter your username"
+msgstr "Entrez votre nom d'utilisateur"
+
+#: app/templates/admin/create_user.html:54 app/templates/admin/create_user.html:58
+#: app/templates/admin/edit_user.html:52 app/templates/login.html:34
+msgid "Password"
+msgstr "Mot de passe"
+
+#: app/templates/login.html:41
+msgid "Enter your password"
+msgstr "Entrez votre mot de passe"
+
+#: app/templates/login.html:47
+msgid "Remember me"
+msgstr "Se souvenir de moi"
+
+#: app/templates/login.html:58
+msgid "Having trouble logging in? Contact the system administrator."
+msgstr "Problème de connexion ? Contactez l'administrateur système."
+
+#: app/templates/admin/users.html:50 app/templates/sample_detail.html:14 app/templates/samples.html:13
+#: app/templates/samples.html:22
+msgid "Samples"
+msgstr "Échantillons"
+
+#: app/templates/admin/users.html:51 app/templates/sample_detail.html:51 app/templates/samples.html:155
+msgid "Actions"
+msgstr "Actions"
+
+#: app/templates/admin/dashboard.html:83 app/templates/ms/import_success.html:25
+#: app/templates/sample_detail.html:61 app/templates/samples.html:141
+msgid "Status"
+msgstr "Statut"
+
+#: app/templates/sample_detail.html:71
+msgid "Update"
+msgstr "Mettre à jour"
+
+#: app/templates/sample_detail.html:82 app/utils/pdf_utils.py:443
+msgid "Analysis sheet"
+msgstr "Fiche d'analyse"
+
+#: app/templates/sample_detail.html:86 app/templates/sample_detail.html:87
+msgid "Generate PDF sheet"
+msgstr "Générer fiche PDF"
+
+#: app/templates/sample_detail.html:94
+msgid "Analysis status"
+msgstr "État de l'analyse"
+
+#: app/templates/sample_detail.html:95
+msgid "Checking..."
+msgstr "Vérification en cours..."
+
+#: app/templates/sample_detail.html:104
+msgid "Automatic analysis"
+msgstr "Analyse automatique"
+
+#: app/templates/sample_detail.html:107
+msgid "Start analysis"
+msgstr "Lancer l'analyse"
+
+#: app/templates/sample_detail.html:121
+msgid "Main information"
+msgstr "Informations principales"
+
+#: app/templates/admin/dashboard.html:81 app/templates/admin/sample_list.html:84
+#: app/templates/admin/sample_list.html:149 app/templates/ms/import_samples.html:76
+#: app/templates/ms/import_success.html:22 app/templates/sample_detail.html:131
+#: app/templates/samples.html:131 app/utils/pdf_utils.py:230
+msgid "Reference"
+msgstr "Référence"
+
+#: app/templates/admin/sample_list.html:86 app/templates/ms/import_success.html:23
+#: app/templates/sample_detail.html:142 app/templates/samples.html:138 app/utils/pdf_utils.py:231
+msgid "Quantity"
+msgstr "Quantité"
+
+#: app/templates/sample_detail.html:153
+msgid "Created on"
+msgstr "Créé le"
+
+#: app/templates/sample_detail.html:164
+msgid "Updated on"
+msgstr "Mis à jour le"
+
+#: app/templates/admin/dashboard.html:136 app/templates/admin/sample_list.html:82
+#: app/templates/partials/_user_info.html:31 app/templates/partials/_user_info.html:63
+#: app/templates/sample_detail.html:176 app/utils/pdf_utils.py:229
+msgid "Team"
+msgid_plural "Teams"
+msgstr[0] "Équipe"
+msgstr[1] "Équipes"
+
+#: app/templates/partials/_user_info.html:3 app/templates/sample_detail.html:189
+msgid "User information"
+msgstr "Informations de l'utilisateur"
+
+#: app/templates/sample_detail.html:209
+msgid "NMR settings"
+msgstr "Paramètres RMN"
+
+#: app/templates/ms/import_samples.html:78 app/templates/nmr/sample_submit.html:23
+#: app/templates/sample_detail.html:219 app/utils/pdf_utils.py:298
+msgid "Solvent"
+msgstr "Solvant"
+
+#: app/templates/sample_detail.html:230 app/utils/pdf_utils.py:301
+msgid "Frequency"
+msgstr "Fréquence"
+
+#: app/templates/nmr/sample_submit.html:12 app/templates/sample_detail.html:241
+#: app/utils/pdf_utils.py:295
+msgid "Stability"
+msgstr "Stabilité"
+
+#: app/templates/nmr/sample_submit.html:47 app/templates/sample_detail.html:252
+msgid "Requested experiments"
+msgstr "Expériences demandées"
+
+#: app/templates/sample_detail.html:272
+msgid "Mass Spectrometry settings"
+msgstr "Paramètres Spectrométrie de Masse"
+
+#: app/templates/sample_detail.html:282 app/utils/pdf_utils.py:335
+msgid "Solvents"
+msgstr "Solvants"
+
+#: app/templates/sample_detail.html:312 app/templates/sample_submit.html:72
+msgid "Chemical structure"
+msgstr "Structure chimique"
+
+#: app/templates/sample_detail.html:323 app/templates/sample_submit.html:85
+msgid "Molecular formula"
+msgstr "Formule brute"
+
+#: app/templates/sample_detail.html:337 app/utils/pdf_utils.py:267
+msgid "Exact mass"
+msgstr "Masse exacte"
+
+#: app/templates/sample_detail.html:366
+msgid "Chemical structure file"
+msgstr "Fichier de structure chimique"
+
+#: app/templates/sample_detail.html:370 app/templates/samples.html:204
+msgid "Download file"
+msgstr "Télécharger le fichier"
+
+#: app/templates/sample_detail.html:371
+msgid "Download"
+msgstr "Télécharger"
+
+#: app/templates/ms/import_samples.html:82 app/templates/sample_detail.html:385
+#: app/templates/sample_submit.html:103 app/utils/pdf_utils.py:232
+msgid "Notes"
+msgstr "Notes"
+
+#: app/templates/sample_detail.html:409
+msgid "State"
+msgstr "État"
+
+#: app/templates/sample_detail.html:415
+msgid "Success!"
+msgstr "Succès !"
+
+#: app/templates/sample_detail.html:423
+msgid "Error:"
+msgstr "Erreur :"
+
+#: app/templates/admin/edit_user.html:3 app/templates/admin/users.html:84
+#: app/templates/sample_submit.html:3 app/templates/samples.html:193
+msgid "Edit"
+msgstr "Éditer"
+
+#: app/templates/sample_submit.html:3
+msgid "New Analysis"
+msgstr "Nouvelle Analyse"
+
+#: app/templates/sample_submit.html:10
+msgid "Edit sample"
+msgstr "Éditer l'échantillon"
+
+#: app/templates/sample_submit.html:12
+msgid "Sample Submission"
+msgstr "Soumission d'Échantillon"
+
+#: app/templates/sample_submit.html:17
+msgid "Edit the sample details"
+msgstr "Modifiez les informations de l'échantillon"
+
+#: app/templates/sample_submit.html:19
+msgid "Fill in the form below to submit a new sample for analysis."
+msgstr "Remplissez le formulaire ci-dessous pour soumettre un nouvel échantillon à l'analyse."
+
+#: app/templates/sample_submit.html:34
+msgid "Sample information"
+msgstr "Informations de l'échantillon"
+
+#: app/templates/sample_submit.html:38
+msgid "Sample reference"
+msgstr "Référence de l'échantillon"
+
+#: app/templates/sample_submit.html:46
+msgid "Unique reference to identify your sample"
+msgstr "Référence unique pour identifier votre échantillon"
+
+#: app/templates/sample_submit.html:50
+msgid "Deposited quantity (mg)"
+msgstr "Quantité déposée (mg)"
+
+#: app/templates/sample_submit.html:61
+msgid "Amount deposited in the tube (in mg)"
+msgstr "Quantité déposée dans le tube (en mg)"
+
+#: app/templates/sample_submit.html:76
+msgid "Structure file"
+msgstr "Fichier de structure"
+
+#: app/templates/sample_submit.html:76
+msgid "leave empty to keep the current one"
+msgstr "laisser vide pour conserver l'ancien"
+
+#: app/templates/ms/import_samples.html:43 app/templates/sample_submit.html:82
+msgid "Accepted formats:"
+msgstr "Formats acceptés :"
+
+#: app/templates/sample_submit.html:82 app/templates/sample_submit.html:92
+msgid "optional"
+msgstr "optionnel"
+
+#: app/templates/sample_submit.html:92
+msgid "Chemical formula of the sample"
+msgstr "Formule chimique de l'échantillon"
+
+#: app/templates/sample_submit.html:100
+msgid "Additional information"
+msgstr "Informations supplémentaires"
+
+#: app/templates/sample_submit.html:109
+msgid "Add notes or comments about the sample..."
+msgstr "Ajoutez des notes ou commentaires sur l'échantillon..."
+
+#: app/templates/sample_submit.html:110
+#, python-format
+msgid "Enter information useful for the operator (max. %(maxlen)s characters)"
+msgstr "Entrez des informations utiles pour l'opérateur (max. %(maxlen)s caractères)"
+
+#: app/templates/admin/edit_user.html:85 app/templates/sample_submit.html:118
+msgid "Save"
+msgstr "Sauvegarder"
+
+#: app/templates/admin/create_analysis.html:50 app/templates/admin/create_user.html:89
+#: app/templates/admin/edit_user.html:88 app/templates/ms/import_samples.html:53
+#: app/templates/ms/import_samples.html:90 app/templates/sample_submit.html:122
+msgid "Cancel"
+msgstr "Annuler"
+
+#: app/templates/sample_submit.html:126
+msgid "Submit"
+msgstr "Soumettre"
+
+#: app/templates/admin/sample_list.html:57 app/templates/sample_submit.html:129
+#: app/templates/samples.html:102
+msgid "Reset"
+msgstr "Réinitialiser"
+
+#: app/templates/samples.html:41
+msgid "List of all your samples submitted for analysis"
+msgstr "Liste de tous vos échantillons soumis pour analyse"
+
+#: app/templates/samples.html:48
+msgid "Filter samples"
+msgstr "Filtrer les échantillons"
+
+#: app/templates/samples.html:53
+msgid "Type:"
+msgstr "Type :"
+
+#: app/templates/samples.html:55
+msgid "All types"
+msgstr "Tous les types"
+
+#: app/templates/samples.html:57
+msgid "Mass spectrometry"
+msgstr "Spectrométrie de masse"
+
+#: app/templates/samples.html:64
+msgid "Status:"
+msgstr "Statut :"
+
+#: app/templates/samples.html:66
+msgid "All statuses"
+msgstr "Tous les statuts"
+
+#: app/templates/admin/sample_list.html:33 app/templates/samples.html:76
+msgid "User:"
+msgstr "Utilisateur :"
+
+#: app/templates/admin/sample_list.html:35 app/templates/samples.html:78
+msgid "All users"
+msgstr "Tous les utilisateurs"
+
+#: app/templates/admin/sample_list.html:43 app/templates/samples.html:88 app/templates/success.html:17
+msgid "Reference:"
+msgstr "Référence :"
+
+#: app/templates/admin/sample_list.html:48 app/templates/samples.html:93
+msgid "Search..."
+msgstr "Rechercher..."
+
+#: app/templates/samples.html:99
+msgid "Filter"
+msgstr "Filtrer"
+
+#: app/templates/ms/sample_spectrum.html:121 app/templates/samples.html:116
+msgid "Select all"
+msgstr "Sélectionner tout"
+
+#: app/templates/admin/dashboard.html:80 app/templates/admin/users.html:48
+#: app/templates/samples.html:121
+msgid "Type"
+msgstr "Type"
+
+#: app/templates/admin/dashboard.html:27 app/templates/admin/dashboard.html:82
+#: app/templates/admin/sample_list.html:83 app/templates/admin/users.html:65
+#: app/templates/samples.html:128
+msgid "User"
+msgid_plural "Users"
+msgstr[0] "Utilisateur"
+msgstr[1] "Utilisateurs"
+
+#: app/templates/admin/sample_list.html:85 app/templates/ms/import_samples.html:79
+#: app/templates/samples.html:137 app/utils/pdf_utils.py:258
+msgid "Formula"
+msgstr "Formule"
+
+#: app/templates/ms/import_success.html:24 app/templates/samples.html:149
+msgid "Submission date"
+msgstr "Date de soumission"
+
+#: app/templates/samples.html:165
+msgid "Only pending samples can be deleted"
+msgstr "Seuls les échantillons 'pending' peuvent être supprimés"
+
+#: app/templates/samples.html:182
+msgid "View results"
+msgstr "Voir les résultats"
+
+#: app/templates/samples.html:188
+msgid "View details"
+msgstr "Voir les détails"
+
+#: app/templates/samples.html:198
+msgid "Generate PDF"
+msgstr "Générer PDF"
+
+#: app/templates/samples.html:211
+msgid "Are you sure you want to delete this sample? This action is irreversible."
+msgstr "Êtes-vous sûr de vouloir supprimer cet échantillon ? Cette action est irréversible."
+
+#: app/templates/admin/edit_user.html:93 app/templates/admin/users.html:100
+#: app/templates/samples.html:214
+msgid "Delete"
+msgstr "Supprimer"
+
+#: app/templates/samples.html:229
+msgid "Bulk actions"
+msgstr "Actions par lot"
+
+#: app/templates/samples.html:237
+msgid "Generate PDFs"
+msgstr "Générer PDFs"
+
+#: app/templates/samples.html:244
+msgid "Are you sure you want to delete these samples? This action is irreversible."
+msgstr "Êtes-vous sûr de vouloir supprimer ces échantillons ? Cette action est irréversible."
+
+#: app/templates/samples.html:248
+msgid "Delete selected samples"
+msgstr "Supprimer la sélection"
+
+#: app/templates/samples.html:257
+msgid "Sample pagination"
+msgstr "Pagination des échantillons"
+
+#: app/templates/admin/users.html:112 app/templates/samples.html:313
+msgid "Showing"
+msgstr "Affichage de"
+
+#: app/templates/admin/sample_list.html:370 app/templates/admin/sample_list.html:371
+#: app/templates/samples.html:313
+msgid "sample"
+msgid_plural "samples"
+msgstr[0] "échantillon"
+msgstr[1] "échantillons"
+
+#: app/templates/samples.html:313
+msgid "total"
+msgstr "total"
+
+#: app/templates/samples.html:320
+msgid "No sample matches your search criteria."
+msgstr "Aucun échantillon ne correspond à vos critères de recherche."
+
+#: app/templates/success.html:3
+msgid "Submission Successful"
+msgstr "Soumission Réussie"
+
+#: app/templates/success.html:12
+msgid "Submission Successful!"
+msgstr "Soumission Réussie !"
+
+#: app/templates/success.html:13
+msgid "Your sample has been successfully submitted to the analysis service."
+msgstr "Votre échantillon a été soumis avec succès au service d'analyse."
+
+#: app/templates/success.html:21
+msgid "Quantity:"
+msgstr "Quantité :"
+
+#: app/templates/success.html:25
+msgid "Submission date:"
+msgstr "Date de soumission :"
+
+#: app/templates/success.html:30
+msgid "File:"
+msgstr "Fichier :"
+
+#: app/templates/success.html:39
+msgid "Generate the PDF sheet"
+msgstr "Générer la fiche PDF"
+
+#: app/templates/success.html:42
+msgid "Submit another sample"
+msgstr "Soumettre un autre échantillon"
+
+#: app/templates/ms/import_success.html:65 app/templates/success.html:45
+msgid "View my samples"
+msgstr "Voir mes échantillons"
+
+#: app/templates/success.html:50
+msgid "Current status:"
+msgstr "Statut actuel :"
+
+#: app/templates/success.html:51
+msgid "You will receive an email notification when the analysis is complete."
+msgstr "Vous recevrez une notification par email lorsque l'analyse sera terminée."
+
+#: app/templates/admin/create_analysis.html:3 app/templates/admin/create_analysis.html:8
+msgid "Create an analysis"
+msgstr "Créer une Analysis"
+
+#: app/templates/admin/create_analysis.html:9
+msgid "Manually add analysis results for a sample"
+msgstr "Ajoutez manuellement les résultats d'analyse pour un échantillon"
+
+#: app/templates/admin/create_analysis.html:17 app/templates/admin/create_analysis.html:19
+#: app/templates/admin/dashboard.html:17
+msgid "Sample"
+msgid_plural "Samples"
+msgstr[0] "Échantillon"
+msgstr[1] "Échantillons"
+
+#: app/templates/admin/create_analysis.html:21
+msgid "Select a sample"
+msgstr "Sélectionnez un échantillon"
+
+#: app/templates/admin/create_analysis.html:35
+msgid "Analysis results"
+msgstr "Résultats d'analyse"
+
+#: app/templates/admin/create_analysis.html:38
+msgid "Detailled results"
+msgstr "Résultats détaillés"
+
+#: app/templates/admin/create_analysis.html:40
+msgid "Analysis details, observations, ..."
+msgstr "Détails de l'analyse, observations, etc."
+
+#: app/templates/admin/create_analysis.html:47
+msgid "Create analysis"
+msgstr "Créer l'Analysis"
+
+#: app/templates/admin/create_user.html:3 app/templates/admin/create_user.html:8
+msgid "Add a new user"
+msgstr "Créer un nouvel utilisateur"
+
+#: app/templates/admin/create_user.html:9
+msgid "Add local user account (non-LDAP)"
+msgstr "Créer un compte utilisateur local (non-LDAP)"
+
+#: app/templates/admin/create_user.html:17 app/templates/admin/edit_user.html:19
+msgid "Main Information"
+msgstr "Informations principales"
+
+#: app/templates/admin/create_user.html:23
+msgid "Ex: jdoe"
+msgstr "Ex : jdupont"
+
+#: app/templates/admin/create_user.html:24
+msgid "Alphanumeric characters and underscores only"
+msgstr "Caractères alphanumériques et underscores uniquement"
+
+#: app/templates/admin/create_user.html:25
+msgid "Unique username for login"
+msgstr "Nom d'utilisateur unique pour la connexion"
+
+#: app/templates/admin/create_user.html:29 app/templates/admin/edit_user.html:29
+#: app/templates/admin/users.html:46
+msgid "Email"
+msgstr "Email"
+
+#: app/templates/admin/create_user.html:31 app/templates/admin/edit_user.html:31
+msgid "Ex: jdoe@domain.com"
+msgstr "Ex : jdupont@domaine.fr"
+
+#: app/templates/admin/create_user.html:35 app/templates/admin/edit_user.html:35
+#: app/templates/admin/users.html:44
+msgid "Full Name"
+msgstr "Nom complet"
+
+#: app/templates/admin/create_user.html:37
+msgid "Ex: John Doe"
+msgstr "Ex : Jean Dupont"
+
+#: app/templates/admin/create_user.html:38
+msgid "User's first and last name"
+msgstr "Nom et prénom de l'utilisateur"
+
+#: app/templates/admin/create_user.html:43 app/templates/admin/edit_user.html:41
+#: app/templates/admin/users.html:45
+msgid "Teams"
+msgstr "Équipes"
+
+#: app/templates/admin/create_user.html:45 app/templates/admin/edit_user.html:43
+msgid "Ex: Chemistry,Biology"
+msgstr "Ex : Chimie,Biologie"
+
+#: app/templates/admin/create_user.html:46
+msgid "Teams separated by commas"
+msgstr "Équipes séparées par des virgules"
+
+#: app/templates/admin/create_user.html:60 app/templates/admin/edit_user.html:59
+msgid "At least 8 characters"
+msgstr "Minimum 8 caractères"
+
+#: app/templates/admin/create_user.html:61
+msgid "The password must be at least 8 characters long"
+msgstr "Le mot de passe doit contenir au moins 8 caractères"
+
+#: app/templates/admin/create_user.html:65
+msgid "Confirm password"
+msgstr "Confirmer le mot de passe"
+
+#: app/templates/admin/create_user.html:74 app/templates/admin/edit_user.html:73
+msgid "Privileges"
+msgstr "Permissions"
+
+#: app/templates/admin/create_user.html:78 app/templates/admin/edit_user.html:78
+#: app/templates/admin/users.html:63
+msgid "Administrator"
+msgstr "Administrateur"
+
+#: app/templates/admin/create_user.html:79
+msgid "Check this box to grant administrator privileges"
+msgstr "Cochez pour accorder les droits d'administrateur"
+
+#: app/templates/admin/create_user.html:86
+msgid "Add user"
+msgstr "Créer l'utilisateur"
+
+#: app/templates/admin/dashboard.html:3 app/templates/admin/dashboard.html:8
+msgid "Admin Dashboard"
+msgstr "Tableau de bord admin"
+
+#: app/templates/admin/dashboard.html:37
+msgid "Pending"
+msgstr "En attente"
+
+#: app/templates/admin/dashboard.html:47
+msgid "Analysing"
+msgstr "En cours d'analyse"
+
+#: app/templates/admin/dashboard.html:57
+msgid "Completed"
+msgid_plural "Completed"
+msgstr[0] "Terminé"
+msgstr[1] "Terminés"
+
+#: app/templates/admin/dashboard.html:68
+msgid "Last Samples"
+msgstr "Derniers échantillons"
+
+#: app/templates/admin/dashboard.html:71
+msgid "See all"
+msgstr "Voir tout"
+
+#: app/templates/admin/dashboard.html:84
+msgid "Date"
+msgstr "Date"
+
+#: app/templates/admin/dashboard.html:115
+msgid "Users"
+msgstr "Utilisateurs"
+
+#: app/templates/admin/dashboard.html:131
+msgid "Adùin"
+msgstr "Admin"
+
+#: app/templates/admin/dashboard.html:142
+msgid "Last login:"
+msgstr "Dernière connexion :"
+
+#: app/templates/admin/dashboard.html:146 app/templates/admin/users.html:79
+msgid "Never"
+msgstr "Jamais"
+
+#: app/templates/admin/dashboard.html:153
+msgid "No user found."
+msgstr "Aucun utilisateur trouvé."
+
+#: app/templates/admin/dashboard.html:162
+msgid "Data export"
+msgstr "Export des données"
+
+#: app/templates/admin/dashboard.html:166
+msgid "Export as CSV"
+msgstr "Exporter en CSV"
+
+#: app/templates/admin/dashboard.html:169
+msgid "Export as Excel"
+msgstr "Exporter en Excel"
+
+#: app/templates/admin/edit_user.html:8
+msgid "Edit user"
+msgstr "Éditer l'utilisateur"
+
+#: app/templates/admin/edit_user.html:9
+msgid "Edit user information"
+msgstr "Modifiez les informations de l'utilisateur"
+
+#: app/templates/admin/edit_user.html:10 app/templates/admin/users.html:70
+msgid "LDAP"
+msgstr "LDAP"
+
+#: app/templates/admin/edit_user.html:10 app/templates/admin/users.html:72
+msgid "Local"
+msgstr "Local"
+
+#: app/templates/admin/edit_user.html:25
+msgid "jdoe"
+msgstr "jdoe"
+
+#: app/templates/admin/edit_user.html:37
+msgid "John Doe"
+msgstr "Jean Dupont"
+
+#: app/templates/admin/edit_user.html:53
+msgid "Leave blank to keep current password."
+msgstr "Laissez vide pour conserver le mot de passe actuel."
+
+#: app/templates/admin/edit_user.html:57
+msgid "New password"
+msgstr "Nouveau mot de passe"
+
+#: app/templates/admin/edit_user.html:63
+msgid "Confirm new password"
+msgstr "Confirmer le nouveau mot de passe"
+
+#: app/templates/admin/edit_user.html:92 app/templates/admin/users.html:97
+msgid "Are you sure you want to delete this user? This action is irreversible."
+msgstr "Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible."
+
+#: app/templates/admin/sample_list.html:3 app/templates/admin/sample_list.html:16
+#: app/templates/admin/sample_list.html:137
+msgid "Sample List"
+msgstr "Sample list"
+
+#: app/templates/admin/sample_list.html:20
+msgid "Create a Sample List"
+msgstr "Créer une sample list"
+
+#: app/templates/admin/sample_list.html:21
+msgid ""
+"Search for \\u201cpending\\u201d MS samples, add them to the list, reorder them, and then export the "
+"list."
+msgstr ""
+"Recherchez des échantillons MS « en attente », ajoutez-les à la liste, réorganisez-les, puis "
+"exportez la liste."
+
+#: app/templates/admin/sample_list.html:29
+msgid "Search for pending MS samples"
+msgstr "Rechercher des échantillons MS en attente"
+
+#: app/templates/admin/sample_list.html:54 app/templates/admin/users.html:24
+msgid "Search"
+msgstr "Rechercher"
+
+#: app/templates/admin/sample_list.html:67
+msgid "Add selection"
+msgstr "Ajouter la sélection"
+
+#: app/templates/admin/sample_list.html:70
+msgid "Create Sample List"
+msgstr "Créer la sample list"
+
+#: app/templates/admin/sample_list.html:73
+msgid "Clear List"
+msgstr "Vider la liste"
+
+#: app/templates/admin/sample_list.html:87
+msgid "Submission Date"
+msgstr "Date de soumission"
+
+#: app/templates/admin/sample_list.html:88
+msgid "Action"
+msgstr "Action"
+
+#: app/templates/admin/sample_list.html:102
+msgid "No pending MS sample found"
+msgstr "Aucun échantillon MS en attente trouvé"
+
+#: app/templates/admin/sample_list.html:103
+msgid "No \\u201dpending\" MS samples match your search criteria."
+msgstr "Aucun échantillon MS « en attente » ne correspond à vos critères de recherche."
+
+#: app/templates/admin/sample_list.html:112
+msgid "My Sample List"
+msgstr "Ma sample list"
+
+#: app/templates/admin/sample_list.html:118
+msgid "Drag and drop the samples to reorder the list."
+msgstr "Glissez-déposez les échantillons pour réorganiser la liste."
+
+#: app/templates/admin/sample_list.html:122
+msgid "No samples in the list. Use the \\u201cAdd\\u201d button."
+msgstr "Aucun échantillon dans la liste. Utilisez le bouton « Ajouter »."
+
+#: app/templates/admin/sample_list.html:150
+msgid "UUID"
+msgstr "UUID"
+
+#: app/templates/admin/sample_list.html:159 app/templates/admin/sample_list.html:442
+msgid "Copy"
+msgstr "Copier"
+
+#: app/templates/admin/sample_list.html:162
+msgid "Validate Sample List"
+msgstr "Valider la sample list"
+
+#: app/templates/admin/sample_list.html:222 app/templates/admin/sample_list.html:223
+msgid "MS pending sample"
+msgid_plural "MS pending samples"
+msgstr[0] "échantillon MS en attente"
+msgstr[1] "échantillons MS en attente"
+
+#: app/templates/admin/sample_list.html:278
+msgid "Added"
+msgstr "Ajouté"
+
+#: app/templates/admin/sample_list.html:279
+msgid "Add"
+msgstr "Ajouter"
+
+#: app/templates/admin/sample_list.html:314
+msgid "Move"
+msgstr "Déplacer"
+
+#: app/templates/admin/sample_list.html:318
+msgid "Remove from list"
+msgstr "Retirer de la liste"
+
+#: app/templates/admin/sample_list.html:381
+#, python-brace-format
+msgid "Mark the {num_samples} sample(s) from sample list as \\u201cAnalysing\\u201c?"
+msgstr "Passer les {num_samples} échantillon(s) de la sample list en « En cours d'analyse » ?"
+
+#: app/templates/admin/sample_list.html:413
+#, python-brace-format
+msgid "{updated} sample(s) marked as \\u201cAnalysing\\u201c."
+msgstr "{updated} échantillon(s) passé(s) en « En cours d'analyse »."
+
+#: app/templates/admin/sample_list.html:416
+msgid "Validation error"
+msgstr "Erreur de validation"
+
+#: app/templates/admin/sample_list.html:440
+msgid "Copied"
+msgstr "Copié"
+
+#: app/templates/admin/samples.html:3 app/templates/admin/samples.html:6
+msgid "Sample Management"
+msgstr "Gestion des échantillons"
+
+#: app/templates/admin/samples.html:7
+msgid "Complete list of all submitted samples"
+msgstr "Liste complète de tous les échantillons soumis"
+
+#: app/templates/admin/users.html:3 app/templates/admin/users.html:8
+msgid "User Management"
+msgstr "Gestion des utilisateurs"
+
+#: app/templates/admin/users.html:9
+msgid "List of all registered users"
+msgstr "Liste de tous les utilisateurs enregistrés"
+
+#: app/templates/admin/users.html:17
+msgid "Search:"
+msgstr "Rechercher :"
+
+#: app/templates/admin/users.html:19
+msgid "Search for a user..."
+msgstr "Rechercher un utilisateur..."
+
+#: app/templates/admin/users.html:34
+msgid "Add a user"
+msgstr "Ajouter un utilisateur"
+
+#: app/templates/admin/users.html:47
+msgid "Role"
+msgstr "Rôle"
+
+#: app/templates/admin/users.html:49
+msgid "Last login"
+msgstr "Dernière connexion"
+
+#: app/templates/admin/users.html:89
+msgid "See samples"
+msgstr "Voir les échantillons"
+
+#: app/templates/admin/users.html:112
+msgid "user"
+msgid_plural "users"
+msgstr[0] "utilisateur"
+msgstr[1] "utilisateurs"
+
+#: app/templates/admin/users.html:118
+msgid "No user found"
+msgstr "Aucun utilisateur trouvé"
+
+#: app/templates/admin/users.html:119
+msgid "No users match your search criteria."
+msgstr "Aucun utilisateur ne correspond à vos critères de recherche."
+
+#: app/templates/ms/import_samples.html:3 app/templates/ms/import_samples.html:8
+msgid "Import MS Samples"
+msgstr "Importer des échantillons MS"
+
+#: app/templates/ms/import_samples.html:9
+#, python-format
+msgid ""
+"Upload an XLSX, XLS, ODS or CSV file (Excel or LibreOffice) containing the samples to import. A "
+"template is available <a href=\"%(template_url)s\">here</a>"
+msgstr ""
+"Téléchargez un fichier XLSX, XLS, ODS ou CSV (Excel ou LibreOffice) contenant les échantillons à "
+"importer. Un modèle est disponible <a href=\"%(template_url)s\">ici</a>"
+
+#: app/templates/ms/import_samples.html:14
+msgid "Expected format:"
+msgstr "Format attendu :"
+
+#: app/templates/ms/import_samples.html:14
+msgid "The file must contain at least the following columns:"
+msgstr "Le fichier doit contenir au minimum les colonnes suivantes :"
+
+#: app/templates/ms/import_samples.html:16
+msgid "(required):  Sample reference"
+msgstr "(obligatoire) : Référence de l'échantillon"
+
+#: app/templates/ms/import_samples.html:17
+msgid "(required): Quantity in mg"
+msgstr "(obligatoire) : Quantité en mg"
+
+#: app/templates/ms/import_samples.html:18
+msgid "(optional): Solvent used"
+msgstr "(optionnel) : Solvant utilisé"
+
+#: app/templates/ms/import_samples.html:19
+msgid "(optional): Molecular Formula"
+msgstr "(optionnel) : Formule brute"
+
+#: app/templates/ms/import_samples.html:20
+msgid "(optional): SMILES string for the molecule"
+msgstr "(optionnel) : SMILES de la molécule"
+
+#: app/templates/ms/import_samples.html:21
+msgid "(optional): Additional notes"
+msgstr "(optionnel) : Notes supplémentaires"
+
+#: app/templates/ms/import_samples.html:33
+msgid "Import parameters"
+msgstr "Paramètres d'import"
+
+#: app/templates/ms/import_samples.html:36
+msgid "Excel File:"
+msgstr "Fichier Excel :"
+
+#: app/templates/ms/import_samples.html:50
+msgid "Import"
+msgstr "Importer"
+
+#: app/templates/ms/import_samples.html:64
+msgid "Import Preview"
+msgstr "Aperçu de l'import"
+
+#: app/templates/ms/import_samples.html:77
+msgid "Quantity (mg)"
+msgstr "Quantité (mg)"
+
+#: app/templates/ms/import_samples.html:80 app/utils/pdf_utils.py:263
+msgid "Mass"
+msgstr "Masse"
+
+#: app/templates/ms/import_samples.html:81
+msgid "SMILES"
+msgstr "SMILES"
+
+#: app/templates/ms/import_samples.html:92
+msgid "Confirm import"
+msgstr "Confirmer l'import"
+
+#: app/templates/ms/import_samples.html:144
+msgid " samples to import"
+msgstr " échantillon(s) à importer"
+
+#: app/templates/ms/import_samples.html:157
+msgid "Error reading the file"
+msgstr "Erreur lors de la lecture du fichier"
+
+#: app/templates/ms/import_success.html:3
+msgid "Import Successful"
+msgstr "Import réussi"
+
+#: app/templates/ms/import_success.html:12
+msgid "Import Successful!"
+msgstr "Import réussi !"
+
+#: app/templates/ms/import_success.html:14
+#, python-format
+msgid "%(num_samples)s sample has been sucessfully submitted to the analysis service."
+msgid_plural "%(num_samples)s samples has been sucessfully submitted to the analysis service."
+msgstr[0] "%(num_samples)s échantillon a été soumis avec succès au service d'analyse."
+msgstr[1] "%(num_samples)s échantillons ont été soumis avec succès au service d'analyse."
+
+#: app/templates/ms/import_success.html:54
+msgid "Generate PDF sheets"
+msgstr "Générer les fiches PDF"
+
+#: app/templates/ms/import_success.html:59
+msgid "Submit a sample"
+msgstr "Soumettre un échantillon"
+
+#: app/templates/ms/import_success.html:62
+msgid "Import another file"
+msgstr "Importer un autre fichier"
+
+#: app/templates/ms/import_success.html:70
+msgid "You will receive an email notification when the analyses are complete."
+msgstr "Vous recevrez une notification par email lorsque les analyses seront terminées."
+
+#: app/templates/ms/sample_spectrum.html:78
+msgid "Relative intensity (%)"
+msgstr "Intensité relative (%)"
+
+#: app/templates/ms/sample_spectrum.html:109
+msgid "Restore zoom"
+msgstr "Restaurer le zoom"
+
+#: app/templates/ms/sample_spectrum.html:133
+msgid "Clear selection"
+msgstr "Effacer la sélection"
+
+#: app/templates/ms/sample_submit.html:10
+#, python-format
+msgid "You can also <a href=\"%(template_url)s\">import samples in bulk</a> from an Excel file'."
+msgstr ""
+"Vous pouvez aussi <a href=\"%(template_url)s\">importer des échantillons par lot</a> à partir d'un "
+"fichier Excel."
+
+#: app/templates/ms/sample_submit.html:16
+msgid "Solvent used"
+msgstr "Solvant utilisé"
+
+#: app/templates/ms/sample_submit.html:38 app/templates/nmr/sample_submit.html:120
+#: app/templates/nmr/sample_submit.html:129
+msgid "Other"
+msgstr "Autre"
+
+#: app/templates/ms/sample_submit.html:43
+msgid "Specify..."
+msgstr "Précisez..."
+
+#: app/templates/ms/sample_submit.html:47
+msgid "Solvents used for sample preparation"
+msgstr "Solvants utilisés pour la préparation d'échantillon"
+
+#: app/templates/ms/sample_submit.html:87 app/templates/nmr/sample_submit.html:176
+msgid "Please check at least one box"
+msgstr "Veuillez cocher au moins une case"
+
+#: app/templates/ms/sample_submit.html:96
+msgid "Please specify the solvent"
+msgstr "Veuillez préciser le solvant"
+
+#: app/templates/nmr/sample_submit.html:19
+msgid "Select the sample stability"
+msgstr "Sélectionnez la stabilité de l'échantillon"
+
+#: app/templates/nmr/sample_submit.html:30
+msgid "Select the solvent used to prepare the sample"
+msgstr "Sélectionnez le solvant utilisé pour préparer l'échantillon"
+
+#: app/templates/nmr/sample_submit.html:34
+msgid "Instrument frequency"
+msgstr "Fréquence de l'instrument"
+
+#: app/templates/nmr/sample_submit.html:41
+msgid "Select the instrument frequency"
+msgstr "Sélectionnez la fréquence de l'instrument"
+
+#: app/templates/nmr/sample_submit.html:51
+msgid "Select one or more experiments (at least one required)"
+msgstr "Sélectionnez une ou plusieurs expériences (au moins une obligatoire)"
+
+#: app/templates/nmr/sample_submit.html:137
+msgid "Specify the experiment..."
+msgstr "Précisez l'expérience..."
+
+#: app/templates/nmr/sample_submit.html:185
+msgid "Please specify the experiment"
+msgstr "Veuillez préciser l'expérience"
+
+#: app/templates/partials/_user_info.html:18
+msgid "Email address"
+msgstr "Adresse Email"
+
+#: app/templates/partials/_user_info.html:47
+msgid "Select the team associated with this analysis"
+msgstr "Sélectionnez l'équipe associée à cette analyse"
+
+#: app/utils/pdf_utils.py:214
+msgid "Phone"
+msgstr "Poste"
+
+#: app/utils/pdf_utils.py:221
+msgid "MAIN INFORMATION"
+msgstr "INFORMATIONS PRINCIPALES"
+
+#: app/utils/pdf_utils.py:229 app/utils/pdf_utils.py:258 app/utils/pdf_utils.py:294
+#: app/utils/pdf_utils.py:298
+msgid "Not specified"
+msgstr "Non précisé"
+
+#: app/utils/pdf_utils.py:232 app/utils/pdf_utils.py:311 app/utils/pdf_utils.py:334
+msgid "None"
+msgstr "Aucun(e)"
+
+#: app/utils/pdf_utils.py:233
+msgid "Creation date"
+msgstr "Date de création"
+
+#: app/utils/pdf_utils.py:250
+msgid "STRUCTURAL INFORMATION"
+msgstr "INFORMATIONS STRUCTURALES"
+
+#: app/utils/pdf_utils.py:287
+msgid "NMR INFORMATION"
+msgstr "INFORMATIONS RMN"
+
+#: app/utils/pdf_utils.py:293
+msgid "Stable"
+msgstr "Stable"
+
+#: app/utils/pdf_utils.py:293
+msgid "Unstable"
+msgstr "Instable"
+
+#: app/utils/pdf_utils.py:293
+msgid "Very stable"
+msgstr "Très stable"
+
+#: app/utils/pdf_utils.py:312
+msgid "Experiments"
+msgstr "Expériences"
+
+#: app/utils/pdf_utils.py:321
+msgid "MS INFORMATION"
+msgstr "INFORMATIONS MS"
+
+#: app/utils/pdf_utils.py:344
+msgid "CHEMICAL STRUCTURE"
+msgstr "STRUCTURE CHIMIQUE"
+
+#: app/utils/pdf_utils.py:356
+msgid "Structure: unable to load the structure"
+msgstr "Structure : impossible de charger la structure"
+
+#: app/utils/pdf_utils.py:362
+#, python-format
+msgid "Generated on %(date)s"
+msgstr "Généré le %(date)s"
+
+#: app/utils/pdf_utils.py:416
+#, python-format
+msgid "Analysis sheet - %(ref)s"
+msgstr "Fiche de dépôt - %(ref)s"
+
+#: app/utils/pdf_utils.py:416
+msgid "Analysis sheets"
+msgstr "Fiches de dépôt"
+
+#: app/utils/pdf_utils.py:446
+msgid "Sheet to keep"
+msgstr "Fiche à conserver"

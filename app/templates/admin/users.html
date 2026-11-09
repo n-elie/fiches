@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Gestion des Utilisateurs{% endblock %}
+{% block title %}{{ _('User Management') }}{% endblock %}
 
 {% block content %}
 <div>
     <div class="mb-3">
-        <h2>Gestion des Utilisateurs</h2>
-        <p class="text-muted">Liste de tous les utilisateurs enregistrés</p>
+        <h2>{{ _('User Management') }}</h2>
+        <p class="text-muted">{{ _('List of all registered users') }}</p>
     </div>
 
     <div class="card mb-3">
@@ -14,14 +14,14 @@
             <form method="GET" action="">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-auto flex-grow-1">
-                        <label for="search" class="form-label"><i class="fas fa-search"></i> Rechercher :</label>
+                        <label for="search" class="form-label"><i class="fas fa-search"></i> {{ _('Search:') }}</label>
                         <input type="text" id="search" name="search" class="form-control"
-                               placeholder="Rechercher un utilisateur..."
+                               placeholder="{{ _('Search for a user...') }}"
                                value="{{ request.args.get('search', '') }}">
                     </div>
                     <div class="col-md-auto">
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-search"></i> Rechercher
+                            <i class="fas fa-search"></i> {{ _('Search') }}
                         </button>
                     </div>
                 </div>
@@ -31,7 +31,7 @@
 
     <div class="mb-3">
         <a href="{{ url_for('admin.create_user') }}" class="btn btn-primary">
-            <i class="fas fa-user-plus"></i> Ajouter un utilisateur
+            <i class="fas fa-user-plus"></i> {{ _('Add a user') }}
         </a>
     </div>
 
@@ -40,15 +40,15 @@
         <table class="table table-striped table-hover align-middle">
             <thead class="table-dark">
                 <tr>
-                    <th>Nom d'utilisateur</th>
-                    <th>Nom complet</th>
-                    <th>Équipes</th>
-                    <th>Email</th>
-                    <th>Rôle</th>
-                    <th>Type</th>
-                    <th>Dernière connexion</th>
-                    <th>Échantillons</th>
-                    <th colspan="3" class="text-center">Actions</th>
+                    <th>{{ _('Username') }}</th>
+                    <th>{{ _('Full Name') }}</th>
+                    <th>{{ _('Teams') }}</th>
+                    <th>{{ _('Email') }}</th>
+                    <th>{{ _('Role') }}</th>
+                    <th>{{ _('Type') }}</th>
+                    <th>{{ _('Last login') }}</th>
+                    <th>{{ _('Samples') }}</th>
+                    <th colspan="3" class="text-center">{{ _('Actions') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -60,33 +60,33 @@
                     <td>{{ user.email }}</td>
                     <td>
                         {% if user.is_admin %}
-                            <span class="admin-badge">Administrateur</span>
+                            <span class="admin-badge">{{ _('Administrator') }}</span>
                         {% else %}
-                            <span class="status-badge status-processing">Utilisateur</span>
+                            <span class="status-badge status-processing">{{ _('User') }}</span>
                         {% endif %}
                     </td>
                     <td>
                         {% if user.is_ldap %}
-                            <span class="status-badge status-completed">LDAP</span>
+                            <span class="status-badge status-completed">{{ _('LDAP') }}</span>
                         {% else %}
-                            <span class="status-badge status-pending">Local</span>
+                            <span class="status-badge status-pending">{{ _('Local') }}</span>
                         {% endif %}
                     </td>
                     <td>
                         {% if user.last_login %}
-                            {{ user.last_login.strftime('%d/%m/%Y %H:%M') }}
+                            {{ user.last_login | datetimeformat }}
                         {% else %}
-                            Jamais
+                            {{ _('Never') }}
                         {% endif %}
                     </td>
                     <td>{{ user.samples|length }}</td>
                     <td class="text-center">
-						<a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn-icon" title="Éditer">
+						<a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn-icon" title="{{ _('Edit') }}">
 							<i class="fas fa-edit"></i>
 						</a>
 					</td>
 					<td class="text-center">
-						<a href="{{ url_for('admin.all_samples') }}?user={{ user.id }}" class="btn-icon" title="Voir les échantillons">
+						<a href="{{ url_for('admin.all_samples') }}?user={{ user.id }}" class="btn-icon" title="{{ _('See samples') }}">
 							<i class="fas fa-vials"></i>
 						</a>
 					</td>
@@ -94,10 +94,10 @@
 						{% if not user.is_ldap %}
 							<form method="POST"
 								  action="{{ url_for('admin.delete_user', user_id=user.id) }}"
-								  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.');"
+								  onsubmit='return confirm({{ _('Are you sure you want to delete this user? This action is irreversible.') | tojson }});'
 								  class="action-form">
 								<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-								<button type="submit" class="btn-icon btn-delete" title="Supprimer">
+								<button type="submit" class="btn-icon btn-delete" title="{{ _('Delete') }}">
 									<i class="fas fa-trash"></i>
 								</button>
 							</form>
@@ -109,14 +109,14 @@
         </table>
     </div>
 
-    <p class="text-muted">Affichage de {{ users|length }} utilisateur{% if users|length > 1 %}s{% endif %}</p>
+    <p class="text-muted">{{ _('Showing') }} {{ users|length }} {{ ngettext('user', 'users', users|length) }}</p>
 
     {% else %}
     <div class="card text-center">
         <div class="card-body py-5">
             <i class="fas fa-users fa-3x text-muted mb-3"></i>
-            <h3 class="h5">Aucun utilisateur trouvé</h3>
-            <p class="text-muted mb-0">Aucun utilisateur ne correspond à vos critères de recherche.</p>
+            <h3 class="h5">{{ _('No user found') }}</h3>
+            <p class="text-muted mb-0">{{ _('No users match your search criteria.') }}</p>
         </div>
     </div>
     {% endif %}

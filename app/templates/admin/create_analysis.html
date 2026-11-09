@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Créer une Analysis{% endblock %}
+{% block title %}{{ _('Create an analysis') }}{% endblock %}
 
 {% block content %}
 <div class="form-container">
     <div class="mb-4">
-        <h2>Créer une Analysis</h2>
-        <p class="text-muted">Ajoutez manuellement les résultats d'analyse pour un échantillon</p>
+        <h2>{{ _('Create an analysis') }}</h2>
+        <p class="text-muted">{{ _('Manually add analysis results for a sample') }}</p>
     </div>
 
     <form method="POST" action="{{ url_for('admin.create_analysis') }}" class="sample-form">
@@ -14,11 +14,11 @@
 
         <div class="card mb-4">
             <div class="card-body">
-                <h3 class="h5 mb-3">Échantillon</h3>
+                <h3 class="h5 mb-3">{{ _('Sample') }}</h3>
                 <div class="mb-3">
-                    <label for="sample_id" class="form-label">Échantillon <span class="required-star">*</span></label>
+                    <label for="sample_id" class="form-label">{{ _('Sample') }} <span class="required-star">*</span></label>
                     <select id="sample_id" name="sample_id" class="form-select" required>
-                        <option value="">-- Sélectionnez un échantillon --</option>
+                        <option value="">-- {{ _('Select a sample') }} --</option>
                         {% for sample in samples %}
                             <option value="{{ sample.id }}">
                                 {{ sample.reference }} ({{ sample.get_type() }})
@@ -32,22 +32,22 @@
 
         <div class="card mb-4">
             <div class="card-body">
-                <h3 class="h5 mb-3">Résultats d'analyse</h3>
+                <h3 class="h5 mb-3">{{ _('Analysis results') }}</h3>
 
                 <div class="mb-3">
-                    <label for="results" class="form-label">Résultats détaillés</label>
+                    <label for="results" class="form-label">{{ _('Detailled results') }}</label>
                     <textarea class="form-control" id="results" name="results" rows="4"
-                              placeholder="Détails de l'analyse, observations, etc."></textarea>
+                              placeholder="{{ _('Analysis details, observations, ...') }}"></textarea>
                 </div>
             </div>
         </div>
 
         <div class="d-flex flex-wrap gap-2 mb-4">
             <button type="submit" class="btn btn-primary">
-                <i class="fas fa-save"></i> Créer l'Analysis
+                <i class="fas fa-save"></i> {{ _('Create analysis') }}
             </button>
             <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
-                <i class="fas fa-times"></i> Annuler
+                <i class="fas fa-times"></i> {{ _('Cancel') }}
             </a>
         </div>
     </form>

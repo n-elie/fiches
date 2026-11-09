@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from flask_babel import gettext as _
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
@@ -110,7 +111,7 @@ class Sample(db.Model):
         return self.status == SampleStatus.analysed
         
     def get_status_name(self):
-        return STATUS_NAMES.get(self.status.name, 'Unknown')
+        return STATUS_NAMES.get(self.status.name, _('Unknown'))
         
     def get_html_formula(self):
         return html_formula(self.formula)

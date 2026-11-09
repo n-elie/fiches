@@ -18,16 +18,16 @@ else:
 DEFAULT_MS_SOLVENTS = {
     'CH2Cl2': "CH<sub>2</sub>Cl<sub>2</sub>",
     'MeOH': "Methanol",
-    'ACN': "Acétonitrile",
+    'ACN': "Acetonitrile",
     'H2O': "H<sub>2</sub>O"
 }
 
 DEFAULT_NMR_SOLVENTS = {
-    "": "Non précisé",
-    "AcOHd4": "Acide Acétique-d4",
-    "ACEd6": "Acétone-d6",
-    "ACNd3": "Acétonitrile-d3",
-    "PhHd6": "Benzène-d6",
+    "": "Not specified",
+    "AcOHd4": "Acetic acid-d4",
+    "ACEd6": "Acetone-d6",
+    "ACNd3": "Acetonitrile-d3",
+    "PhHd6": "Benzene-d6",
     "CDCl3": "CDCl3",
     "CD2Cl2": "CD2Cl2",
     "Cyd12": "Cyclohexane-d12",
@@ -39,16 +39,16 @@ DEFAULT_NMR_SOLVENTS = {
     "MeOHd4": "Methanol-d4",
     "pyd5": "Pyridine-d5",
     "THDd8": "THF-d8",
-    "PhMed8": "Toluène-d8",
+    "PhMed8": "Toluene-d8",
     "TFAd": "TFA-d",
-    "TFEd3": "Trifluoroéthanol-d3"
+    "TFEd3": "Trifluoroethanol-d3"
 }
              
 DEFAULT_NMR_STABILITIES = {
-    0: "Inconnue",
+    0: "Unknown",
     1: "Stable",
-    2: "Instable",
-    3: "Très stable"
+    2: "Unstable",
+    3: "Very stable"
 }
 
 DEFAULT_NMR_EXPERIMENTS_BY_FREQUENCY = {
@@ -154,8 +154,8 @@ class Config:
         self.SERVICES = {}
         for service_key, service_data in services_config.items():
             self.SERVICES[service_key] = {
-                'name': service_data.get('name', 'Non précisé'),
-                'responsible': service_data.get('responsible', 'Responsable'),
+                'name': service_data.get('name', 'Not specified'),
+                'responsible': service_data.get('responsible', 'Responsible'),
                 'phone': service_data.get('phone', '0000')
             }
             if service_key == 'ms':

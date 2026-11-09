@@ -1,22 +1,22 @@
 {% extends "base.html" %}
 
-{% block title %}{% if sample %}Éditer {{ sample.reference }}{% else %}Nouvelle Analyse{% endif %}{% endblock %}
+{% block title %}{% if sample %}{{ _('Edit') }} {{ sample.reference }}{% else %}{{ _('New Analysis') }}{% endif %}{% endblock %}
 
 {% block content %}
     <div class="form-container">
         <div class="mb-4">
             <h2>
                 {% if sample %}
-                    Éditer l'échantillon
+                    {{ _('Edit sample') }}
                 {% else %}
-                    Soumission d'Échantillon
+                    {{ _('Sample Submission') }}
                 {% endif %}
             </h2>
             <p class="text-muted">
                 {% if sample %}
-                    Modifiez les informations de l'échantillon <strong>{{ sample.reference }}</strong>
+                    {{ _('Edit the sample details') }} <strong>{{ sample.reference }}</strong>
                 {% else %}
-                    Remplissez le formulaire ci-dessous pour soumettre un nouvel échantillon à l'analyse. {% block extra_header_infos %}{% endblock %}
+                    {{ _('Fill in the form below to submit a new sample for analysis.') }} {% block extra_header_infos %}{% endblock %}
                 {% endif %}
             </p>
         </div>
@@ -31,11 +31,11 @@
 
             <div class="card mb-4">
                 <div class="card-body">
-                    <h3 class="h5 mb-3">Informations de l'échantillon</h3>
+                    <h3 class="h5 mb-3">{{ _('Sample information') }}</h3>
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label for="reference" class="form-label">Référence de l'échantillon <span class="required-star">*</span></label>
+                            <label for="reference" class="form-label">{{ _('Sample reference') }} <span class="required-star">*</span></label>
                             <input type="text"
                                    class="form-control"
                                    id="reference"
@@ -43,11 +43,11 @@
                                    required
                                    {% if sample %}value="{{ sample.reference }}"{% endif %}
                                    placeholder="Ex: SAM-2024-001">
-                            <span class="help-text">Référence unique pour identifier votre échantillon</span>
+                            <span class="help-text">{{ _('Unique reference to identify your sample') }}</span>
                         </div>
 
                         <div class="col-md-6">
-                            <label for="quantity" class="form-label">Quantité déposée (mg) <span class="required-star">*</span></label>
+                            <label for="quantity" class="form-label">{{ _('Deposited quantity (mg)') }} <span class="required-star">*</span></label>
                             <input type="number"
                                    class="form-control"
                                    id="quantity"
@@ -58,7 +58,7 @@
                                    placeholder="Ex: 1.5"
                                    min="0.1"
                                    inputmode="numeric">
-                            <span class="help-text">Quantité déposée dans le tube (en mg)</span>
+                            <span class="help-text">{{ _('Amount deposited in the tube (in mg)') }}</span>
                         </div>
                     </div>
 					
@@ -69,27 +69,27 @@
 
             <div class="card mb-4">
 				<div class="card-body">
-					<h3 class="h5 mb-3">Structure chimique</h3>
+					<h3 class="h5 mb-3">{{ _('Chemical structure') }}</h3>
 
 					<div class="row g-3">
 						<div class="col-md-6">
-							<label for="structure_file" class="form-label">Fichier de structure{% if sample %} (laisser vide pour conserver l'ancien){% endif %}</label>
+							<label for="structure_file" class="form-label">{{ _('Structure file') }}{% if sample %} ({{ _('leave empty to keep the current one') }}){% endif %}</label>
 							<input type="file"
 								   class="form-control"
 								   id="structure_file"
 								   name="structure_file"
 								   accept=".cdx,.cdxml,.mol,.sdf">
-							<span class="help-text">Formats acceptés: .cdx, .cdxml, .mol, .sdf (optionnel)</span>
+							<span class="help-text">{{ _('Accepted formats:') }} .cdx, .cdxml, .mol, .sdf ({{ _('optional')}}</span>
 						</div>
 						<div class="col-md-6">
-							<label for="formula" class="form-label">Formule brute</label>
+							<label for="formula" class="form-label">{{ _('Molecular formula') }}</label>
 							<input type="text"
 								   class="form-control"
 								   id="formula"
 								   name="formula"
 								   {% if sample %} value="{{ sample.formula }}"{% endif %}
 								   placeholder="Ex: C8H10N4O2">
-							<span class="help-text">Formule chimique de l'échantillon (optionnel)</span>
+							<span class="help-text">{{ _('Chemical formula of the sample') }} ({{ _('optional') }})</span>
 						</div>
 					</div>
 				</div>
@@ -97,17 +97,17 @@
 
             <div class="card mb-4">
 				<div class="card-body">
-					<h3 class="h5 mb-3">Informations supplémentaires</h3>
+					<h3 class="h5 mb-3">{{ _('Additional information') }}</h3>
 
 					<div class="mb-3">
-						<label for="notes" class="form-label">Notes</label>
+						<label for="notes" class="form-label">{{ _('Notes') }}</label>
 						<textarea class="form-control"
 								  id="notes"
 								  name="notes"
 								  rows="4"
 								  maxlength="500"
-								  placeholder="Ajoutez des notes ou commentaires sur l'échantillon...">{% if sample %}{{ sample.notes }}{% endif %}</textarea>
-						<span class="help-text">Entrez des informations utiles pour l'opérateur (max. 500 caractères)</span>
+								  placeholder="{{ _('Add notes or comments about the sample...') }}">{% if sample %}{{ sample.notes }}{% endif %}</textarea>
+						<span class="help-text">{{ _('Enter information useful for the operator (max. %(maxlen)s characters)', maxlen=500) }}</span>
 					</div>
 				</div>
 			</div>
@@ -115,22 +115,22 @@
             <div class="d-flex flex-wrap gap-2 mb-4">
                 {% if sample %}
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Sauvegarder
+                        <i class="fas fa-save"></i> {{ _('Save') }}
                     </button>
                     <a href="{{ url_for('ms.sample_detail', sample_id=sample.id) }}"
                        class="btn btn-outline-secondary">
-                        <i class="fas fa-times"></i> Annuler
+                        <i class="fas fa-times"></i> {{ _('Cancel') }}
                     </a>
                 {% else %}
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-paper-plane"></i> Soumettre
+                        <i class="fas fa-paper-plane"></i> {{ _('Submit') }}
                     </button>
                     <button type="reset" class="btn btn-outline-secondary">
-                        <i class="fas fa-undo"></i> Réinitialiser
+                        <i class="fas fa-undo"></i> {{ _('Reset') }}
                     </button>
                 {% endif %}
                 <a href="{{ url_for('main.user_samples') }}" class="btn btn-outline-secondary">
-                    <i class="fas fa-list"></i> Mes Échantillons
+                    <i class="fas fa-list"></i> {{ _('My Samples') }}
                 </a>
             </div>
         </form>
