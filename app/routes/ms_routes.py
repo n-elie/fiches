@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, send_from_directory, current_app, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_from_directory, current_app, jsonify, session
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from sqlalchemy import desc
@@ -354,7 +354,7 @@ def import_samples():
             return redirect(url_for('ms.import_samples'))
 
         # Créer les échantillons
-        created_count = 0
+        created_samples = []
         for sample_data in samples_data:
             try:
                 sample = MSSample(
@@ -369,18 +369,25 @@ def import_samples():
                     user_id=current_user.id
                 )
                 db.session.add(sample)
-                created_count += 1
+                db.session.flush()  # pour récupérer l'ID
+                created_samples.append(sample)
             except Exception as e:
                 errors.append(f"Ligne {sample_data['line']}: {str(e)}")
                 db.session.rollback()
                 continue
 
+        created_count = len(created_samples)
         if created_count > 0:
             db.session.commit()
+            # Mémoriser les échantillons créés pour la page de confirmation
+            session['imported_sample_ids'] = [s.id for s in created_samples]
             flash(f'{created_count} échantillon{"s" if created_count > 1 else ""} importé{"s" if created_count > 1 else ""} avec succès!', 'success')
 
         for error in errors:
             flash(error, 'error')
+
+        if created_count > 0:
+            return redirect(url_for('ms.import_success'))
 
         return redirect(url_for('ms.user_samples'))
 
@@ -412,3 +419,19 @@ def import_samples_preview():
         'errors': errors,
         'team': request.form.get('team', '')
     })
+    
+@ms_bp.route('/samples/import/success')
+@login_required
+def import_success():
+    """Page de confirmation après un import réussi (modèle de la page 'success')"""
+
+    sample_ids = session.get('imported_sample_ids', [])
+    session.pop('imported_sample_ids', None)  # affichée une seule fois
+
+    samples = db.session.scalars(
+        db.select(MSSample).where(MSSample.id.in_(sample_ids))
+    ).all() if sample_ids else []
+
+    return render_template('ms/import_success.html',
+                           samples=samples,
+                           user=current_user)
