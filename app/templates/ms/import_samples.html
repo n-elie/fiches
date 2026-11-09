@@ -6,7 +6,7 @@
     <div class="form-container">
         <div class="mb-4">
             <h2>Importer des échantillons MS</h2>
-            <p class="text-muted">Téléchargez un fichier Excel contenant les échantillons à importer. Un modèle est disponible <a href="{{ url_for('static', filename='data/samples.xlsx') }}">ici</a></p>
+            <p class="text-muted">Téléchargez un fichier XLSX, XLS, ODS ou CSV (Excel ou LibreOffice) contenant les échantillons à importer. Un modèle est disponible <a href="{{ url_for('static', filename='data/samples.xlsx') }}">ici</a></p>
         </div>
 
         <div class="card mb-4">
@@ -23,7 +23,7 @@
             </div>
         </div>
 
-        <form method="post" enctype="multipart/form-data" class="sample-form">
+        <form method="post" enctype="multipart/form-data" class="sample-form" id="import-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
 			{% include "partials/_user_info.html" %}
@@ -46,7 +46,7 @@
             </div>
 
             <div class="d-flex flex-wrap gap-2 mb-4">
-                <button type="submit" class="btn btn-primary">
+				<button type="button" class="btn btn-primary" id="import-preview-btn">
                     <i class="fas fa-upload"></i> Importer
                 </button>
                 <a href="{{ url_for('ms.user_samples') }}" class="btn btn-outline-secondary">
@@ -55,4 +55,119 @@
             </div>
         </form>
     </div>
+	
+	<div class="modal fade" id="import-preview-modal" tabindex="-1" aria-labelledby="import-preview-modal-label" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="import-preview-modal-label">
+                        <i class="fas fa-file-import"></i> Aperçu de l'import
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted" id="import-preview-summary"></p>
+                    <div id="import-preview-errors" class="alert alert-danger d-none"></div>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Ligne</th>
+                                    <th>Référence</th>
+                                    <th>Quantité (mg)</th>
+                                    <th>Solvant</th>
+                                    <th>Formule</th>
+                                    <th>Masse</th>
+                                    <th>SMILES</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="import-preview-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="confirm-import-btn" disabled>
+                        <i class="fas fa-check"></i> Confirmer l'import
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        $(document).ready(function() {
+            const $form = $('#import-form');
+            const $file = $('#excel_file');
+            const $team = $('#team');
+            const modalEl = document.getElementById('import-preview-modal');
+
+            $('#import-preview-btn').on('click', function() {
+                if (!$file[0].files.length) {
+                    $file.addClass('is-invalid');
+                    return;
+                }
+                $file.removeClass('is-invalid');
+                if (!$team.val()) {
+                    $team.addClass('is-invalid');
+                    return;
+                }
+                $team.removeClass('is-invalid');
+
+                const formData = new FormData($form[0]);
+                $.ajax({
+                    url: "{{ url_for('ms.import_samples_preview') }}",
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(resp) {
+                        const $tbody = $('#import-preview-tbody');
+                        $tbody.empty();
+                        resp.samples.forEach(function(row) {
+                            const $tr = $('<tr></tr>');
+                            $tr.append($('<td></td>').text(row.line));
+                            $tr.append($('<td></td>').text(row.reference));
+                            $tr.append($('<td></td>').text(row.quantity));
+                            $tr.append($('<td></td>').text(row.solvent || '-'));
+                            $tr.append($('<td></td>').text(row.formula || '-'));
+                            $tr.append($('<td></td>').text(row.mass !== null && row.mass !== undefined ? Number(row.mass).toFixed(4) : '-'));
+                            $tr.append($('<td></td>').text(row.smiles || '-'));
+                            $tr.append($('<td></td>').text(row.notes || '-'));
+                            $tbody.append($tr);
+                        });
+                        $('#import-preview-summary').text(
+                            resp.samples.length + ' échantillon(s) à importer' +
+                            (resp.team ? ' — équipe : ' + resp.team : '')
+                        );
+                        const $errors = $('#import-preview-errors');
+                        $errors.empty();
+                        (resp.errors || []).forEach(function(err) {
+                            $errors.append($('<div></div>').text(err));
+                        });
+                        $errors.toggleClass('d-none', (resp.errors || []).length === 0);
+                        $('#confirm-import-btn').prop('disabled', resp.samples.length === 0);
+                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                    },
+                    error: function(xhr) {
+                        const msg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Erreur lors de la lecture du fichier';
+                        $('#import-preview-errors').empty().append($('<div></div>').text(msg)).removeClass('d-none');
+                        $('#import-preview-tbody').empty();
+                        $('#import-preview-summary').text('');
+                        $('#confirm-import-btn').prop('disabled', true);
+                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                    }
+                });
+            });
+
+            $('#confirm-import-btn').on('click', function() {
+                // Soumission réelle du formulaire (POST ms.import_samples) : crée les échantillons
+                $form[0].submit();
+            });
+        });
+    </script>
 {% endblock %}

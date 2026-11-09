@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, send_from_directory, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_from_directory, current_app, jsonify
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from sqlalchemy import desc
@@ -238,7 +238,89 @@ def sample_edit(sample_id):
                            sample=sample,
                            user=current_user,
                            solvents=ms_config['solvents'])
-                           
+                      
+def _parse_import_file(file) -> tuple[list[dict], list[str]]:
+    """Lit et valide un fichier d'import (xlsx, xls, ods, csv), partagé entre
+    l'import réel (import_samples) et l'aperçu AJAX (import_samples_preview).
+
+    Retourne (rows, errors) :
+      - rows : dictionnaires prêts à être créés (line, reference, quantity, solvent,
+               formula, mass, smiles, notes), avec formula/mass calculées si possible ;
+      - errors : messages d'erreur par ligne.
+    Lève ValueError en cas de problème sur le fichier (type non autorisé, lecture,
+    colonnes manquantes).
+    """
+    
+    match file.mimetype:
+        case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+            filetype = 'excel'
+        case 'text/csv' | 'application/csv' | 'application/vnd.ms-excel':
+            filetype = 'csv'
+        case 'application/vnd.oasis.opendocument.spreadsheet':
+            filetype = 'ods'
+        case _:
+            raise ValueError('Type de fichier non autorisé. Formats acceptés: .xlsx, .xls, .ods, .csv')
+
+    # Lire le fichier avec pandas
+    try:
+        match filetype:
+            case 'excel' | 'ods':
+                df = pd.read_excel(file)
+            case 'csv':
+                df = pd.read_csv(file, sep=';')
+
+        df.columns = df.columns.str.lower()  # Normaliser les noms de colonnes
+        df = df.replace(float('nan'), None)
+    except Exception as e:
+        raise ValueError(f'Erreur lors de la lecture du fichier: {str(e)}')
+
+    # Vérifier que les colonnes requises sont présentes
+    required_columns = ['reference', 'quantity']
+    missing_columns = [col for col in required_columns if col not in df.columns]
+    if missing_columns:
+        raise ValueError(f'Colonnes manquantes dans le fichier: {", ".join(missing_columns)}')
+
+    rows = []
+    errors = []
+    for line, sample_data in enumerate(df.to_dict('records'), start=2):
+        try:
+            reference = sample_data.get('reference')
+            quantity = sample_data.get('quantity')
+            solvent = sample_data.get('solvent')
+            formula = sample_data.get('formula')
+            smiles = sample_data.get('smiles')
+            notes = sample_data.get('notes')
+
+            # Validation
+            if not reference or not quantity:
+                errors.append(f"Ligne {line}: référence et quantité sont obligatoires")
+                continue
+
+            # Calculer la formule si le SMILES est fourni
+            if smiles:
+                mol = mol_from_smiles(str(smiles))
+                formula = mol_to_formula(mol)
+
+            # Calculer la masse si la formule est fournie
+            mass = None
+            if formula:
+                mass = formula_to_mass(str(formula))
+
+            rows.append({
+                'line': line,
+                'reference': str(reference),
+                'quantity': float(quantity),
+                'solvent': str(solvent) if solvent else '',
+                'formula': str(formula) if formula else '',
+                'mass': mass,
+                'smiles': str(smiles) if smiles else '',
+                'notes': str(notes) if notes else '',
+            })
+        except Exception as e:
+            errors.append(f"Ligne {line}: {str(e)}")
+
+    return rows, errors
+    
 @ms_bp.route('/samples/import', methods=['GET', 'POST'])
 @login_required
 def import_samples():
@@ -259,108 +341,74 @@ def import_samples():
             flash('Veuillez selectionner un fichier Excel', 'error')
             return redirect(url_for('ms.import_samples'))
 
-        match file.mimetype:
-            case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
-                filetype = 'excel'
-            case 'text/csv' | 'application/csv' | 'application/vnd.ms-excel':
-                filetype = 'csv'
-            case 'application/vnd.oasis.opendocument.spreadsheet':
-                filetype = 'ods'
-            case _:
-                flash('Type de fichier non autorisé. Formats acceptés: .xlsx, .xls, .ods, .csv', 'error')
-                return redirect(url_for('ms.import_samples'))
-
-        # Lire le fichier Excel avec pandas
+        # Lecture et validation du fichier (commun avec l'aperçu AJAX)
         try:
-            match filetype:
-                case 'excel' | 'ods':
-                    df = pd.read_excel(file)
-                case 'csv':
-                    df = pd.read_csv(file, sep=';')
-            
-            df.columns = df.columns.str.lower()  # Normaliser les noms de colonnes
-            df = df.replace(float('nan'), None)
-
-            # Vérifier que les colonnes requises sont présentes
-            required_columns = ['reference', 'quantity']
-            missing_columns = [col for col in required_columns if col not in df.columns]
-            if missing_columns:
-                flash(f'Colonnes manquantes dans le fichier: {", ".join(missing_columns)}', 'error')
-                return redirect(url_for('ms.import_samples'))
-
-            # Convertir en liste de dictionnaires
-            samples_data = df.to_dict('records')
-
-            # Créer les échantillons
-            created_count = 0
-            errors = []
-            team = request.form.get('team')
-
-            if not team:
-                flash('Veuillez selectionner une équipe', 'error')
-                return redirect(url_for('ms.import_samples'))
-
-            for sample_data in samples_data:
-                try:
-                    reference = sample_data.get('reference')
-                    quantity = sample_data.get('quantity')
-                    solvent = sample_data.get('solvent')
-                    formula = sample_data.get('formula')
-                    smiles = sample_data.get('smiles')
-                    notes = sample_data.get('notes')
-
-                    # Validation
-                    if not reference or not quantity:
-                        errors.append(f"Ligne {samples_data.index(sample_data) + 2}: Référence et quantité sont obligatoires")
-                        continue
-
-                    # Calculer la formule si le SMILES est fourni
-                    if smiles:
-                        mol = mol_from_smiles(smiles)
-                        formula = mol_to_formula(mol)
-
-                    # Calculer la masse si formule est fournie
-                    mass = None
-                    if formula:
-                        try:
-                            mass = formula_to_mass(formula)
-                        except Exception as e:
-                            errors.append(f"Ligne {samples_data.index(sample_data) + 2}: Erreur calcul masse - {str(e)}")
-                            continue
-
-                    # Créer l'échantillon
-                    sample = MSSample(
-                        team=team,
-                        reference=str(reference),
-                        quantity=float(quantity),
-                        formula=str(formula) if formula else None,
-                        mass=mass,
-                        smiles=str(smiles) if smiles else None,
-                        solvents=str(solvent) if solvent else None,
-                        notes=str(notes) if notes else None,
-                        user_id=current_user.id
-                    )
-                    db.session.add(sample)
-                    created_count += 1
-
-                except Exception as e:
-                    errors.append(f"Ligne {samples_data.index(sample_data) + 2}: {str(e)}")
-                    db.session.rollback()
-                    continue
-
-            if created_count > 0:
-                db.session.commit()
-                flash(f'{created_count} échantillon{"s" if created_count > 1 else ""} importé{"s" if created_count > 1 else ""} avec succès!', 'success')
-
-            for error in errors:
-                flash(error, 'error')
-
-            return redirect(url_for('ms.user_samples'))
-
-        except Exception as e:
-            flash(f'Erreur lors de la lecture du fichier Excel: {str(e)}', 'error')
+            samples_data, errors = _parse_import_file(file)
+        except ValueError as e:
+            flash(str(e), 'error')
             return redirect(url_for('ms.import_samples'))
+
+        team = request.form.get('team')
+        if not team:
+            flash('Veuillez selectionner une équipe', 'error')
+            return redirect(url_for('ms.import_samples'))
+
+        # Créer les échantillons
+        created_count = 0
+        for sample_data in samples_data:
+            try:
+                sample = MSSample(
+                    team=team,
+                    reference=sample_data['reference'],
+                    quantity=sample_data['quantity'],
+                    formula=sample_data['formula'] or None,
+                    mass=sample_data['mass'],
+                    smiles=sample_data['smiles'] or None,
+                    solvents=sample_data['solvent'] or None,
+                    notes=sample_data['notes'] or None,
+                    user_id=current_user.id
+                )
+                db.session.add(sample)
+                created_count += 1
+            except Exception as e:
+                errors.append(f"Ligne {sample_data['line']}: {str(e)}")
+                db.session.rollback()
+                continue
+
+        if created_count > 0:
+            db.session.commit()
+            flash(f'{created_count} échantillon{"s" if created_count > 1 else ""} importé{"s" if created_count > 1 else ""} avec succès!', 'success')
+
+        for error in errors:
+            flash(error, 'error')
+
+        return redirect(url_for('ms.user_samples'))
 
     # GET: Afficher le formulaire d'import
     return render_template('ms/import_samples.html',
                            user=current_user)
+                           
+@ms_bp.route('/samples/import/preview', methods=['POST'])
+@login_required
+def import_samples_preview():
+    """Aperçu AJAX de l'import : parse le fichier et renvoie les lignes à valider,
+    sans rien créer en base"""
+
+    if 'excel_file' not in request.files:
+        return jsonify({'error': 'Aucun fichier fourni'}), 400
+
+    file = request.files['excel_file']
+    if file.filename == '':
+        return jsonify({'error': 'Veuillez sélectionner un fichier'}), 400
+
+        # Lecture et validation du fichier (commun avec l'import réel)
+    try:
+        rows, errors = _parse_import_file(file)
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+
+    return jsonify({
+        'samples': rows,
+        'errors': errors,
+        'team': request.form.get('team', '')
+    })
