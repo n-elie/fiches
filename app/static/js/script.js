@@ -60,7 +60,7 @@ function initFileUpload() {
 
                 if (file.size > maxSize) {
                     e.preventDefault();
-					alert((window.I18N && window.I18N.fileTooLarge) || 'The file is too large. Maximum allowed size is 16 MB.');
+                    alert((window.I18N && window.I18N.fileTooLarge) || 'The file is too large. Maximum allowed size is 16 MB.');
                     $fileInput.addClass('is-invalid');
                 }
             }

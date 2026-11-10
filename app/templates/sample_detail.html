@@ -8,24 +8,26 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> {{ _('Dashboard') }}</a>
+                        <a href="{{ url_for("admin.dashboard") }}"><i class="fas fa-tachometer-alt"></i> {{ _("Dashboard") }}</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="{{ url_for('admin.all_samples') }}"><i class="fas fa-list"></i> {{ _('Samples') }}</a>
+                        <a href="{{ url_for("admin.all_samples") }}"><i class="fas fa-list"></i> {{ _("Samples") }}</a>
                     </li>
-                    <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-file-alt"></i> {{ sample.reference }}</li>
+                    <li class="breadcrumb-item active"
+                        aria-current="page"><i class="fas fa-file-alt"></i> {{ sample.reference }}</li>
                 </ol>
             </nav>
         {% else %}
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="{{ url_for('main.index') }}"><i class="fas fa-home"></i> {{ _('Home') }}</a>
+                        <a href="{{ url_for("main.index") }}"><i class="fas fa-home"></i> {{ _("Home") }}</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="{{ url_for('main.user_samples') }}"><i class="fas fa-list"></i> {{ _('My Samples') }}</a>
+                        <a href="{{ url_for("main.user_samples") }}"><i class="fas fa-list"></i> {{ _("My Samples") }}</a>
                     </li>
-                    <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-file-alt"></i> {{ sample.reference }}</li>
+                    <li class="breadcrumb-item active"
+                        aria-current="page"><i class="fas fa-file-alt"></i> {{ sample.reference }}</li>
                 </ol>
             </nav>
         {% endif %}
@@ -48,7 +50,7 @@
         {% if user.is_admin %}
             <div class="card mb-4">
                 <div class="card-header">
-                    <h2 class="h5 mb-0"><i class="fas fa-tools"></i> {{ _('Actions') }}</h2>
+                    <h2 class="h5 mb-0"><i class="fas fa-tools"></i> {{ _("Actions") }}</h2>
                 </div>
 
                 <div class="card-body">
@@ -58,7 +60,7 @@
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="row g-3 align-items-end">
                             <div class="col-md-auto">
-                                <label for="status" class="form-label">{{ _('Status') }}</label>
+                                <label for="status" class="form-label">{{ _("Status") }}</label>
                                 <select id="status" name="status" class="form-select">
                                     {% for status, name in status_names.items() %}
                                         <option value="{{ status }}"
@@ -68,7 +70,7 @@
                             </div>
                             <div class="col-md-auto">
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-sync-alt"></i> {{ _('Update') }}
+                                    <i class="fas fa-sync-alt"></i> {{ _("Update") }}
                                 </button>
                             </div>
                         </div>
@@ -79,20 +81,20 @@
                     <div class="card-body border-top">
                         <div class="row g-3 align-items-end">
                             <div class="col-md-auto">
-                                <label class="form-label">{{ _('Analysis sheet') }}</label>
+                                <label class="form-label">{{ _("Analysis sheet") }}</label>
                                 <div>
                                     <a href="{{ url_for('main.generate_pdf', sample_id=sample.id) }}"
                                        class="btn btn-primary"
-                                       title="{{ _('Generate PDF sheet') }}">
-                                        <i class="fas fa-file-pdf"></i> {{ _('Generate PDF sheet') }}
+                                       title="{{ _("Generate PDF sheet") }}">
+                                        <i class="fas fa-file-pdf"></i> {{ _("Generate PDF sheet") }}
                                     </a>
                                 </div>
                             </div>
 
                             {% if sample.celery_task_id %}
                                 <div class="col-md-auto">
-                                    <h4 class="h6">{{ _('Analysis status') }}</h4>
-                                    <p id="task-status" class="mb-1">{{ _('Checking...') }}</p>
+                                    <h4 class="h6">{{ _("Analysis status") }}</h4>
+                                    <p id="task-status" class="mb-1">{{ _("Checking...") }}</p>
                                     <div id="task-result"></div>
                                 </div>
                             {% endif %}
@@ -101,10 +103,10 @@
                                 <form method="post"
                                       action="{{ url_for('admin.start_analysis_task', sample_id=sample.id) }}">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <label class="form-label">{{ _('Automatic analysis') }}</label>
+                                    <label class="form-label">{{ _("Automatic analysis") }}</label>
                                     <div>
                                         <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-play"></i> {{ _('Start analysis') }}
+                                            <i class="fas fa-play"></i> {{ _("Start analysis") }}
                                         </button>
                                     </div>
                                 </form>
@@ -118,7 +120,7 @@
         <!-- Section Informations principales -->
         <div class="card mb-4">
             <div class="card-header">
-                <h2 class="h5 mb-0"><i class="fas fa-info-circle"></i> {{ _('Main information') }}</h2>
+                <h2 class="h5 mb-0"><i class="fas fa-info-circle"></i> {{ _("Main information") }}</h2>
             </div>
             <div class="card-body">
                 <div class="row g-3">
@@ -128,7 +130,7 @@
                                 <i class="fas fa-hashtag"></i>
                             </div>
                             <div>
-                                <div class="text-muted small">{{ _('Reference') }}</div>
+                                <div class="text-muted small">{{ _("Reference") }}</div>
                                 <div class="fw-semibold">{{ sample.reference }}</div>
                             </div>
                         </div>
@@ -139,7 +141,7 @@
                                 <i class="fas fa-weight-scale"></i>
                             </div>
                             <div>
-                                <div class="text-muted small">{{ _('Quantity') }}</div>
+                                <div class="text-muted small">{{ _("Quantity") }}</div>
                                 <div class="fw-semibold">{{ sample.quantity }} mg</div>
                             </div>
                         </div>
@@ -150,7 +152,7 @@
                                 <i class="fas fa-calendar-alt"></i>
                             </div>
                             <div>
-                                <div class="text-muted small">{{ _('Created on') }}</div>
+                                <div class="text-muted small">{{ _("Created on") }}</div>
                                 <div class="fw-semibold">{{ sample.created_at | datetimeformat }}</div>
                             </div>
                         </div>
@@ -161,7 +163,7 @@
                                 <i class="fas fa-sync-alt"></i>
                             </div>
                             <div>
-                                <div class="text-muted small">{{ _('Updated on') }}</div>
+                                <div class="text-muted small">{{ _("Updated on") }}</div>
                                 <div class="fw-semibold">{{ sample.updated_at | datetimeformat }}</div>
                             </div>
                         </div>
@@ -173,7 +175,7 @@
                                     <i class="fas fa-users"></i>
                                 </div>
                                 <div>
-                                    <div class="text-muted small">{{ _('Team') }}</div>
+                                    <div class="text-muted small">{{ _("Team") }}</div>
                                     <div class="fw-semibold">{{ sample.team }}</div>
                                 </div>
                             </div>
@@ -186,7 +188,7 @@
         <!-- Section Utilisateur -->
         <div class="card mb-4">
             <div class="card-header">
-                <h2 class="h5 mb-0"><i class="fas fa-user"></i> {{ _('User information') }}</h2>
+                <h2 class="h5 mb-0"><i class="fas fa-user"></i> {{ _("User information") }}</h2>
             </div>
             <div class="card-body">
                 <div class="d-flex align-items-center gap-3">
@@ -206,7 +208,7 @@
         {% if sample.analysis_type == "nmr" %}
             <div class="card mb-4">
                 <div class="card-header">
-                    <h2 class="h5 mb-0"><i class="fas fa-cog"></i> {{ _('NMR settings') }}</h2>
+                    <h2 class="h5 mb-0"><i class="fas fa-cog"></i> {{ _("NMR settings") }}</h2>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
@@ -216,7 +218,7 @@
                                     <i class="fas fa-tint"></i>
                                 </div>
                                 <div>
-                                    <div class="text-muted small">{{ _('Solvent') }}</div>
+                                    <div class="text-muted small">{{ _("Solvent") }}</div>
                                     <div class="fw-semibold">{{ _(solvent) if solvent else '-' }}</div>
                                 </div>
                             </div>
@@ -227,18 +229,18 @@
                                     <i class="fas fa-wave-square"></i>
                                 </div>
                                 <div>
-                                    <div class="text-muted small">{{ _('Frequency') }}</div>
+                                    <div class="text-muted small">{{ _("Frequency") }}</div>
                                     <div class="fw-semibold">{{ sample.frequency }} MHz</div>
                                 </div>
                             </div>
                         </div>
-						<div class="col-md-6 col-lg-4">
+                        <div class="col-md-6 col-lg-4">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="detail-icon">
                                     <i class="fas fa-scale-balanced"></i>
                                 </div>
                                 <div>
-                                    <div class="text-muted small">{{ _('Stability') }}</div>
+                                    <div class="text-muted small">{{ _("Stability") }}</div>
                                     <div class="fw-semibold">{{ _(stability) if stability else '-' }}</div>
                                 </div>
                             </div>
@@ -249,12 +251,12 @@
                                     <i class="fas fa-list-ul"></i>
                                 </div>
                                 <div>
-                                    <div class="text-muted small">{{ _('Requested experiments') }}</div>
+                                    <div class="text-muted small">{{ _("Requested experiments") }}</div>
                                     <div class="mt-1">
                                         {% for exp in sample.experiments.split(', ') %}
                                             <span class="experiment-tag">{{ exp }}</span>
                                         {% endfor %}
-										{% if sample.other_experiment %}
+                                        {% if sample.other_experiment %}
                                             <span class="experiment-tag">{{ sample.other_experiment }}</span>
                                         {% endif %}
                                     </div>
@@ -269,7 +271,7 @@
         {% if sample.analysis_type == "ms" %}
             <div class="card mb-4">
                 <div class="card-header">
-                    <h2 class="h5 mb-0"><i class="fas fa-cog"></i> {{ _('Mass Spectrometry settings') }}</h2>
+                    <h2 class="h5 mb-0"><i class="fas fa-cog"></i> {{ _("Mass Spectrometry settings") }}</h2>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
@@ -279,21 +281,21 @@
                                     <i class="fas fa-tint"></i>
                                 </div>
                                 <div>
-                                    <div class="text-muted small">{{ _('Solvents') }}</div>
-									<div class="mt-1">
-										{% if sample %}
-											{% if sample.solvents %}
-												{% set sample_solvents_list = sample.solvents.split(', ') %}
-											{% else %}
-												{% set sample_solvents_list = [] %}
-											{% endif %}
-										{% endif %}
-										{% for code, solv in solvents.items() %}
-										    {% if code in sample_solvents_list %}
-												<span class="experiment-tag">{{ _(solv) | safe }}</span>
-											{% endif %}
+                                    <div class="text-muted small">{{ _("Solvents") }}</div>
+                                    <div class="mt-1">
+                                        {% if sample %}
+                                            {% if sample.solvents %}
+                                                {% set sample_solvents_list = sample.solvents.split(', ') %}
+                                            {% else %}
+                                                {% set sample_solvents_list = [] %}
+                                            {% endif %}
+                                        {% endif %}
+                                        {% for code, solv in solvents.items() %}
+                                            {% if code in sample_solvents_list %}
+                                                <span class="experiment-tag">{{ _(solv) | safe }}</span>
+                                            {% endif %}
                                         {% endfor %}
-										{% if sample.other_solvent %}
+                                        {% if sample.other_solvent %}
                                             <span class="experiment-tag">{{ sample.other_solvent }}</span>
                                         {% endif %}
                                     </div>
@@ -309,71 +311,71 @@
         {% if sample.formula or sample.mass or sample.smiles or sample.structure_file %}
             <div class="card mb-4">
                 <div class="card-header">
-                    <h2 class="h5 mb-0"><i class="fas fa-molecule"></i> {{ _('Chemical structure') }}</h2>
+                    <h2 class="h5 mb-0"><i class="fas fa-molecule"></i> {{ _("Chemical structure") }}</h2>
                 </div>
                 <div class="card-body">
-					<div class="row g-3">
-						{% if sample.formula %}
-							<div class="col-md-6 col-lg-4">
-								<div class="d-flex align-items-center gap-3">
-									<div class="detail-icon">
-										<i class="fas fa-share-nodes"></i>
-									</div>
-									<div>
-										<div class="text-muted small">{{ _('Molecular formula') }}</div>
-										<div class="fw-semibold">{{ sample.get_html_formula()|safe }}</div>
-									</div>
-								</div>
-							</div>
-						{% endif %}
-					
-						{% if sample.mass %}
-							<div class="col-md-6 col-lg-4">
-								<div class="d-flex align-items-center gap-3">
-									<div class="detail-icon">
-										<i class="fas fa-balance-scale"></i>
-									</div>
-									<div>
-										<div class="text-muted small">{{ _('Exact mass') }}</div>
-										<div class="fw-semibold">{{ "%.4f"|format(sample.mass) }}</div>
-									</div>
-								</div>
-							</div>
-						{% endif %}
-					
-						{% if sample.smiles %}
-							<div class="col-md-6 col-lg-4">
-								<div class="d-flex align-items-center gap-3">
-									<div class="detail-icon">
-										<i class="fas fa-atom"></i>
-									</div>
-									<div>
-										<div class="text-muted small">SMILES</div>
-										<div class="fw-semibold">{{ sample.smiles }}</div>
-									</div>
-								</div>
-							</div>
-						{% endif %}
-					
-						{% if sample.structure_file %}
-							<div class="col-md-6 col-lg-4">
-								<div class="d-flex align-items-center gap-3">
-									<div class="detail-icon">
-										<i class="fas fa-file-code"></i>
-									</div>
-									<div class="flex-grow-1">
-										<div class="fw-semibold">{{ sample.structure_file }}</div>
-										<div class="text-muted small">{{ _('Chemical structure file') }}</div>
-									</div>
-									<a href="{{ url_for('main.download_file', filename=sample.structure_file) }}"
-										class="btn btn-primary"
-										title="{{ _('Download file') }}">
-										<i class="fas fa-download"></i> {{ _('Download') }}
-									</a>
-								</div>
-							</div>
-						{% endif %}
-					</div>
+                    <div class="row g-3">
+                        {% if sample.formula %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="detail-icon">
+                                        <i class="fas fa-share-nodes"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted small">{{ _("Molecular formula") }}</div>
+                                        <div class="fw-semibold">{{ sample.get_html_formula()|safe }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if sample.mass %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="detail-icon">
+                                        <i class="fas fa-balance-scale"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted small">{{ _("Exact mass") }}</div>
+                                        <div class="fw-semibold">{{ "%.4f"|format(sample.mass) }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if sample.smiles %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="detail-icon">
+                                        <i class="fas fa-atom"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted small">SMILES</div>
+                                        <div class="fw-semibold">{{ sample.smiles }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if sample.structure_file %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="detail-icon">
+                                        <i class="fas fa-file-code"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold">{{ sample.structure_file }}</div>
+                                        <div class="text-muted small">{{ _("Chemical structure file") }}</div>
+                                    </div>
+                                    <a href="{{ url_for('main.download_file', filename=sample.structure_file) }}"
+                                       class="btn btn-primary"
+                                       title="{{ _("Download file") }}">
+                                        <i class="fas fa-download"></i> {{ _("Download") }}
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         {% endif %}
@@ -382,7 +384,7 @@
         {% if sample.notes %}
             <div class="card mb-4">
                 <div class="card-header">
-                    <h2 class="h5 mb-0"><i class="fas fa-sticky-note"></i> {{ _('Notes') }}</h2>
+                    <h2 class="h5 mb-0"><i class="fas fa-sticky-note"></i> {{ _("Notes") }}</h2>
                 </div>
                 <div class="card-body">
                     <p class="mb-0">{{ sample.notes }}</p>

@@ -1,52 +1,56 @@
 {% extends "sample_submit.html" %}
 
 {% if sample %}
-	{% set action = url_for('ms.sample_edit', sample_id=sample.id) %}
+    {% set action = url_for('ms.sample_edit', sample_id=sample.id) %}
 {% else %}
-	{% set action = url_for('ms.submit_sample') %}
+    {% set action = url_for('ms.submit_sample') %}
 {% endif %}
 
 {% block extra_header_infos %}
-{% trans template_url=url_for('ms.import_samples') %}You can also <a href="{{template_url}}">import samples in bulk</a> from an Excel file'.{% endtrans %}
+    {% trans template_url=url_for("ms.import_samples") %}You can also <a href="{{ template_url }}">import samples in bulk</a> from an Excel file'.{% endtrans %}
 {% endblock %}
 
 {% block form_analysis_specific_fields %}
-<div class="row g-3 mt-0">
-	<div class="col-12">
-		<label class="form-label">{{ _('Solvent used') }}<span class="required-star">*</span></label>
-		<div id="solvents-container" class="checkbox-group">
-			{% if sample %}
-				{% if sample.solvents %}
-					{% set sample_solvents_list = sample.solvents.split(', ') %}
-				{% else %}
-					{% set sample_solvents_list = [] %}
-				{% endif %}
-			{% endif %}
-			{% for code, solvent in solvents.items() %}
-				<div class="checkbox-item form-check">
-					<input type="checkbox"
-						   class="form-check-input"
-						   id="solvent_{{ loop.index }}"
-						   name="solvents"
-						   value="{{ code }}"
-						   {% if sample and code in sample_solvents_list %}checked{% endif %}>
-					<label class="form-check-label" for="solvent_{{ loop.index }}">{{ _(solvent) | safe }}</label>
-				</div>
-			{% endfor %}
-			<div class="checkbox-item form-check">
-				<input type="checkbox" class="form-check-input" id="other_solvent" name="other_solvent" value="other">
-				<label class="form-check-label" for="other_solvent">{{ _('Other') }}</label>
-				<input type="text"
-					   class="form-control"
-					   id="other_solvent_name"
-					   name="other_solvent_name"
-					   placeholder="{{ _('Specify...') }}"
-					   disabled="">
-			</div>
-		</div>
-		<span class="help-text">{{ _('Solvents used for sample preparation') }}</span>
-	</div>
-</div>
+    <div class="row g-3 mt-0">
+        <div class="col-12">
+            <label class="form-label">{{ _("Solvent used") }}<span class="required-star">*</span></label>
+            <div id="solvents-container" class="checkbox-group">
+                {% if sample %}
+                    {% if sample.solvents %}
+                        {% set sample_solvents_list = sample.solvents.split(', ') %}
+                    {% else %}
+                        {% set sample_solvents_list = [] %}
+                    {% endif %}
+                {% endif %}
+                {% for code, solvent in solvents.items() %}
+                    <div class="checkbox-item form-check">
+                        <input type="checkbox"
+                               class="form-check-input"
+                               id="solvent_{{ loop.index }}"
+                               name="solvents"
+                               value="{{ code }}"
+                               {% if sample and code in sample_solvents_list %}checked{% endif %}>
+                        <label class="form-check-label" for="solvent_{{ loop.index }}">{{ _(solvent) | safe }}</label>
+                    </div>
+                {% endfor %}
+                <div class="checkbox-item form-check">
+                    <input type="checkbox"
+                           class="form-check-input"
+                           id="other_solvent"
+                           name="other_solvent"
+                           value="other">
+                    <label class="form-check-label" for="other_solvent">{{ _("Other") }}</label>
+                    <input type="text"
+                           class="form-control"
+                           id="other_solvent_name"
+                           name="other_solvent_name"
+                           placeholder="{{ _("Specify...") }}"
+                           disabled="">
+                </div>
+            </div>
+            <span class="help-text">{{ _("Solvents used for sample preparation") }}</span>
+        </div>
+    </div>
 {% endblock %}
 
 {% block scripts %}

@@ -1,69 +1,81 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _('Import MS Samples') }}{% endblock %}
+{% block title %}{{ _("Import MS Samples") }}{% endblock %}
 
 {% block content %}
     <div class="form-container">
         <div class="mb-4">
-            <h2>{{ _('Import MS Samples') }}</h2>
-            <p class="text-muted">{% trans template_url=url_for('static', filename='data/samples.xlsx') %}Upload an XLSX, XLS, ODS or CSV file (Excel or LibreOffice) containing the samples to import. A template is available <a href="{{ template_url }}">here</a>{% endtrans %}</p>
+            <h2>{{ _("Import MS Samples") }}</h2>
+            <p class="text-muted">{% trans template_url=url_for("static", filename="data/samples.xlsx") %}Upload an XLSX, XLS, ODS or CSV file (Excel or LibreOffice) containing the samples to import. A template is available <a href="{{ template_url }}">here</a>{% endtrans %}</p>
         </div>
 
         <div class="card mb-4">
             <div class="card-body">
-                <p><strong>{{ _('Expected format:') }}</strong> {{ _('The file must contain at least the following columns:') }}</p>
+                <p><strong>{{ _("Expected format:") }}</strong> {{ _("The file must contain at least the following columns:") }}</p>
                 <ul>
-                    <li><strong>reference</strong> {{ _('(required):  Sample reference') }}</li>
-                    <li><strong>quantity</strong> {{ _('(required): Quantity in mg') }}</li>
-                    <li><strong>solvent</strong> {{ _('(optional): Solvent used') }}</li>
-                    <li><strong>formula</strong> {{ _('(optional): Molecular Formula') }}</li>
-                    <li><strong>smiles</strong> {{ _('(optional): SMILES string for the molecule') }}</li>
-                    <li><strong>notes</strong> {{ _('(optional): Additional notes') }}</li>
+                    <li><strong>reference</strong> {{ _("(required):  Sample reference") }}</li>
+                    <li><strong>quantity</strong> {{ _("(required): Quantity in mg") }}</li>
+                    <li><strong>solvent</strong> {{ _("(optional): Solvent used") }}</li>
+                    <li><strong>formula</strong> {{ _("(optional): Molecular Formula") }}</li>
+                    <li><strong>smiles</strong> {{ _("(optional): SMILES string for the molecule") }}</li>
+                    <li><strong>notes</strong> {{ _("(optional): Additional notes") }}</li>
                 </ul>
             </div>
         </div>
 
-        <form method="post" enctype="multipart/form-data" class="sample-form" id="import-form">
+        <form method="post"
+              enctype="multipart/form-data"
+              class="sample-form"
+              id="import-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-			{% include "partials/_user_info.html" %}
+            {% include "partials/_user_info.html" %}
 
             <div class="card mb-4">
                 <div class="card-body">
-                    <h3 class="h5 mb-3">{{ _('Import parameters') }}</h3>
+                    <h3 class="h5 mb-3">{{ _("Import parameters") }}</h3>
 
                     <div class="mb-3">
-                        <label for="excel_file" class="form-label">{{ _('Excel File:') }}<span class="required-star">*</span></label>
+                        <label for="excel_file"
+                               class="form-label">{{ _("Excel File:") }}<span class="required-star">*</span></label>
                         <input type="file"
                                class="form-control"
                                id="excel_file"
                                name="excel_file"
                                accept=".xlsx,.xls,.ods,.csv"
                                required>
-                        <span class="help-text">{{ _('Accepted formats:') }} .xlsx, .xls, .ods, .csv</span>
+                        <span class="help-text">{{ _("Accepted formats:") }} .xlsx, .xls, .ods, .csv</span>
                     </div>
                 </div>
             </div>
 
             <div class="d-flex flex-wrap gap-2 mb-4">
-				<button type="button" class="btn btn-primary" id="import-preview-btn">
-                    <i class="fas fa-upload"></i> {{ _('Import') }}
+                <button type="button" class="btn btn-primary" id="import-preview-btn">
+                    <i class="fas fa-upload"></i> {{ _("Import") }}
                 </button>
-                <a href="{{ url_for('ms.user_samples') }}" class="btn btn-outline-secondary">
-                    <i class="fas fa-times"></i> {{ _('Cancel') }}
+                <a href="{{ url_for("ms.user_samples") }}"
+                   class="btn btn-outline-secondary">
+                    <i class="fas fa-times"></i> {{ _("Cancel") }}
                 </a>
             </div>
         </form>
     </div>
-	
-	<div class="modal fade" id="import-preview-modal" tabindex="-1" aria-labelledby="import-preview-modal-label" aria-hidden="true">
+
+    <div class="modal fade"
+         id="import-preview-modal"
+         tabindex="-1"
+         aria-labelledby="import-preview-modal-label"
+         aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="import-preview-modal-label">
-                        <i class="fas fa-file-import"></i> {{ _('Import Preview') }}
+                        <i class="fas fa-file-import"></i> {{ _("Import Preview") }}
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Close') }}"></button>
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="{{ _("Close") }}"></button>
                 </div>
                 <div class="modal-body">
                     <p class="text-muted" id="import-preview-summary"></p>
@@ -73,23 +85,27 @@
                             <thead class="table-dark">
                                 <tr>
                                     <th>#</th>
-                                    <th>{{ _('Reference') }}</th>
-                                    <th>{{ _('Quantity (mg)') }}</th>
-                                    <th>{{ _('Solvent') }}</th>
-                                    <th>{{ _('Formula') }}</th>
-                                    <th>{{ _('Mass') }}</th>
-                                    <th>{{ _('SMILES') }}</th>
-                                    <th>{{ _('Notes') }}</th>
+                                    <th>{{ _("Reference") }}</th>
+                                    <th>{{ _("Quantity (mg)") }}</th>
+                                    <th>{{ _("Solvent") }}</th>
+                                    <th>{{ _("Formula") }}</th>
+                                    <th>{{ _("Mass") }}</th>
+                                    <th>{{ _("SMILES") }}</th>
+                                    <th>{{ _("Notes") }}</th>
                                 </tr>
                             </thead>
-                            <tbody id="import-preview-tbody"></tbody>
+                            <tbody id="import-preview-tbody">
+                            </tbody>
                         </table>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
-                    <button type="button" class="btn btn-primary" id="confirm-import-btn" disabled>
-                        <i class="fas fa-check"></i> {{ _('Confirm import') }}
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _("Cancel") }}</button>
+                    <button type="button"
+                            class="btn btn-primary"
+                            id="confirm-import-btn"
+                            disabled>
+                        <i class="fas fa-check"></i> {{ _("Confirm import") }}
                     </button>
                 </div>
             </div>

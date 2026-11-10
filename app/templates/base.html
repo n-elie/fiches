@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{% block title %}{% endblock %}{% if self.title()|trim %} - {% endif %}{{ _('Chemical Analysis Service') }}</title>
+        <title>{% block title %}{% endblock %}{% if self.title()|trim %} - {% endif %}{{ _("Chemical Analysis Service") }}</title>
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">
         <link rel="stylesheet"
               href="{{ url_for('static', filename='css/bootstrap.custom.min.css') }}">
@@ -16,8 +16,8 @@
     <body class="d-flex flex-column min-vh-100">
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container-fluid">
-                <a class="navbar-brand" href="{{ url_for('main.index') }}">
-                    <i class="fas fa-vial"></i> {{ _('Chemical Analysis Service') }}
+                <a class="navbar-brand" href="{{ url_for("main.index") }}">
+                    <i class="fas fa-vial"></i> {{ _("Chemical Analysis Service") }}
                 </a>
                 <button class="navbar-toggler"
                         type="button"
@@ -25,7 +25,7 @@
                         data-bs-target="#navbarNav"
                         aria-controls="navbarNav"
                         aria-expanded="false"
-                        aria-label="{{ _('Toggle navigation') }}">
+                        aria-label="{{ _("Toggle navigation") }}">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
@@ -37,17 +37,17 @@
                                    role="button"
                                    data-bs-toggle="dropdown"
                                    aria-expanded="false">
-                                    <i class="fas fa-plus-circle"></i> {{ _('New') }}
+                                    <i class="fas fa-plus-circle"></i> {{ _("New") }}
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li>
-                                        <a class="dropdown-item" href="{{ url_for('ms.submit_sample') }}">
-                                            <i class="fas fa-chart-column"></i> {{ _('Mass Spectrometry') }}
+                                        <a class="dropdown-item" href="{{ url_for("ms.submit_sample") }}">
+                                            <i class="fas fa-chart-column"></i> {{ _("Mass Spectrometry") }}
                                         </a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item" href="{{ url_for('nmr.submit_sample') }}">
-                                            <i class="fas fa-magnet"></i> {{ _('NMR') }}
+                                        <a class="dropdown-item" href="{{ url_for("nmr.submit_sample") }}">
+                                            <i class="fas fa-magnet"></i> {{ _("NMR") }}
                                         </a>
                                     </li>
                                 </ul>
@@ -58,23 +58,25 @@
                                    role="button"
                                    data-bs-toggle="dropdown"
                                    aria-expanded="false">
-                                    <i class="fas fa-vials"></i> {{ _('My Samples') }}
+                                    <i class="fas fa-vials"></i> {{ _("My Samples") }}
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
-									<li>
-										<a class="dropdown-item" href="{{ url_for('main.user_samples') }}">
-											<i class="fas fa-vials"></i> {{ _('All samples') }}
-										</a>
-									</li>
-									<li><hr class="dropdown-divider"></li>
                                     <li>
-                                        <a class="dropdown-item" href="{{ url_for('ms.user_samples') }}">
-                                            <i class="fas fa-chart-column"></i> {{ _('Mass Spectrometry') }}
+                                        <a class="dropdown-item" href="{{ url_for("main.user_samples") }}">
+                                            <i class="fas fa-vials"></i> {{ _("All samples") }}
                                         </a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item" href="{{ url_for('nmr.user_samples') }}">
-                                            <i class="fas fa-magnet"></i> {{ _('NMR') }}
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for("ms.user_samples") }}">
+                                            <i class="fas fa-chart-column"></i> {{ _("Mass Spectrometry") }}
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for("nmr.user_samples") }}">
+                                            <i class="fas fa-magnet"></i> {{ _("NMR") }}
                                         </a>
                                     </li>
                                 </ul>
@@ -86,33 +88,33 @@
                                        role="button"
                                        data-bs-toggle="dropdown"
                                        aria-expanded="false">
-                                        <i class="fas fa-users-cog"></i> {{ _('Admin') }}
+                                        <i class="fas fa-users-cog"></i> {{ _("Admin") }}
                                     </a>
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li>
-                                            <a class="dropdown-item" href="{{ url_for('admin.dashboard') }}">
-                                                <i class="fas fa-tachometer-alt"></i> {{ _('Dashboard') }}
+                                            <a class="dropdown-item" href="{{ url_for("admin.dashboard") }}">
+                                                <i class="fas fa-tachometer-alt"></i> {{ _("Dashboard") }}
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" href="{{ url_for('admin.all_samples') }}">
+                                            <a class="dropdown-item" href="{{ url_for("admin.all_samples") }}">
                                                 <span class="fa-custom-layers">
-												  <i class="fa-solid fa-vials"></i>
-												  <i class="fa-solid fa-gear"></i>
-												</span> {{ _('Manage samples') }}
+                                                    <i class="fa-solid fa-vials"></i>
+                                                    <i class="fa-solid fa-gear"></i>
+                                                </span> {{ _("Manage samples") }}
                                             </a>
                                         </li>
-										<li>
-                                            <a class="dropdown-item" href="{{ url_for('admin.sample_list') }}">
-                                                <i class="fas fa-list-ol"></i> {{ _('Create a sample list') }}
-											</a>
+                                        <li>
+                                            <a class="dropdown-item" href="{{ url_for("admin.sample_list") }}">
+                                                <i class="fas fa-list-ol"></i> {{ _("Create a sample list") }}
+                                            </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" href="{{ url_for('admin.all_users') }}">
+                                            <a class="dropdown-item" href="{{ url_for("admin.all_users") }}">
                                                 <span class="fa-custom-layers">
-												  <i class="fa-solid fa-users"></i>
-												  <i class="fa-solid fa-gear"></i>
-												</span> {{ _('Manage users') }}
+                                                    <i class="fa-solid fa-users"></i>
+                                                    <i class="fa-solid fa-gear"></i>
+                                                </span> {{ _("Manage users") }}
                                             </a>
                                         </li>
                                     </ul>
@@ -128,30 +130,37 @@
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li>
-                                        <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
-                                            <i class="fas fa-sign-out-alt"></i> {{ _('Log out') }}
+                                        <a class="dropdown-item" href="{{ url_for("auth.logout") }}">
+                                            <i class="fas fa-sign-out-alt"></i> {{ _("Log out") }}
                                         </a>
                                     </li>
                                 </ul>
                             </li>
                         {% else %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('auth.login') }}">
-                                    <i class="fas fa-sign-in-alt"></i> {{ _('Login in') }}
+                                <a class="nav-link" href="{{ url_for("auth.login") }}">
+                                    <i class="fas fa-sign-in-alt"></i> {{ _("Login in") }}
                                 </a>
                             </li>
                         {% endif %}
-						<li class="nav-item dropdown">
-							<a class="nav-link dropdown-toggle" href="#" id="langDropdown" role="button"
-								data-bs-toggle="dropdown" aria-expanded="false">
-								<i class="fa-solid fa-language"></i>
-								{{ 'FR' if get_locale() == 'fr' else 'EN' }}
-							</a>
-							<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langDropdown">
-								<li><a class="dropdown-item{% if get_locale() == 'en' %} active{% endif %}" href="{{ url_for('main.set_language', lang='fr') }}">🇫🇷 Français</a></li>
-								<li><a class="dropdown-item{% if get_locale().language == 'fr' %} active{% endif %}" href="{{ url_for('main.set_language', lang='en') }}">🇬🇧 English</a></li>
-							</ul>
-						</li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle"
+                               href="#"
+                               id="langDropdown"
+                               role="button"
+                               data-bs-toggle="dropdown"
+                               aria-expanded="false">
+                                <i class="fa-solid fa-language"></i>
+                                {{ 'FR' if get_locale() == 'fr' else 'EN' }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end"
+                                aria-labelledby="langDropdown">
+                                <li><a class="dropdown-item{% if get_locale() == 'en' %} active{% endif %}"
+                                       href="{{ url_for('main.set_language', lang='fr') }}">🇫🇷 Français</a></li>
+                                <li><a class="dropdown-item{% if get_locale().language == 'fr' %} active{% endif %}"
+                                       href="{{ url_for('main.set_language', lang='en') }}">🇬🇧 English</a></li>
+                            </ul>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -168,7 +177,7 @@
                             <button type="button"
                                     class="btn-close"
                                     data-bs-dismiss="alert"
-                                    aria-label="{{ _('Close') }}"></button>
+                                    aria-label="{{ _("Close") }}"></button>
                         </div>
                     {% endfor %}
                 {% endif %}
@@ -182,11 +191,11 @@
                 <p class="mb-0">&nbsp;</p>
             </div>
         </footer>
-		<script>
-			window.I18N = {
-				fileTooLarge: {{ _('The file is too large. Maximum allowed size is 16 MB.') | tojson }}
-			};
-		</script>
+        <script>
+            window.I18N = {
+                fileTooLarge: {{ _('The file is too large. Maximum allowed size is 16 MB.') | tojson }}
+            };
+        </script>
         <script src="{{ url_for('static', filename='js/jquery-4.0.0.min.js') }}"></script>
         <script src="{{ url_for('static', filename='js/bootstrap.bundle-5.3.8.min.js') }}"></script>
         <script src="{{ url_for('static', filename='js/script.js') }}"></script>

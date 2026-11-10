@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _('Import Successful') }}{% endblock %}
+{% block title %}{{ _("Import Successful") }}{% endblock %}
 
 {% block content %}
     <div class="row justify-content-center">
@@ -9,9 +9,9 @@
                 <div class="card-body p-4">
                     <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
 
-                    <h2 class="h4">{{ _('Import Successful!') }}</h2>
+                    <h2 class="h4">{{ _("Import Successful!") }}</h2>
                     <p class="text-muted">
-						{{ ngettext('%(num_samples)s sample has been sucessfully submitted to the analysis service.', '%(num_samples)s samples has been sucessfully submitted to the analysis service.', samples|length, num_samples=samples|length) }}
+                        {{ ngettext('%(num_samples)s sample has been sucessfully submitted to the analysis service.', '%(num_samples)s samples has been sucessfully submitted to the analysis service.', samples|length, num_samples=samples|length) }}
                     </p>
 
                     {% if samples %}
@@ -19,10 +19,10 @@
                             <table class="table table-striped table-hover align-middle mb-0">
                                 <thead class="table-dark">
                                     <tr>
-                                        <th>{{ _('Reference') }}</th>
-                                        <th>{{ _('Quantity') }}</th>
-                                        <th>{{ _('Submission date') }}</th>
-                                        <th>{{ _('Status') }}</th>
+                                        <th>{{ _("Reference") }}</th>
+                                        <th>{{ _("Quantity") }}</th>
+                                        <th>{{ _("Submission date") }}</th>
+                                        <th>{{ _("Status") }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -30,7 +30,7 @@
                                         <tr>
                                             <td class="fw-semibold">{{ sample.reference }}</td>
                                             <td>{{ sample.quantity }} mg</td>
-                                            <td>{{ sample.created_at | datetimeformat('short') }}</td>
+                                            <td>{{ sample.created_at | datetimeformat("short") }}</td>
                                             <td>
                                                 <span class="status-badge status-{{ sample.status.name }}">
                                                     {{ sample.get_status_name() }}
@@ -44,30 +44,34 @@
                     {% endif %}
 
                     <div class="d-flex justify-content-center flex-wrap gap-2 my-3">
-						{% if samples %}
+                        {% if samples %}
                             <form method="post"
-                                  action="{{ url_for('main.batch_generate_pdf') }}"
+                                  action="{{ url_for("main.batch_generate_pdf") }}"
                                   class="d-inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <input type="hidden" name="sample_ids" value="{{ samples|map(attribute='id')|join(',') }}">
+                                <input type="hidden"
+                                       name="sample_ids"
+                                       value="{{ samples|map(attribute='id')|join(',') }}">
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-file-pdf"></i> {{ _('Generate PDF sheets') }}
+                                    <i class="fas fa-file-pdf"></i> {{ _("Generate PDF sheets") }}
                                 </button>
                             </form>
                         {% endif %}
-                        <a href="{{ url_for('ms.submit_sample') }}" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> {{ _('Submit a sample') }}
+                        <a href="{{ url_for("ms.submit_sample") }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> {{ _("Submit a sample") }}
                         </a>
-                        <a href="{{ url_for('ms.import_samples') }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-upload"></i> {{ _('Import another file') }}
+                        <a href="{{ url_for("ms.import_samples") }}"
+                           class="btn btn-outline-secondary">
+                            <i class="fas fa-upload"></i> {{ _("Import another file") }}
                         </a>
-                        <a href="{{ url_for('ms.user_samples') }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-list"></i> {{ _('View my samples') }}
+                        <a href="{{ url_for("ms.user_samples") }}"
+                           class="btn btn-outline-secondary">
+                            <i class="fas fa-list"></i> {{ _("View my samples") }}
                         </a>
                     </div>
 
                     <div class="text-muted small">
-                        <p class="mb-0">{{ _('You will receive an email notification when the analyses are complete.') }}</p>
+                        <p class="mb-0">{{ _("You will receive an email notification when the analyses are complete.") }}</p>
                     </div>
                 </div>
             </div>

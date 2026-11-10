@@ -1,56 +1,57 @@
 {% extends "sample_submit.html" %}
 
 {% if sample %}
-	{% set action = url_for('nmr.sample_edit', sample_id=sample.id) %}
+    {% set action = url_for('nmr.sample_edit', sample_id=sample.id) %}
 {% else %}
-	{% set action = url_for('nmr.submit_sample') %}
+    {% set action = url_for('nmr.submit_sample') %}
 {% endif %}
 
 {% block form_analysis_specific_fields %}
-<div class="row g-3 mt-0">
-	<div class="col-md-4">
-		<label for="stability" class="form-label">{{ _('Stability') }}</label>
-		<select id="stability" name="stability" class="form-select" required>
-			{% for code, stability in stabilities.items() %}
-				<option value="{{ code }}"
-						{% if sample and sample.stability == code %}selected{% endif %}>{{ _(stability) }}</option>
-			{% endfor %}
-		</select>
-		<span class="help-text">{{ _('Select the sample stability') }}</span>
-	</div>
+    <div class="row g-3 mt-0">
+        <div class="col-md-4">
+            <label for="stability" class="form-label">{{ _("Stability") }}</label>
+            <select id="stability" name="stability" class="form-select" required>
+                {% for code, stability in stabilities.items() %}
+                    <option value="{{ code }}"
+                            {% if sample and sample.stability == code %}selected{% endif %}>{{ _(stability) }}</option>
+                {% endfor %}
+            </select>
+            <span class="help-text">{{ _("Select the sample stability") }}</span>
+        </div>
 
-	<div class="col-md-4">
-		<label for="solvent" class="form-label">{{ _('Solvent') }}</label>
-		<select id="solvent" name="solvent" class="form-select">
-			{% for code, solvent in solvents.items() %}
-				<option value="{{ code }}"
-						{% if sample and sample.solvent == code %}selected{% endif %}>{{ _(solvent) }}</option>
-			{% endfor %}
-		</select>
-		<span class="help-text">{{ _('Select the solvent used to prepare the sample') }}</span>
-	</div>
+        <div class="col-md-4">
+            <label for="solvent" class="form-label">{{ _("Solvent") }}</label>
+            <select id="solvent" name="solvent" class="form-select">
+                {% for code, solvent in solvents.items() %}
+                    <option value="{{ code }}"
+                            {% if sample and sample.solvent == code %}selected{% endif %}>{{ _(solvent) }}</option>
+                {% endfor %}
+            </select>
+            <span class="help-text">{{ _("Select the solvent used to prepare the sample") }}</span>
+        </div>
 
-	<div class="col-md-4">
-		label for="frequency" class="form-label">{{ _('Instrument frequency') }} <span class="required-star">*</span></label>
-		<select id="frequency" name="frequency" class="form-select" required>
-			{% for frequency in experiments_by_frequency.keys() %}
-				<option value="{{ frequency }}"
-						{% if sample and sample.frequency == frequency %}selected{% endif %}>{{ frequency }} MHz</option>
-			{% endfor %}
-		</select>
-		<span class="help-text">{{ _('Select the instrument frequency') }}</span>
-	</div>
-</div>
+        <div class="col-md-4">
+            label for="frequency" class="form-label">{{ _("Instrument frequency") }} <span class="required-star">*</span>
+        </label>
+        <select id="frequency" name="frequency" class="form-select" required>
+            {% for frequency in experiments_by_frequency.keys() %}
+                <option value="{{ frequency }}"
+                        {% if sample and sample.frequency == frequency %}selected{% endif %}>{{ frequency }} MHz</option>
+            {% endfor %}
+        </select>
+        <span class="help-text">{{ _("Select the instrument frequency") }}</span>
+    </div>
+    </div>
 
-<div class="row g-3 mt-0">
-	<div class="col-12">
-		<label class="form-label">{{ _('Requested experiments') }} <span class="required-star">*</span></label>
-		<div class="checkbox-group" id="experiments-container">
-			{# Les checkboxes sont générées dynamiquement par JavaScript #}
-		</div>
-		<span class="help-text">{{ _('Select one or more experiments (at least one required)') }}</span>
-	</div>
-</div>
+    <div class="row g-3 mt-0">
+        <div class="col-12">
+            <label class="form-label">{{ _("Requested experiments") }} <span class="required-star">*</span></label>
+            <div class="checkbox-group" id="experiments-container">
+                {# Les checkboxes sont générées dynamiquement par JavaScript #}
+            </div>
+            <span class="help-text">{{ _("Select one or more experiments (at least one required)") }}</span>
+        </div>
+    </div>
 {% endblock %}
 
 {% block scripts %}

@@ -15,12 +15,35 @@
     white-space: nowrap;
 }
 
-.status-pending    { background-color: rgba(243, 156, 18, 0.15); color: #f39c12; }
-.status-analysing  { background-color: rgba(52, 152, 219, 0.25);  color: #2980b9; }
-.status-analysed   { background-color: rgba(52, 152, 219, 0.15);  color: #3498db; }
-.status-processing { background-color: rgba(52, 152, 219, 0.15);  color: #3498db; }
-.status-completed  { background-color: rgba(39, 174, 96, 0.15);  color: #27ae60; }
-.status-cancelled  { background-color: rgba(231, 76, 60, 0.15);  color: #e74c3c; }
+.status-pending {
+    background-color: rgba(243, 156, 18, 0.15);
+    color: #f39c12;
+}
+
+.status-analysing {
+    background-color: rgba(52, 152, 219, 0.25);
+    color: #2980b9;
+}
+
+.status-analysed {
+    background-color: rgba(52, 152, 219, 0.15);
+    color: #3498db;
+}
+
+.status-processing {
+    background-color: rgba(52, 152, 219, 0.15);
+    color: #3498db;
+}
+
+.status-completed {
+    background-color: rgba(39, 174, 96, 0.15);
+    color: #27ae60;
+}
+
+.status-cancelled {
+    background-color: rgba(231, 76, 60, 0.15);
+    color: #e74c3c;
+}
 
 /* Étoile des champs obligatoires */
 .required-star {
@@ -171,21 +194,21 @@ footer {
 
 /* Icône composites */
 .fa-custom-layers {
-	position: relative;
-	display: inline-block;
+    position: relative;
+    display: inline-block;
 }
 
 .fa-custom-layers i:first-child {
-	font-size: 100%;
+    font-size: 100%;
 }
 
 .fa-custom-layers i:last-child {
-	font-size: 75%; 
-	position: absolute; 
-	bottom: 0; 
-	right: 0;
-	background: white;
-	border-radius: 50%;
+    font-size: 75%;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: white;
+    border-radius: 50%;
 }
 
 /* Liste d'échantillons réorganisable (sample list admin) */

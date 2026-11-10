@@ -1,55 +1,62 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _('Create an analysis') }}{% endblock %}
+{% block title %}{{ _("Create an analysis") }}{% endblock %}
 
 {% block content %}
-<div class="form-container">
-    <div class="mb-4">
-        <h2>{{ _('Create an analysis') }}</h2>
-        <p class="text-muted">{{ _('Manually add analysis results for a sample') }}</p>
+    <div class="form-container">
+        <div class="mb-4">
+            <h2>{{ _("Create an analysis") }}</h2>
+            <p class="text-muted">{{ _("Manually add analysis results for a sample") }}</p>
+        </div>
+
+        <form method="post"
+              action="{{ url_for("admin.create_analysis") }}"
+              class="sample-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3 class="h5 mb-3">{{ _("Sample") }}</h3>
+                    <div class="mb-3">
+                        <label for="sample_id"
+                               class="form-label">{{ _("Sample") }} <span class="required-star">*</span></label>
+                        <select id="sample_id" name="sample_id" class="form-select" required>
+                            <option value="">-- {{ _("Select a sample") }} --</option>
+                            {% for sample in samples %}
+                                <option value="{{ sample.id }}">
+                                    {{ sample.reference }} ({{ sample.get_type() }})
+                                    - {{ sample.user.full_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3 class="h5 mb-3">{{ _("Analysis results") }}</h3>
+
+                    <div class="mb-3">
+                        <label for="results" class="form-label">{{ _("Detailled results") }}</label>
+                        <textarea class="form-control"
+                                  id="results"
+                                  name="results"
+                                  rows="4"
+                                  placeholder="{{ _('Analysis details, observations, ...') }}"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 mb-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> {{ _("Create analysis") }}
+                </button>
+                <a href="{{ url_for("admin.dashboard") }}"
+                   class="btn btn-outline-secondary">
+                    <i class="fas fa-times"></i> {{ _("Cancel") }}
+                </a>
+            </div>
+        </form>
     </div>
-
-    <form method="POST" action="{{ url_for('admin.create_analysis') }}" class="sample-form">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-        <div class="card mb-4">
-            <div class="card-body">
-                <h3 class="h5 mb-3">{{ _('Sample') }}</h3>
-                <div class="mb-3">
-                    <label for="sample_id" class="form-label">{{ _('Sample') }} <span class="required-star">*</span></label>
-                    <select id="sample_id" name="sample_id" class="form-select" required>
-                        <option value="">-- {{ _('Select a sample') }} --</option>
-                        {% for sample in samples %}
-                            <option value="{{ sample.id }}">
-                                {{ sample.reference }} ({{ sample.get_type() }})
-                                - {{ sample.user.full_name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <div class="card mb-4">
-            <div class="card-body">
-                <h3 class="h5 mb-3">{{ _('Analysis results') }}</h3>
-
-                <div class="mb-3">
-                    <label for="results" class="form-label">{{ _('Detailled results') }}</label>
-                    <textarea class="form-control" id="results" name="results" rows="4"
-                              placeholder="{{ _('Analysis details, observations, ...') }}"></textarea>
-                </div>
-            </div>
-        </div>
-
-        <div class="d-flex flex-wrap gap-2 mb-4">
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-save"></i> {{ _('Create analysis') }}
-            </button>
-            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
-                <i class="fas fa-times"></i> {{ _('Cancel') }}
-            </a>
-        </div>
-    </form>
-</div>
 {% endblock %}
