@@ -48,13 +48,24 @@ def samples(template='samples.html', show_users='current', sample_type=Sample):
         stmt = stmt.where(sample_type.reference.ilike(f'%{search_filter}%'))
 
     # Tri
+    sort_columns = {
+        'analysis_type': Sample.analysis_type,
+        'reference': Sample.reference,
+        'quantity': Sample.quantity,
+        'status': Sample.status,
+        'created_at': Sample.created_at,
+    }
     sort_by = request.args.get('sort', 'created_at')
     sort_order = request.args.get('order', 'desc')
 
+    if sort_by not in sort_columns:
+        sort_by = 'created_at'
+    order_column = sort_columns[sort_by]
+
     if sort_order == 'desc':
-        stmt = stmt.order_by(desc(getattr(sample_type, sort_by)))
+        stmt = stmt.order_by(desc(order_column))
     else:
-        stmt = stmt.order_by(getattr(sample_type, sort_by))
+        stmt = stmt.order_by(order_column)
         
     # Pagination
     paginated_samples = db.paginate(stmt, page=page, per_page=per_page, error_out=False)
