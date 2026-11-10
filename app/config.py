@@ -126,7 +126,11 @@ class Config:
         """Initialise la configuration de l'application"""
         
         app_config = self._config.get('app', {})
-        self.SECRET_KEY = app_config.get('secret_key', 'your-secret-key-here')
+        key = app_config.get('secret_key')
+        if not key or key == 'your-secret-key-here':
+            raise RuntimeError("Set a strong, random secret_key in config.toml")
+        self.SECRET_KEY = key
+        
         self.UPLOAD_FOLDER = os.path.join(
             os.path.dirname(__file__),
             app_config.get('upload_folder', 'uploads')
@@ -138,7 +142,7 @@ class Config:
             app_config.get('max_content_length', 16777216)
         )
         self.PORT = int(app_config.get('port', 5000))
-        self.DEBUG = app_config.get('debug', True)
+        self.DEBUG = app_config.get('debug', False)
         self.ADMIN_USERS = app_config.get('admin_users', ['admin'])
         self.LOGO = app_config.get('logo', 'logo.png')
         

@@ -132,6 +132,11 @@ def all_users():
                            sort_by=sort_by,
                            sort_order=sort_order)
     
+    
+def csv_safe(v):
+    s = str(v)
+    return "'" + s if s[:1] in ('=', '+', '-', '@', '\t', '\r') else s
+    
 def _export_data(samples:list[Sample], callback:Callable[[Sample | None], list], data_format:str='csv'):
     """ Exporter les données en CSV ou Excel """
     match data_format:
@@ -174,15 +179,15 @@ def export_csv():
         else:
             return [
                 sample.id,
-                sample.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-                sample.user.full_name,
-                sample.team,
-                sample.user.email,
-                sample.reference,
-                sample.quantity,
-                sample.structure_file,
-                sample.status,
-                sample.notes or '']
+                csv_safe(sample.created_at.strftime('%Y-%m-%d %H:%M:%S')),
+                csv_safe(sample.user.full_name),
+                csv_safe(sample.team),
+                csv_safe(sample.user.email),
+                csv_safe(sample.reference),
+                csv_safe(sample.quantity),
+                csv_sage(sample.structure_file),
+                csv_sage(sample.status),
+                csv_safe(sample.notes or '')]
                 
     output = _export_data(samples, callback, 'csv')
 
@@ -352,7 +357,7 @@ def update_sample_status(sample_id):
     if new_status in SampleStatus:
         sample.status = new_status
         db.session.commit()
-        ash(_('Status updated successfully'), 'success')
+        flash(_('Status updated successfully'), 'success')
     else:
         flash(_('Invalid status'), 'error')
 
@@ -385,6 +390,8 @@ def create_user():
             errors.append(_('This username already exists'))
         if db.session.scalars(db.select(User).where(User.email == email).limit(1)).first():
             errors.append(_('This email is already in use'))
+        if len(password) < 8:
+            errors.append(_('The password must be at least 8 characters long'))
 
         if errors:
             for error in errors:
@@ -544,7 +551,7 @@ def check_task_status(task_id):
     else:
         response = {
             'state': task.state,
-            'status': str(task.info)  # Message d'erreur
+            'status': _('Task failed')
         }
 
     return jsonify(response)

@@ -4,6 +4,7 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from sqlalchemy import desc
 import os
+import re
 from datetime import datetime
 import pandas as pd
 
@@ -12,6 +13,11 @@ from .main_routes import allowed_file
 from ..utils.mol import read_mol, mol_from_smiles, mol_to_smiles, mol_to_formula, formula_to_mass
 
 ms_bp = Blueprint('ms', __name__, url_prefix='/ms')
+
+REFERENCE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._\- ]{0,99}$")
+
+def is_valid_reference(reference):
+    return bool(reference) and bool(REFERENCE_RE.fullmatch(reference))
 
 @ms_bp.route('/sample/submit', methods=['GET', 'POST'])
 @login_required
@@ -43,6 +49,10 @@ def submit_sample():
         if not solvents and ((other_solvent and not other_solvent_name) or not other_solvent):
             flash(_('Please select at least one solvent'), 'error')
             return redirect(url_for('ms.submit_sample'))
+            
+        if not is_valid_reference(reference):
+            flash(_('Invalid reference: only letters, digits, spaces, ".", "-" or "_" (max 100 characters)'), 'error')
+            return redirect(url_for('ms.submit_sample'))
 
         if not reference or not quantity:
             flash(_('Please fill in all required fields'), 'error')
@@ -61,7 +71,7 @@ def submit_sample():
                 if file and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
                     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-                    unique_filename = f"{current_user.username}_{timestamp}_{filename}"
+                    unique_filename = f"{secure_filename(current_user.username)}_{timestamp}_{filename}"
                     filepath = os.path.join(structures_folder, unique_filename)
                     file.save(filepath)
                     
@@ -70,6 +80,9 @@ def submit_sample():
                         smiles = mol_to_smiles(mol)
                         formula = mol_to_formula(mol)
                     except (OSError, RuntimeError) as e:
+                        # Supprimer le fichier de structure en cas d'erreur de lecture pour ne pas laisser de fichier orphelin
+                        if os.path.exists(unique_filename):
+                            os.path.unlink(unique_filename)
                         flash(str(e), 'error')
                         return redirect(url_for('ms.submit_sample'))
                 else:
@@ -81,7 +94,7 @@ def submit_sample():
         else:
             flash(_('Please select a structure file or enter a molecular formula'))
             return redirect(url_for('ms.submit_sample'))
-
+            
         try:
             sample = MSSample(
                 team=team,
@@ -153,6 +166,11 @@ def sample_spectrum(sample_id):
     
     sample = db.get_or_404(MSSample, sample_id)
     
+    # Vérifier que l'utilisateur est le propriétaire ou admin
+    if sample.user_id != current_user.id and not current_user.is_admin:
+        flash(_('Access denied'), 'error')
+        return redirect(url_for('main.index'))
+    
     return render_template('ms/sample_spectrum.html',
                            sample=sample)
     
@@ -192,6 +210,10 @@ def sample_edit(sample_id):
 
         if not solvents and ((other_solvent and not other_solvent_name) or not other_solvent):
             flash(_('Please select at least one solvent'), 'error')
+            return redirect(url_for('ms.submit_sample'))
+            
+        if not is_valid_reference(reference):
+            flash(_('Invalid reference: only letters, digits, spaces, ".", "-" or "_" (max 100 characters)'), 'error')
             return redirect(url_for('ms.submit_sample'))
         
         if not reference or not quantity:
@@ -293,6 +315,10 @@ def _parse_import_file(file) -> tuple[list[dict], list[str]]:
             notes = sample_data.get('notes')
 
             # Validation
+            if not is_valid_reference(str(reference) if reference else ''):
+                errors.append(_('Line %(line)s: invalid reference', line=line))
+                continue
+            
             if not reference or not quantity:
                 errors.append(_('Line %(line)s: reference and quantity are required', line=line))
                 continue

@@ -120,18 +120,16 @@ class Item(CheckDataTypeMixin):
         return Folder(self.api, **result)
 
     def convert(self):
-        mapping = {'SampleResult': 'sampleresults',
-                   'SampleData': 'sampledata',
-                   'Analysis': 'analyses',
-                   'SampleSet': 'samplesets'
+        mapping = {'SampleResult': ('sampleresults', SampleResult),
+                   'SampleData': ('sampledata', SampleData),
+                   'Analysis': ('analyses', Analysis),
+                   'SampleSet': ('samplesets', SampleSet)
                    #'SampleList': ?
                   }
-        endpoint = mapping.get(self.type)
+        endpoint, item_type = mapping.get(self.type)
         
-        if endpoint is None:
+        if endpoint is None or item_type is None:
             raise ValueError("Unknown Item Type")
-
-        item_type = eval(self.type)
             
         return item_type(self.api, **self.api.call(f"{endpoint}({self.id})"))
 
@@ -343,7 +341,7 @@ class Spectrum:
 class UNIFIAPI:
     def __init__(self, address, secret = "secret", certificate = None):
         self.session = requests.Session()
-        self.session.verify =  certificate if certificate else False
+        self.session.verify =  certificate if certificate else True
         self.base_address = f"https://{address}:48505/unifi/v1/"
         self.token_address = f"https://{address}:48333/connect/token"
         self.client_id = "resourceownerclient"
@@ -383,11 +381,8 @@ class UNIFIAPI:
         else:
             response = self.session.get(url, headers=header)
 
-            if not response.ok:
-                if response.status_code == 401: # unauthorised
-                    print( 'Clear access_token: ', self._token)
-                    
-                raise ValueError('Response: ', response.status_code, ' ', response.reason, ' Text: ', response.text )
+            if not response.ok:                    
+                raise ValueError('Response: ', response.status_code, ' ', response.reason)
 
             result = response.json()
             result.pop('@odata.context', None)

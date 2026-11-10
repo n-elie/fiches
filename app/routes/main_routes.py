@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 from sqlalchemy import desc
 import os
 from datetime import datetime
+from urllib.parse import urlparse
 
 from ..models import db, Sample, User, STATUS_NAMES, MSSample, NMRSample
 from ..utils.pdf_utils import create_analysis_sheet_pdf
@@ -15,9 +16,14 @@ main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/lang/<lang>')
 def set_language(lang):
+    ref = request.referrer
     if lang in current_app.config['BABEL_SUPPORTED_LOCALES']:
         session['lang'] = lang
-    return redirect(request.referrer or url_for('main.index'))
+        
+    ref = request.referrer
+    if ref and urlparse(ref).netloc == request.host:
+        return redirect(ref)
+    return redirect(url_for('main.index'))
 
 def allowed_file(filename):
     """Vérifier si le fichier a une extension autorisée"""

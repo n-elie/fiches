@@ -233,7 +233,11 @@
                     $row.append($('<td></td>').text(sample.team));
                     $row.append($('<td></td>').text(sample.user));
                     $row.append($('<td></td>').text(sample.reference));
-                    $row.append($('<td></td>').html(sample.formula ? '<span>' + sample.formula + '</span>' : '<span>-</span>'));
+                    $row.append(
+						$('<td></td>').append(
+							$('<span></span>').text(sample.formula || '-')
+						)
+					);
                     $row.append($('<td></td>').text(sample.quantity + ' mg'));
                     $row.append($('<td></td>').text(sample.created_at));
                     $row.append($('<td class="text-center"></td>').append($btn));

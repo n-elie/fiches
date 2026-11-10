@@ -34,7 +34,7 @@ upload_folder = "uploads"        # Dossier pour les uploads
 allowed_extensions = ["cdx", "cdxml", "mol", "sdf"]  # Extensions autorisées
 max_content_length = 16777216        # Taille max des uploads (16 Mo en octets)
 port = 5000                            # Port de l'application
-debug = true                           # Mode debug
+debug = false                           # Mode debug
 admin_users = ["admin"]               # Utilisateurs administrateurs
 
 # -----------------------------------------------------------------------------
@@ -107,7 +107,7 @@ TFEd3 = "Trifluoroéthanol-d3"
 [unifi]
 server = "localhost"
 username = "user"
-password = "g0)<TH70w/2="
+password = ""
 data_folder = "root"
 certificate = "some-file.perm"
 

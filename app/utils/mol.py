@@ -6,6 +6,7 @@ import molmass
 
 import os
 import io
+import html
 
 def read_mol(structure_file_path) -> rdChem.Mol:
     """
@@ -122,6 +123,7 @@ def formula_to_mass(formula: str) -> float:
 # LICENSE: MIT
 def text_charge(charge) -> str:
     """Returns the charge of the formula object as a text string, without the number "1" for charges of ±1."""
+    
     # a charge of "1+" or "1-" is printed without the number "1"
     charge_output = ""
     if charge == 0:
@@ -133,9 +135,10 @@ def text_charge(charge) -> str:
 
 def html_formula(formula: str):
     """Returns an HTML representation of the chemical formula (including charge information) as a string."""
+    
     if formula is None:
         return '-'
-    html_formula = formula     # start with original formula
+    html_formula = html.escape(formula)     # start with original formula
     html_charge = text_charge(molmass.Formula(formula).charge)  # start with original text_charge
     # replace all numbers (0 - 9) by subscript numbers (for elemental frequencies)
     # and superscript numbers (for charge information)

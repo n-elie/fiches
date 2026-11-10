@@ -159,7 +159,7 @@
                                 {% if sample_type is none %}<td>{{ sample.get_type() }}</td>{% endif %}
                                 {% if user.is_admin and users is defined %}<td>{{ sample.user.full_name }}</td>{% endif %}
                                 <td>{{ sample.reference }}</td>
-                                <td><span>{{ sample.get_html_formula()|safe or '-' }}</span></td>
+                                <td><span>{{ sample.get_html_formula() | safe or '-' }}</span></td>
                                 <td>{{ sample.quantity }} mg</td>
                                 <td>
                                     <span class="status-badge status-{{ sample.status.name }}">

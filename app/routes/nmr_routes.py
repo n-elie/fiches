@@ -4,12 +4,18 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from sqlalchemy import desc
 import os
+import re
 from datetime import datetime
 
 from ..models import db, NMRSample, STATUS_NAMES
 from .main_routes import allowed_file
 
 nmr_bp = Blueprint('nmr', __name__, url_prefix='/nmr')
+
+REFERENCE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._\- ]{0,99}$")
+
+def is_valid_reference(reference):
+    return bool(reference) and bool(REFERENCE_RE.fullmatch(reference))
 
 @nmr_bp.route('/sample/submit', methods=['GET', 'POST'])
 @login_required
@@ -44,6 +50,10 @@ def submit_sample():
             flash(_('Please select at least one experiment'), 'error')
             return redirect(url_for('nmr.submit_sample'))
 
+        if not is_valid_reference(reference):
+            flash(_('Invalid reference: only letters, digits, spaces, ".", "-" or "_" (max 100 characters)'), 'error')
+            return redirect(url_for('nmr.submit_sample'))
+
         if not reference or not quantity:
             flash(_('Please fill in all required fields'), 'error')
             return redirect(url_for('nmr.submit_sample'))
@@ -59,7 +69,7 @@ def submit_sample():
                 if file and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
                     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-                    unique_filename = f"{current_user.username}_{timestamp}_{filename}"
+                    unique_filename = f"{secure_filename(current_user.username)}_{timestamp}_{filename}"
                     filepath = os.path.join(structures_folder, unique_filename)
                     file.save(filepath)
                 else:
@@ -174,6 +184,10 @@ def sample_edit(sample_id):
         if not experiments and ((other_experiment and not other_experiment_name) or not other_experiment):
             flash(_('Please select at least one experiment'), 'error')
             return redirect(url_for('nmr.sample_edit', sample_id=sample_id))
+            
+        if not is_valid_reference(reference):
+            flash(_('Invalid reference: only letters, digits, spaces, ".", "-" or "_" (max 100 characters)'), 'error')
+            return redirect(url_for('nmr.submit_sample'))
         
         if not reference or not quantity:
             flash(_('Please fill in all required fields'), 'error')

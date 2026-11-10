@@ -1,4 +1,5 @@
 from ldap3 import Server, Connection, SUBTREE
+from ldap3.utils.conv import escape_filter_chars
 from ldap3.core.exceptions import LDAPException
 from flask import current_app
 from .models import User, db
@@ -80,7 +81,7 @@ class LDAPAuth:
                 return None
 
             # Rechercher l'utilisateur par uid
-            search_filter = f"(uid={username})"
+            search_filter = f"(uid={escape_filter_chars(username)})"
             search_base = self.ldap_user_search_base
 
             # Rechercher avec les attributs configurés
