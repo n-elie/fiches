@@ -126,7 +126,6 @@ def all_users():
     return render_template('admin/users.html', 
                            users=paginated_users.items,  # Liste des utilisateurs pour la page courante
                            pagination=paginated_users,   # Objet de pagination
-                           user=current_user,
                            search_filter=search_filter,
                            role_filter=role_filter,
                            type_filter=type_filter,
@@ -410,7 +409,7 @@ def create_user():
         flash(_('User %(username)s created successfully!', username=username), 'success')
         return redirect(url_for('admin.all_users'))
 
-    return render_template('admin/create_user.html', user=current_user)
+    return render_template('admin/create_user.html')
 
 @admin_bp.route('/users/<int:user_id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -439,7 +438,7 @@ def edit_user(user_id):
         flash(_('User %(username)s updated successfully!', username=user.username), 'success')
         return redirect(url_for('admin.all_users'))
 
-    return render_template('admin/edit_user.html', user=user, current_user=current_user)
+    return render_template('admin/create_user.html', user=user, current_user=current_user)
 
 @admin_bp.route('/users/<int:user_id>/delete', methods=['POST'])
 @login_required
