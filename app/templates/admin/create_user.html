@@ -124,7 +124,8 @@
                                class="form-check-input"
                                id="is_admin"
                                name="is_admin"
-                               {% if user and user.is_admin %}checked{% endif %}>
+                               {% if user and user.is_admin %}checked{% endif %}
+							   {% if user and user.id == current_user.id %}disabled{% endif %}>
                         <label class="form-check-label" for="is_admin">{{ _("Administrator") }}</label>
 						<span class="help-text">{{ _("Check this box to grant administrator privileges") }}</span>
                     </div>

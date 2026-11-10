@@ -422,7 +422,16 @@ def edit_user(user_id):
         user.email = request.form.get('email', user.email).strip()
         user.full_name = request.form.get('full_name', user.full_name).strip()
         user.teams = request.form.get('teams', user.teams).strip()
-        user.is_admin = request.form.get('is_admin') == 'on'
+        if user.id != current_user.id:
+            new_is_admin = request.form.get('is_admin') == 'on'
+            if user.is_admin and not new_is_admin:
+                admin_count = db.session.scalar(
+                    db.select(db.func.count()).select_from(User).where(User.is_admin.is_(True))
+                )
+                if admin_count <= 1:
+                    flash(_('At least one administrator must remain.'), 'error')
+                    return redirect(url_for('admin.edit_user', user_id=user_id))
+            user.is_admin = new_is_admin
 
         # Mise à jour du mot de passe (uniquement pour les utilisateurs locaux)
         password = request.form.get('password', '')
