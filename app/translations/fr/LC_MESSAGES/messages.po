@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2026-11-09 22:42+0100\n"
-"PO-Revision-Date: 2026-11-09 23:02+0100\n"
+"PO-Revision-Date: 2026-11-10 14:11+0100\n"
 "Last-Translator: \n"
 "Language-Team: fr <LL@li.org>\n"
 "Language: fr\n"
@@ -1509,3 +1509,11 @@ msgstr "Fiches de dépôt"
 #: app/utils/pdf_utils.py:446
 msgid "Sheet to keep"
 msgstr "Fiche à conserver"
+
+#: app/templates/admin/users.html:26
+msgid "Role:"
+msgstr "Rôle :"
+
+#: app/templates/admin/users.html:29
+msgid "All roles"
+msgstr "Tous les rôles"

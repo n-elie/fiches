@@ -73,24 +73,65 @@ def all_samples():
 def all_users():
     """Liste de tous les utilisateurs"""
 
-    stmt  = db.select(User).order_by(User.username)
-    
+    role_filter = request.args.get('role', '')
+    type_filter = request.args.get('type', '')
+
+    stmt = db.select(User)
+    if role_filter == 'admin':
+        stmt = stmt.where(User.is_admin.is_(True))
+    elif role_filter == 'user':
+        stmt = stmt.where(User.is_admin.is_(False))
+    if type_filter == 'ldap':
+        stmt = stmt.where(User.is_ldap.is_(True))
+    elif type_filter == 'local':
+        stmt = stmt.where(User.is_ldap.is_(False))
+        
     search_filter = request.args.get('search', '')
     if search_filter:
         stmt = stmt.where(User.username.ilike(f'%{search_filter}%'))
-    
+
+    sort_columns = {
+        'username': User.username,
+        'full_name': User.full_name,
+        'role': User.is_admin,
+        'type': User.is_ldap,
+        'last_login': User.last_login,
+    }
+    sort_by = request.args.get('sort', 'username')
+    sort_order = request.args.get('order', 'asc')
+    if sort_order not in ('asc', 'desc'):
+        sort_order = 'asc'
+
+    if sort_by == 'samples':
+        stmt = stmt.outerjoin(Sample, Sample.user_id == User.id).group_by(User.id)
+        order_column = db.func.count(Sample.id)
+    else:
+        if sort_by not in sort_columns:
+            sort_by = 'username'
+        order_column = sort_columns[sort_by]
+
+    if sort_order == 'desc':
+        stmt = stmt.order_by(desc(order_column))
+    else:
+        stmt = stmt.order_by(order_column)
+        
     # Paramètres de pagination
     page = request.args.get('page', 1, type=int)
     per_page = current_app.config['USERS_PER_PAGE']  # Nombre d'utilisateurs par page
     
     # Pagination
     paginated_users = db.paginate(stmt, page=page, per_page=per_page, error_out=False)
-    
-    return render_template('admin/users.html',
+
+    users = db.session.scalars(stmt).all()
+    return render_template('admin/users.html', 
                            users=paginated_users.items,  # Liste des utilisateurs pour la page courante
                            pagination=paginated_users,   # Objet de pagination
                            user=current_user,
-                           search_filter=search_filter)
+                           search_filter=search_filter,
+                           role_filter=role_filter,
+                           type_filter=type_filter,
+                           sort_by=sort_by,
+                           sort_order=sort_order)
     
 def _export_data(samples:list[Sample], callback:Callable[[Sample | None], list], data_format:str='csv'):
     """ Exporter les données en CSV ou Excel """
