@@ -11,20 +11,18 @@
 {% block content %}
     <div class="form-container">
         <div class="mb-4">
-            <h2>{% if user %}{{ _("Edit user") }}{% else %}{{ _("Add a new user") }}{% endif%}</h2>
+            <h2>{% if user %}{{ _("Edit user") }}{% else %}{{ _("Add a new user") }}{% endif %}</h2>
             <p class="text-muted">
-				{% if user %}
-					{{ _("Edit user information") }} <strong>{{ user.username }}</strong>
-					{% if user.is_ldap %}({{ _("LDAP") }}){% else %}({{ _("Local") }}){% endif %}
-				{% else %}
-					{{ _("Add local user account (non-LDAP)") }}
-				{% endif %}
+                {% if user %}
+                    {{ _("Edit user information") }} <strong>{{ user.username }}</strong>
+                    {% if user.is_ldap %}({{ _("LDAP") }}){% else %}({{ _("Local") }}){% endif %}
+                {% else %}
+                    {{ _("Add local user account (non-LDAP)") }}
+                {% endif %}
             </p>
         </div>
 
-        <form method="post"
-              action="{{ action }}"
-              class="sample-form">
+        <form method="post" action="{{ action }}" class="sample-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
             <div class="card mb-4">
@@ -40,10 +38,10 @@
                                    id="username"
                                    name="username"
                                    required
-                                   {% if user%}value="{{ user.username }}"{% endif %}
-								   title="{{ _("Alphanumeric characters and underscores only") }}"
+                                   {% if user %}value="{{ user.username }}"{% endif %}
+                                   title="{{ _("Alphanumeric characters and underscores only") }}"
                                    placeholder="{{ _("jdoe") }}">
-						    <span class="help-text">{{ _("Unique username for login") }}</span>
+                            <span class="help-text">{{ _("Unique username for login") }}</span>
                         </div>
 
                         <div class="col-md-6">
@@ -66,7 +64,7 @@
                                    name="full_name"
                                    {% if user %}value="{{ user.full_name or '' }}"{% endif %}
                                    placeholder="{{ _("John Doe") }}">
-						    <span class="help-text">{{ _("User's first and last name") }}</span>
+                            <span class="help-text">{{ _("User's first and last name") }}</span>
                         </div>
 
                         <div class="col-md-6">
@@ -77,8 +75,8 @@
                                    name="teams"
                                    {% if user %}value="{{ user.teams or '' }}"{% endif %}
                                    placeholder="{{ _("Ex: Chemistry,Biology") }}">
-							<span class="help-text">{{ _("Teams separated by commas") }}</span>
-						</div>
+                            <span class="help-text">{{ _("Teams separated by commas") }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -96,10 +94,10 @@
                                        class="form-control"
                                        id="password"
                                        name="password"
-									   {% if not user %}required{% endif %}
+                                       {% if not user %}required{% endif %}
                                        minlength="8"
                                        placeholder="{{ _("At least 8 characters") }}">
-								<span class="help-text">{{ _("The password must be at least 8 characters long") }}</span>
+                                <span class="help-text">{{ _("The password must be at least 8 characters long") }}</span>
                             </div>
 
                             <div class="col-md-6">
@@ -108,7 +106,7 @@
                                        class="form-control"
                                        id="confirm_password"
                                        name="confirm_password"
-									   {% if not user %}required{% endif %}>
+                                       {% if not user %}required{% endif %}>
                             </div>
                         </div>
                     </div>
@@ -125,9 +123,9 @@
                                id="is_admin"
                                name="is_admin"
                                {% if user and user.is_admin %}checked{% endif %}
-							   {% if user and user.id == current_user.id %}disabled{% endif %}>
+                               {% if user and user.id == current_user.id %}disabled{% endif %}>
                         <label class="form-check-label" for="is_admin">{{ _("Administrator") }}</label>
-						<span class="help-text">{{ _("Check this box to grant administrator privileges") }}</span>
+                        <span class="help-text">{{ _("Check this box to grant administrator privileges") }}</span>
                     </div>
                 </div>
             </div>
@@ -135,10 +133,10 @@
             <div class="d-flex flex-wrap gap-2 mb-4">
                 <button type="submit" class="btn btn-primary">
                     {% if user %}
-						<i class="fas fa-save"></i> {{ _("Save") }}
-					{% else %}
-						<i class="fas fa-user-plus"></i> {{ _("Add user") }}
-					{% endif %}
+                        <i class="fas fa-save"></i> {{ _("Save") }}
+                    {% else %}
+                        <i class="fas fa-user-plus"></i> {{ _("Add user") }}
+                    {% endif %}
                 </button>
                 <a href="{{ url_for("admin.all_users") }}"
                    class="btn btn-outline-secondary">

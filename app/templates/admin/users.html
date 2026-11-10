@@ -24,28 +24,27 @@
                 <form method="get" action="">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-auto">
-							<label for="role"
-								   class="form-label"><i class="fas fa-user-shield"></i> {{ _("Role:") }}</label>
-							<select id="role" name="role" class="form-select">
-								<option value="">{{ _("All roles") }}</option>
-								<option value="admin"
-										{% if role_filter == 'admin' %}selected{% endif %}>{{ _("Administrator") }}</option>
-								<option value="user"
-										{% if role_filter == 'user' %}selected{% endif %}>{{ _("User") }}</option>
-							</select>
-						</div>
-						<div class="col-md-auto">
-							<label for="type"
-								   class="form-label"><i class="fas fa-id-card"></i> {{ _("Type:") }}</label>
-							<select id="type" name="type" class="form-select">
-								<option value="">{{ _("All types") }}</option>
-								<option value="ldap"
-										{% if type_filter == 'ldap' %}selected{% endif %}>{{ _("LDAP") }}</option>
-								<option value="local"
-										{% if type_filter == 'local' %}selected{% endif %}>{{ _("Local") }}</option>
-							</select>
-						</div>
-						<div class="col-md-auto flex-grow-1">
+                            <label for="role"
+                                   class="form-label"><i class="fas fa-user-shield"></i> {{ _("Role:") }}</label>
+                            <select id="role" name="role" class="form-select">
+                                <option value="">{{ _("All roles") }}</option>
+                                <option value="admin"
+                                        {% if role_filter == 'admin' %}selected{% endif %}>{{ _("Administrator") }}</option>
+                                <option value="user"
+                                        {% if role_filter == 'user' %}selected{% endif %}>{{ _("User") }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-auto">
+                            <label for="type" class="form-label"><i class="fas fa-id-card"></i> {{ _("Type:") }}</label>
+                            <select id="type" name="type" class="form-select">
+                                <option value="">{{ _("All types") }}</option>
+                                <option value="ldap"
+                                        {% if type_filter == 'ldap' %}selected{% endif %}>{{ _("LDAP") }}</option>
+                                <option value="local"
+                                        {% if type_filter == 'local' %}selected{% endif %}>{{ _("Local") }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-auto flex-grow-1">
                             <label for="search"
                                    class="form-label"><i class="fas fa-search"></i> {{ _("Search:") }}</label>
                             <input type="text"
@@ -55,15 +54,15 @@
                                    placeholder="{{ _("Search for a user...") }}"
                                    value="{{ request.args.get('search', '') }}">
                         </div>
-						<div class="col-md-auto d-flex gap-2">
-							<button type="submit" class="btn btn-primary">
-								<i class="fas fa-filter"></i> {{ _("Filter") }}
-							</button>
-							<a href="{{ url_for('admin.all_users') }}"
-							   class="btn btn-outline-secondary">
-								<i class="fas fa-times"></i> {{ _("Reset") }}
-							</a>
-						</div>
+                        <div class="col-md-auto d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter"></i> {{ _("Filter") }}
+                            </button>
+                            <a href="{{ url_for("admin.all_users") }}"
+                               class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> {{ _("Reset") }}
+                            </a>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -80,16 +79,16 @@
                 <table class="table table-striped table-hover align-middle">
                     <thead class="table-dark">
                         <tr>
-							<th>{{ sortable_header('username', 'Username') }}</th>
-							<th>{{ sortable_header('full_name', 'Full Name') }}</th>
-							<th>{{ _("Teams") }}</th>
-							<th>{{ _("Email") }}</th>
-							<th>{{ sortable_header('role', 'Role') }}</th>
-							<th>{{ sortable_header('type', 'Type') }}</th>
-							<th>{{ sortable_header('last_login', 'Last login') }}</th>
-							<th>{{ sortable_header('samples', 'Samples') }}</th>
-							<th colspan="3" class="text-center">{{ _("Actions") }}</th>
-						</tr>
+                            <th>{{ sortable_header('username', 'Username') }}</th>
+                            <th>{{ sortable_header('full_name', 'Full Name') }}</th>
+                            <th>{{ _("Teams") }}</th>
+                            <th>{{ _("Email") }}</th>
+                            <th>{{ sortable_header('role', 'Role') }}</th>
+                            <th>{{ sortable_header('type', 'Type') }}</th>
+                            <th>{{ sortable_header('last_login', 'Last login') }}</th>
+                            <th>{{ sortable_header('samples', 'Samples') }}</th>
+                            <th colspan="3" class="text-center">{{ _("Actions") }}</th>
+                        </tr>
                     </thead>
                     <tbody>
                         {% for user in users %}
