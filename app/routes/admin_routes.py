@@ -73,10 +73,24 @@ def all_samples():
 def all_users():
     """Liste de tous les utilisateurs"""
 
-    users = db.session.scalars(
-        db.select(User).order_by(User.username)
-    ).all()
-    return render_template('admin/users.html', users=users, user=current_user)
+    stmt  = db.select(User).order_by(User.username)
+    
+    search_filter = request.args.get('search', '')
+    if search_filter:
+        stmt = stmt.where(User.username.ilike(f'%{search_filter}%'))
+    
+    # Paramètres de pagination
+    page = request.args.get('page', 1, type=int)
+    per_page = current_app.config['USERS_PER_PAGE']  # Nombre d'utilisateurs par page
+    
+    # Pagination
+    paginated_users = db.paginate(stmt, page=page, per_page=per_page, error_out=False)
+    
+    return render_template('admin/users.html',
+                           users=paginated_users.items,  # Liste des utilisateurs pour la page courante
+                           pagination=paginated_users,   # Objet de pagination
+                           user=current_user,
+                           search_filter=search_filter)
     
 def _export_data(samples:list[Sample], callback:Callable[[Sample | None], list], data_format:str='csv'):
     """ Exporter les données en CSV ou Excel """

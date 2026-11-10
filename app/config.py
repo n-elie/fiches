@@ -71,6 +71,7 @@ class Config:
         self._init_ldap_config()
         self._init_app_config()
         self._init_samples_config()
+        self._init_users_config()
         self._init_services_config()
         self._init_unifi_config()
         self._init_celery_config()
@@ -146,6 +147,12 @@ class Config:
         
         samples_config = self._config.get('samples', {})
         self.SAMPLES_PER_PAGE = samples_config.get('per_page', 10)
+    
+    def _init_users_config(self):
+        """Initialise la configuration pour la liste d'utilisateurs"""
+        
+        users_config = self._config.get('users', {})
+        self.USERS_PER_PAGE = users_config.get('per_page', 10)
 
     def _init_services_config(self):
         """Initialise la configuration des services"""

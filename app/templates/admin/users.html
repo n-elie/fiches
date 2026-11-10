@@ -27,6 +27,10 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-search"></i> {{ _("Search") }}
                             </button>
+							<a href="{{ url_for("admin.all_users") }}"
+                               class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> {{ _("Reset") }}
+                            </a>
                         </div>
                     </div>
                 </form>
@@ -117,7 +121,44 @@
                 </table>
             </div>
 
-            <p class="text-muted">{{ _("Showing") }} {{ users|length }} {{ ngettext('user', 'users', users|length) }}</p>
+            {% if pagination.pages > 1 %}
+                <nav aria-label="{{ _("Sample pagination") }}">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                            <a href="{{ url_for('admin.all_users', page=pagination.prev_num if pagination.has_prev else 1) }}"
+                               class="page-link"
+                               {% if not pagination.has_prev %}aria-disabled="true"{% endif %}>
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+
+                        {% for page_num in pagination.iter_pages() %}
+                            {% if page_num %}
+                                <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                                    <a href="{{ url_for('admin.all_users', page=page_num) }}"
+                                       class="page-link">{{ page_num }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                            <a href="{{ url_for('admin.all_users', page=pagination.next_num if pagination.has_next else pagination.pages) }}"
+                               class="page-link"
+                               {% if not pagination.has_next %}aria-disabled="true"{% endif %}>
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            {% endif %}
+
+            <p class="text-muted text-center">
+                {{ _("Showing") }} {{ users|length }} {{ ngettext('user', 'users', users|length) }} ({{ _("total") }}: {{ pagination.total }})
+            </p>
 
         {% else %}
             <div class="card text-center">

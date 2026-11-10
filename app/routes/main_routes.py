@@ -32,7 +32,7 @@ def samples(template='samples.html', show_users='current', sample_type=Sample):
     
     # Paramètres de pagination
     page = request.args.get('page', 1, type=int)
-    per_page = current_app.config['SAMPLES_PER_PAGE']  # Nombre d'échantillons par page (ajustable)
+    per_page = current_app.config['SAMPLES_PER_PAGE']  # Nombre d'échantillons par page
     
     stmt = db.select(sample_type)
     if status_filter:
