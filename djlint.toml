@@ -1,0 +1,4 @@
+extension = "html"
+format_js = true
+format_css = true
+preserve_blank_lines = true

@@ -121,3 +121,13 @@ pybabel update -i messages.pot -d app/translations
 # edit app/translations/fr/LC_MESSAGES/messages.po, then :
 pybabel compile -d app/translations
 ```
+
+## Formatting
+
+This project uses `djlint`, `css-beautify`, `js-beautify` to reformat templates:
+
+```bash
+djlint --reformat app/templates
+css-beautify -r app/static/css/style.css
+js-beautify -r app/static/js/script.js
+```
