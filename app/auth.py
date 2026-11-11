@@ -72,23 +72,38 @@ class LDAPAuth:
             return False
 
     def authenticate(self, username, password):
-        """Authentifier un utilisateur via LDAP"""
+        """Authentifier un utilisateur : compte local d'abord, sinon LDAP"""
+        
+        # Refuser les identifiants vides (évite un bind "anonyme" LDAP qui réussirait)
+        if not username or not password:
+            return None
+        
+        # 1. Compte local (créé par un administrateur) : vérification directe du hash
+        user = self.get_user_by_username(username)
+        if user and user.is_local_user():
+            if user.check_password(password):
+                logger.info(f"Local authentication successful for {username}")
+                user.last_login = db.func.now()
+                db.session.commit()
+                return user
+            logger.warning(f"Local authentication failed for {username}")
+            return None
+        
+        # 2. Compte LDAP
         try:
             # Créer une connexion avec les identifiants de bind pour rechercher l'utilisateur
             conn = self._create_bind_connection()
             if not conn or not conn.bound:
-                logger.error("Impossible de se connecter au serveur LDAP")
+                logger.error("Unable to connect to the LDAP server")
                 return None
 
             # Rechercher l'utilisateur par uid
             search_filter = f"(uid={escape_filter_chars(username)})"
-            search_base = self.ldap_user_search_base
-
-            # Rechercher avec les attributs configurés
-            conn.search(search_base, search_filter, SUBTREE, attributes=self.user_attributes)
+            conn.search(self.ldap_user_search_base, search_filter, SUBTREE,
+                    attributes=self.user_attributes)
 
             if not conn.entries:
-                logger.warning(f"Utilisateur {username} non trouvé dans LDAP")
+                logger.warning(f"User {username} not found in LDAP")
                 conn.unbind()
                 return None
 
@@ -102,7 +117,7 @@ class LDAPAuth:
                 user_conn = Connection(server, user=user_dn, password=password, auto_bind=True)
 
                 if user_conn.bound:
-                    logger.info(f"Authentification réussie pour {username}")
+                    logger.info(f"Authentification sucessfill for {username}")
 
                     # Récupérer les informations de l'utilisateur
                     user_info = self._parse_user_data(user_entry)
@@ -114,24 +129,17 @@ class LDAPAuth:
                     conn.unbind()
                     return user
                 else:
-                    logger.error(f"Authentification échouée pour {username}: identifiants invalides")
+                    logger.error(f"Authentication failed for {username}: invalid credentials")
                     conn.unbind()
                     return None
 
             except LDAPException as e:
-                logger.error(f"Authentification échouée pour {username}: {e}")
+                logger.error(f"Authentication failed for {username}: {e}")
                 conn.unbind()
                 return None
-                
-            user = self.get_user_by_username(username)
-            if user and user.is_local_user() and user.check_password(password):
-                logger.info(f"Authentification locale réussie pour {username}")
-                user.last_login = db.func.now()
-                db.session.commit()
-                return user
 
         except Exception as e:
-            logger.error(f"Erreur LDAP lors de l'authentification: {e}")
+            logger.error(f"LDAP error during authentication: {e}")
             return None
 
     def _parse_user_data(self, user_entry):
