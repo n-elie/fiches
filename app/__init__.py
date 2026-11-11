@@ -101,5 +101,14 @@ def create_app():
     @app.errorhandler(404)
     def page_not_found(e):
         return render_template('404.html'), 404
+        
+    # Prevent click-jacking
+    @app.after_request
+    def set_security_headers(resp):
+        resp.headers['X-Content-Type-Options'] = 'nosniff'
+        resp.headers['X-Frame-Options'] = 'DENY'
+        resp.headers['Content-Security-Policy'] = "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+        resp.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        return resp
 
     return app

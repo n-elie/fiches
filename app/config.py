@@ -65,6 +65,10 @@ class Config:
 
         # Charger la configuration TOML
         self._load_config(config_path)
+        
+        # Prevent click-jacking
+        self.SESSION_COOKIE_SECURE = True
+        self.SESSION_COOKIE_SAMESITE = 'Lax'
 
         # Initialiser les propriétés
         self._init_db_config()
