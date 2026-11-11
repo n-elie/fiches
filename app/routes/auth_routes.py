@@ -23,6 +23,7 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+        remember = request.form.get('remember') == 'on' 
 
         if not username or not password:
             flash(_('Please provide a username and a password'), 'error')
@@ -33,7 +34,7 @@ def login():
         if user:
             user.last_login = db.func.now()
             db.session.commit()
-            login_user(user)
+            login_user(user, remember=remember)
             if user.is_admin:
                 return redirect(url_for('admin.dashboard'))
             else:
