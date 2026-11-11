@@ -152,6 +152,7 @@ def _export_data(samples:list[Sample], callback:Callable[[Sample | None], list],
             output.seek(0)
             output = io.BytesIO(output.getvalue().encode('utf-8-sig'))
         case 'excel':
+            data = []
             for sample in samples:
                 data.append(callback(sample))
             df = pd.DataFrame(data)
@@ -174,9 +175,9 @@ def export_csv():
     def callback(sample: Sample | None) -> list:
         if sample is None:
             return[
-                'ID', 'Date de création', 'Utilisateur', 'Équipe', 'Email',
-                'Référence échantillon', 'Quantité (mg)', 'Unité',
-                'Fichier structure', 'Statut', 'Notes']
+                'ID', 'Date Created', 'User',
+                'Team', 'Email', 'Sample Reference',
+                'Quantity (mg)', 'Structure File', 'Status', 'Notes']
         else:
             return [
                 sample.id,
@@ -187,7 +188,7 @@ def export_csv():
                 csv_safe(sample.reference),
                 csv_safe(sample.quantity),
                 csv_safe(sample.structure_file),
-                csv_safe(sample.status),
+                csv_safe(sample.get_status_name()),
                 csv_safe(sample.notes or '')]
                 
     output = _export_data(samples, callback, 'csv')
@@ -205,7 +206,6 @@ def export_csv():
 def export_excel():
     """Exporter les données au format Excel"""
 
-    data = []
     samples = db.session.scalars(
         db.select(Sample).join(User)
     ).all()
@@ -213,14 +213,15 @@ def export_excel():
     def callback(sample: Sample | None) -> dict:
         return {
             'ID': sample.id,
-            'Utilisateur': sample.user.full_name,
+            'Date created': sample.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'User': sample.user.full_name,
+            'Team': sample.team,
             'Email': sample.user.email,
-            'Équipe': sample.team,
-            'Référence': sample.reference,
-            'Quantité (mg)': sample.quantity,
-            'Fichier de structure': sample.structure_file,
-            'Statut': sample.get_status(),
-            'Date': sample.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            'Sample Reference': sample.reference,
+            'Quantity (mg)': sample.quantity,
+            'Structure file': sample.structure_file,
+            'Status': sample.get_status_name(),
+            'Notes': sample.notes or ''
         }
 
     output = _export_data(samples, callback, 'excel')
