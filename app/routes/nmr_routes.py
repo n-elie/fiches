@@ -9,6 +9,7 @@ from datetime import datetime
 from ..models import db, NMRSample, STATUS_NAMES
 from .main_routes import allowed_file
 from ..utils.check_data import is_valid_reference, is_valid_formula
+from ..utils.errors import log_error, report_error
 
 nmr_bp = Blueprint('nmr', __name__, url_prefix='/nmr')
 
@@ -97,7 +98,7 @@ def submit_sample():
             return redirect(url_for('nmr.success', sample_id=sample.id))
         except Exception as e:
             db.session.rollback()
-            flash(_('Error during submission: %(err)s', err=str(e)), 'error')
+            report_error(e, _('Error during submission: the sample was not saved.'))
             return redirect(url_for('nmr.submit_sample'))
 
     return render_template('nmr/sample_submit.html',
@@ -231,7 +232,7 @@ def sample_edit(sample_id):
             return redirect(url_for('nmr.sample_detail', sample_id=sample_id))
         except Exception as e:
             db.session.rollback()
-            flash(_('Error during update: %(err)s', err=str(e)), 'error')
+            report_error(e, _('Error during update: the sample was not saved.'))
             return redirect(url_for('nmr.sample_edit', sample_id=sample_id))
     
     # GET: Afficher le formulaire pré-rempli

@@ -1,4 +1,6 @@
 import os
+import logging
+from logging.handlers import RotatingFileHandler
 
 from flask import Flask, render_template, request, session, flash, redirect, url_for
 from flask_babel import Babel, lazy_gettext as _l
@@ -59,15 +61,15 @@ def create_app():
         app.config['RATELIMIT_STORAGE_URI'] = app.config['CELERY_BROKER_URL']
     limiter.init_app(app)
     
-    
     if app.config.get('BEHIND_PROXY', False):
         app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
     
-    # Gestionnaire erreur 429 (Too Many Requests)
-    @app.errorhandler(429)
-    def rate_limit_exceeded(e):
-        flash(_l('Too many login attempts. Please wait a minute and try again.'), 'error')
-        return redirect(url_for('auth.login')), 429
+    # Journaliser les erreurs complètes dans un fichier en production
+    if not app.debug:
+        os.makedirs('logs', exist_ok=True)
+        handler = RotatingFileHandler('logs/fiches.log', maxBytes=1_000_000, backupCount=5)
+        handler.setLevel(logging.ERROR)
+        app.logger.addHandler(handler)
     
     # Configuration de Flask-Login
     login_manager.login_view = 'auth.login'
@@ -101,6 +103,17 @@ def create_app():
     @app.errorhandler(404)
     def page_not_found(e):
         return render_template('404.html'), 404
+        
+    # Gestionnaire erreur 429 (Too Many Requests)
+    @app.errorhandler(429)
+    def rate_limit_exceeded(e):
+        flash(_l('Too many login attempts. Please wait a minute and try again.'), 'error')
+        return redirect(url_for('auth.login')), 429
+        
+    @app.errorhandler(500)
+    def internal_server_error(e):
+        app.logger.exception("Erreur 500 non gérée")
+        return render_template('500.html'), 500
         
     # Prevent click-jacking
     @app.after_request

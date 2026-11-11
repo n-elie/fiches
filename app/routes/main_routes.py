@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 
 from ..models import db, Sample, User, STATUS_NAMES, MSSample, NMRSample
 from ..utils.pdf_utils import create_analysis_sheet_pdf
+from ..utils.errors import log_error, report_error
 
 main_bp = Blueprint('main', __name__)
 
@@ -136,7 +137,8 @@ def _delete_samples(samples):
                 try:
                     os.remove(filepath)
                 except Exception as e:
-                    errors.append(_('%(ref)s: file deletion error - %(err)s', ref=sample.reference, err=str(e)))
+                    log_error(e, f"Deletion of file {sample.structure_file}")
+                    errors.append(_('%(ref)s: file deletion error', ref=sample.reference))
                     continue
 
         # Supprimer l'échantillon de la base
@@ -145,7 +147,8 @@ def _delete_samples(samples):
             deleted_count += 1
         except Exception as e:
             db.session.rollback()
-            errors.append(_('%(ref)s: database deletion error - %(err)s', ref=sample.reference, err=str(e)))
+            log_error(e, f"Suppression échantillon {sample.id}")
+            errors.append(_('%(ref)s: database deletion error', ref=sample.reference))
             continue
 
     db.session.commit()
@@ -249,7 +252,7 @@ def generate_pdf(sample_id):
         
         return response
     except Exception as e:
-        flash(_('Error while generating the PDF: %(err)s', err=str(e)), 'error')
+        report_error(e, _('Error while generating the PDF.'))
         return redirect(request.referrer)
         
 @main_bp.route('/samples/batch-pdf', methods=['POST'])
@@ -310,5 +313,5 @@ def batch_generate_pdf():
         return response
 
     except Exception as e:
-        flash(_('Error while generating the batch PDF: %(err)s', err=str(e)), 'error')
+        report_error(e, _('Error while generating the PDF.'))
         return redirect(url_for('main.user_samples'))

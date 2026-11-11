@@ -47,4 +47,4 @@ def process_sample_analysis(self, sample_id):
     except Exception as e:
         logger.error(f"Erreur dans process_sample_analysis: {e}")
         db.session.rollback()
-        return {'status': 'error', 'message': str(e)}
+        return {'status': 'error'}

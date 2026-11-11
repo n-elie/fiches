@@ -13,6 +13,7 @@ from ..models import db, MSSample, STATUS_NAMES
 from .main_routes import allowed_file
 from ..utils.mol import read_mol, mol_from_smiles, mol_to_smiles, mol_to_formula, formula_to_mass
 from ..utils.check_data import is_valid_reference, is_valid_formula
+from ..utils.errors import log_error, report_error
 
 ms_bp = Blueprint('ms', __name__, url_prefix='/ms')
 
@@ -107,10 +108,11 @@ def submit_sample():
                         smiles = mol_to_smiles(mol)
                         formula = mol_to_formula(mol)
                     except (OSError, RuntimeError) as e:
+                        log_error(e, f"Parsing Structuture file {unique_filename}")
                         # Supprimer le fichier de structure en cas d'erreur de lecture pour ne pas laisser de fichier orphelin
                         if os.path.exists(filepath):
                             os.path.unlink(filepath)
-                        flash(str(e), 'error')
+                        flash(_('The structure file could not be parsed.'), 'error')
                         return redirect(url_for('ms.submit_sample'))
                 else:
                     flash(_('File type not allowed. Accepted formats:') + ' .cdx, .cdxml, .mol, .sdf', 'error')
@@ -143,7 +145,7 @@ def submit_sample():
             return redirect(url_for('ms.success', sample_id=sample.id))
         except Exception as e:
             db.session.rollback()
-            flash(_('Error during submission: %(err)s', err=str(e)), 'error')
+            report_error(e, _('Error during submission: the sample was not saved.'))
             return redirect(url_for('ms.submit_sample'))
 
     return render_template('ms/sample_submit.html',
@@ -284,7 +286,7 @@ def sample_edit(sample_id):
             return redirect(url_for('ms.sample_detail', sample_id=sample_id))
         except Exception as e:
             db.session.rollback()
-            flash(_('Error during update: %(err)s', err=str(e)), 'error')
+            report_error(e, _('Error during update: the sample was not saved.'))
             return redirect(url_for('ms.sample_edit', sample_id=sample_id))
     
     # GET: Afficher le formulaire pré-rempli
@@ -327,12 +329,14 @@ def _parse_import_file(file) -> tuple[list[dict], list[str]]:
     except ValueError:
         raise
     except Exception as e:
-        raise ValueError(_('Error while reading the file: %(err)s', err=str(e)))
+        log_error(e, "Import file reading")
+        raise ValueError(_('Error while reading the file: it is corrupted or not a supported spreadsheet.'))
 
     # Vérifier que les colonnes requises sont présentes
     required_columns = ['reference', 'quantity']
     missing_columns = [col for col in required_columns if col not in df.columns]
     if missing_columns:
+        log_error(e, "Missing columns in import file")
         raise ValueError(_('Missing columns in the file: %(cols)s', cols=", ".join(missing_columns)))
 
     rows = []
@@ -380,7 +384,8 @@ def _parse_import_file(file) -> tuple[list[dict], list[str]]:
                 'notes': str(notes) if notes else '',
             })
         except Exception as e:
-            errors.append(_('Line %(line)s: %(err)s', line=line, err=str(e)))
+            log_error(e, f"Import, ligne {line}")
+            errors.append(_('Line %(line)s: invalid data', line=line))
 
     return rows, errors
     
@@ -408,7 +413,7 @@ def import_samples():
         try:
             samples_data, errors = _parse_import_file(file)
         except ValueError as e:
-            flash(str(e), 'error')
+            report_error(e, "Import file reading")
             return redirect(url_for('ms.import_samples'))
 
         team = request.form.get('team')
@@ -435,7 +440,8 @@ def import_samples():
                 db.session.flush()  # pour récupérer l'ID
                 created_samples.append(sample)
             except Exception as e:
-                errors.append(_('Line %(line)s: %(err)s', line=sample_data['line'], err=str(e)))
+                log_error(e, f"Import, ligne {line}")
+                errors.append(_('Line %(line)s: invalid data', line=line))
                 db.session.rollback()
                 continue
 
@@ -475,7 +481,7 @@ def import_samples_preview():
     try:
         rows, errors = _parse_import_file(file)
     except ValueError as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': _('Error while reading the import file')}), 400
 
     return jsonify({
         'samples': rows,
