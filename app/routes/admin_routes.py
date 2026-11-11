@@ -1,18 +1,19 @@
 import csv
 import io
+import os
 from collections.abc import Callable
 from datetime import datetime
 
 from werkzeug.security import generate_password_hash
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, current_app, jsonify
-from flask_babel import gettext as _
+from flask_babel import gettext as _, ngettext
 from flask_login import login_required, current_user
 from celery.result import AsyncResult
 from sqlalchemy import desc
 
 import pandas as pd
 
-from ..models import db, Sample, SampleStatus, User, Analysis
+from ..models import db, Sample, SampleStatus, User, Analysis, MSSample, NMRSample
 from ..tasks import process_sample_analysis
 
 admin_bp = Blueprint('admin', __name__)
@@ -555,3 +556,35 @@ def check_task_status(task_id):
         }
 
     return jsonify(response)
+    
+def delete_orphan_structure_files(dry_run: bool = False) -> list[str]:
+    """Supprime les fichiers de structure présents sur disque mais référencés
+    par aucun échantillon (ex. upload suivi d'un échec de parsing)."""
+    
+    removed = []
+    upload = current_app.config['UPLOAD_FOLDER']
+    for atype, cls in (('ms', MSSample), ('nmr', NMRSample)):
+        folder = os.path.join(upload, atype, 'structures')
+        if not os.path.isdir(folder):
+            continue
+        referenced = set(db.session.scalars(
+            db.select(cls.structure_file).where(cls.structure_file.isnot(None))
+        ))
+        for fname in os.listdir(folder):
+            path = os.path.join(folder, fname)
+            if os.path.isfile(path) and fname not in referenced:
+                if not dry_run:
+                    os.remove(path)
+                removed.append(path)
+    return removed
+
+
+@admin_bp.route('/cleanup-orphans', methods=['POST'])
+@login_required
+def cleanup_orphans():
+    """Nettoie les fichiers uploadés non référencés par un échantillon (admin only)"""
+    
+    removed = delete_orphan_structure_files(dry_run=False)
+    flash(ngettext('%(num)s orphan file deleted', '%(num)s orphan files deleted',
+                   len(removed)), 'success' if removed else 'info')
+    return redirect(url_for('admin.dashboard'))

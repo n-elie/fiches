@@ -159,6 +159,20 @@
             </div>
         </div>
 
+		<div class="card mt-4">
+            <div class="card-header">
+                <h3 class="h5 mb-0">{{ _("Actions") }}</h3>
+            </div>
+            <div class="card-body d-flex flex-wrap gap-2">
+                <form method="post" action="{{ url_for('admin.cleanup_orphans') }}">
+					<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+					<button type="submit" class="btn btn-outline-danger">
+						<i class="fas fa-broom"></i> {{ _('Delete orphan files') }}
+					</button>
+				</form>
+            </div>
+        </div>
+
         <div class="card mt-4">
             <div class="card-header">
                 <h3 class="h5 mb-0">{{ _("Data export") }}</h3>
