@@ -108,8 +108,8 @@ def submit_sample():
                         formula = mol_to_formula(mol)
                     except (OSError, RuntimeError) as e:
                         # Supprimer le fichier de structure en cas d'erreur de lecture pour ne pas laisser de fichier orphelin
-                        if os.path.exists(unique_filename):
-                            os.path.unlink(unique_filename)
+                        if os.path.exists(filepath):
+                            os.path.unlink(filepath)
                         flash(str(e), 'error')
                         return redirect(url_for('ms.submit_sample'))
                 else:
