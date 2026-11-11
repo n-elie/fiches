@@ -187,7 +187,7 @@ def sample_edit(sample_id):
             
         if not is_valid_reference(reference):
             flash(_('Invalid reference: only letters, digits, spaces, ".", "-" or "_" (max 100 characters)'), 'error')
-            return redirect(url_for('nmr.submit_sample'))
+            return redirect(url_for('nmr.sample_edit', sample_id=sample_id))
         
         if not reference or not quantity:
             flash(_('Please fill in all required fields'), 'error')

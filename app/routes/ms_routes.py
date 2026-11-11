@@ -206,15 +206,15 @@ def sample_edit(sample_id):
         for solvent in solvents:
             if solvent not in valid_solvents:
                 flash(_('The solvent is not available.'), 'error')
-                return redirect(url_for('ms.submit_sample'))
+                return redirect(url_for('ms.sample_edit', sample_id=sample_id))
 
         if not solvents and ((other_solvent and not other_solvent_name) or not other_solvent):
             flash(_('Please select at least one solvent'), 'error')
-            return redirect(url_for('ms.submit_sample'))
+            return redirect(url_for('ms.sample_edit', sample_id=sample_id))
             
         if not is_valid_reference(reference):
             flash(_('Invalid reference: only letters, digits, spaces, ".", "-" or "_" (max 100 characters)'), 'error')
-            return redirect(url_for('ms.submit_sample'))
+            return redirect(url_for('ms.sample_edit', sample_id=sample_id))
         
         if not reference or not quantity:
             flash(_('Please fill in all required fields'), 'error')
