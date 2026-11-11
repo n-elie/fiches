@@ -134,7 +134,7 @@ class TwoA5DocTemplate(BaseDocTemplate):
             # Générer le QR code (si base_url est fourni)
             qr_image = None
             sample = self.samples[canvas.getPageNumber()-1]
-            sample_url = urljoin(self.base_url, "{sample.analysis_type}/sample/{sample.id}")
+            sample_url = urljoin(self.base_url, f"{sample.analysis_type}/sample/{sample.id}")
             qr_image = ImageReader(generate_qr_code(sample_url, size=200))
             qr_size = 25*mm
             qr_y = 5*mm + 20*mm  # 20mm au-dessus du bas
