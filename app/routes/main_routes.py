@@ -244,7 +244,8 @@ def generate_pdf(sample_id):
         # Créer la réponse
         response = make_response(pdf_buffer.getvalue())
         response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = f'attachment; filename=fiche_analyse_{sample.reference}.pdf'
+        filename = secure_filename(f"fiche_analyse_{sample.reference}.pdf")
+        response.headers['Content-Disposition'] = f'attachment; filename={filename}'
         
         return response
     except Exception as e:
