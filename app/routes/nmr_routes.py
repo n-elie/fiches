@@ -4,18 +4,13 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from sqlalchemy import desc
 import os
-import re
 from datetime import datetime
 
 from ..models import db, NMRSample, STATUS_NAMES
 from .main_routes import allowed_file
+from ..utils.check_data import is_valid_reference, is_valid_formula
 
 nmr_bp = Blueprint('nmr', __name__, url_prefix='/nmr')
-
-REFERENCE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._\- ]{0,99}$")
-
-def is_valid_reference(reference):
-    return bool(reference) and bool(REFERENCE_RE.fullmatch(reference))
 
 @nmr_bp.route('/sample/submit', methods=['GET', 'POST'])
 @login_required
@@ -52,6 +47,10 @@ def submit_sample():
 
         if not is_valid_reference(reference):
             flash(_('Invalid reference: only letters, digits, spaces, ".", "-" or "_" (max 100 characters)'), 'error')
+            return redirect(url_for('nmr.submit_sample'))
+            
+        if not is_valid_formula(formula):
+            flash(_('Invalid formula: only letters, numbers, parentheses, brackets, charges (+, -), dots/asterisks for hydrates, and spaces (max 256 characters)'), 'error')
             return redirect(url_for('nmr.submit_sample'))
 
         if not reference or not quantity:
@@ -187,6 +186,10 @@ def sample_edit(sample_id):
             
         if not is_valid_reference(reference):
             flash(_('Invalid reference: only letters, digits, spaces, ".", "-" or "_" (max 100 characters)'), 'error')
+            return redirect(url_for('nmr.sample_edit', sample_id=sample_id))
+            
+        if not is_valid_formula(formula):
+            flash(_('Invalid formula: only letters, numbers, parentheses, brackets, charges (+, -), dots/asterisks for hydrates, and spaces (max 256 characters)'), 'error')
             return redirect(url_for('nmr.sample_edit', sample_id=sample_id))
         
         if not reference or not quantity:

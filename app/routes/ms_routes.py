@@ -4,20 +4,15 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from sqlalchemy import desc
 import os
-import re
 from datetime import datetime
 import pandas as pd
 
 from ..models import db, MSSample, STATUS_NAMES
 from .main_routes import allowed_file
 from ..utils.mol import read_mol, mol_from_smiles, mol_to_smiles, mol_to_formula, formula_to_mass
+from ..utils.check_data import is_valid_reference, is_valid_formula
 
 ms_bp = Blueprint('ms', __name__, url_prefix='/ms')
-
-REFERENCE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._\- ]{0,99}$")
-
-def is_valid_reference(reference):
-    return bool(reference) and bool(REFERENCE_RE.fullmatch(reference))
 
 @ms_bp.route('/sample/submit', methods=['GET', 'POST'])
 @login_required
@@ -52,6 +47,10 @@ def submit_sample():
             
         if not is_valid_reference(reference):
             flash(_('Invalid reference: only letters, digits, spaces, ".", "-" or "_" (max 100 characters)'), 'error')
+            return redirect(url_for('ms.submit_sample'))
+        
+        if not is_valid_formula(formula):
+            flash(_('Invalid formula: only letters, numbers, parentheses, brackets, charges (+, -), dots/asterisks for hydrates, and spaces (max 256 characters)'), 'error')
             return redirect(url_for('ms.submit_sample'))
 
         if not reference or not quantity:
@@ -215,6 +214,10 @@ def sample_edit(sample_id):
         if not is_valid_reference(reference):
             flash(_('Invalid reference: only letters, digits, spaces, ".", "-" or "_" (max 100 characters)'), 'error')
             return redirect(url_for('ms.sample_edit', sample_id=sample_id))
+            
+        if not is_valid_formula(formula):
+            flash(_('Invalid formula: only letters, numbers, parentheses, brackets, charges (+, -), dots/asterisks for hydrates, and spaces (max 256 characters)'), 'error')
+            return redirect(url_for('ms.sample_edit', sample_id=sample_id))
         
         if not reference or not quantity:
             flash(_('Please fill in all required fields'), 'error')
@@ -317,6 +320,10 @@ def _parse_import_file(file) -> tuple[list[dict], list[str]]:
             # Validation
             if not is_valid_reference(str(reference) if reference else ''):
                 errors.append(_('Line %(line)s: invalid reference', line=line))
+                continue
+                
+            if not is_valid_formula(str(formula) if formula else ''):
+                errors.append(_('Line %(line)s: invalid formula', line=line))
                 continue
             
             if not reference or not quantity:
