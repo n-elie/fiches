@@ -4,6 +4,8 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from sqlalchemy import desc
 import os
+import io
+import zipfile
 from datetime import datetime
 import pandas as pd
 
@@ -13,6 +15,32 @@ from ..utils.mol import read_mol, mol_from_smiles, mol_to_smiles, mol_to_formula
 from ..utils.check_data import is_valid_reference, is_valid_formula
 
 ms_bp = Blueprint('ms', __name__, url_prefix='/ms')
+
+IMPORT_EXTENSIONS = {'.xlsx', '.ods', '.csv'}
+ZIP_MAGIC = b'PK\x03\x04'  # .xlsx et .ods sont des conteneurs ZIP
+
+def _detect_import_filetype(filename: str, data: bytes) -> str:
+    """Détecte le vrai format à partir de l'extension (whitelist) et des magic bytes.
+    Le Content-Type envoyé par le client n'est jamais utilisé."""
+    ext = os.path.splitext(filename or '')[1].lower()
+    if ext not in IMPORT_EXTENSIONS:
+        raise ValueError(
+            _('File type not allowed. Accepted formats:') + ' .xlsx, .ods, .csv'
+        )
+    if ext == '.csv':
+        return 'csv'
+    if not data.startswith(ZIP_MAGIC):
+        raise ValueError(_('The file is not a valid .xlsx/.ods archive'))
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as z:
+            names = set(z.namelist())
+    except zipfile.BadZipFile:
+        raise ValueError(_('The file is not a valid .xlsx/.ods archive'))
+    if ext == '.xlsx' and 'xl/workbook.xml' not in names:
+        raise ValueError(_('The file is not a valid .xlsx workbook'))
+    if ext == '.ods' and 'mimetype' not in names:
+        raise ValueError(_('The file is not a valid .ods document'))
+    return 'excel' if ext == '.xlsx' else 'ods'
 
 @ms_bp.route('/sample/submit', methods=['GET', 'POST'])
 @login_required
@@ -277,26 +305,27 @@ def _parse_import_file(file) -> tuple[list[dict], list[str]]:
     colonnes manquantes).
     """
     
-    match file.mimetype:
-        case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
-            filetype = 'excel'
-        case 'text/csv' | 'application/csv' | 'application/vnd.ms-excel':
-            filetype = 'csv'
-        case 'application/vnd.oasis.opendocument.spreadsheet':
-            filetype = 'ods'
-        case _:
-            raise ValueError(_('File type not allowed. Accepted formats:') + ' .xlsx, .xls, .ods, .csv')
+    data = file.read()
+    if not data:
+        raise ValueError(_('Empty file'))
+
+    filetype = _detect_import_filetype(file.filename, data)
+    stream = io.BytesIO(data)
 
     # Lire le fichier avec pandas
     try:
         match filetype:
-            case 'excel' | 'ods':
-                df = pd.read_excel(file)
+            case 'excel':
+                df = pd.read_excel(stream, engine='openpyxl')
+            case 'ods':
+                df = pd.read_excel(stream, engine='odf')
             case 'csv':
-                df = pd.read_csv(file, sep=';')
+                df = pd.read_csv(stream, sep=';')
 
         df.columns = df.columns.str.lower()  # Normaliser les noms de colonnes
         df = df.replace(float('nan'), None)
+    except ValueError:
+        raise
     except Exception as e:
         raise ValueError(_('Error while reading the file: %(err)s', err=str(e)))
 
