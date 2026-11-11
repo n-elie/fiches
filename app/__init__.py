@@ -1,10 +1,14 @@
 import os
 
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request, session, flash, redirect, url_for
 from flask_babel import Babel, lazy_gettext as _l
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .tasks import init_celery
 from .config import config
@@ -16,6 +20,7 @@ login_manager = LoginManager()
 migrate = Migrate()
 csrf = CSRFProtect()
 babel = Babel()
+limiter = Limiter(key_func=get_remote_address)
 
 SUPPORTED_LOCALES = ['fr', 'en']
 DEFAULT_LOCALE = 'fr'
@@ -50,6 +55,19 @@ def create_app():
     csrf.init_app(app)
     babel.init_app(app, locale_selector=get_locale)
     app.jinja_env.globals['get_locale'] = get_locale
+    if not app.config.get('RATELIMIT_STORAGE_URI'):
+        app.config['RATELIMIT_STORAGE_URI'] = app.config['CELERY_BROKER_URL']
+    limiter.init_app(app)
+    
+    
+    if app.config.get('BEHIND_PROXY', False):
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+    
+    # Gestionnaire erreur 429 (Too Many Requests)
+    @app.errorhandler(429)
+    def rate_limit_exceeded(e):
+        flash(_l('Too many login attempts. Please wait a minute and try again.'), 'error')
+        return redirect(url_for('auth.login')), 429
     
     # Configuration de Flask-Login
     login_manager.login_view = 'auth.login'

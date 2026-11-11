@@ -146,6 +146,11 @@ class Config:
         self.ADMIN_USERS = app_config.get('admin_users', ['admin'])
         self.LOGO = app_config.get('logo', 'logo.png')
         
+        self.LOGIN_RATE_LIMIT = app_config.get('login_rate_limit', '5 per minute')
+        self.RATELIMIT_STORAGE_URI = app_config.get('ratelimit_storage') or None
+        self.RATELIMIT_ENABLED = app_config.get('ratelimit_enabled', not self.DEBUG)
+        self.BEHIND_PROXY = app_config.get('behind_proxy', False)
+        
     def _init_samples_config(self):
         """Initialise la configuration pour la liste d'échantillons"""
         

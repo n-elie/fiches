@@ -36,6 +36,10 @@ max_content_length = 16777216        # Taille max des uploads (16 Mo en octets)
 port = 5000                            # Port de l'application
 debug = false                           # Mode debug
 admin_users = ["admin"]               # Utilisateurs administrateurs
+login_rate_limit = "5 per minute"                  # Limite de tentatives sur /login
+ratelimit_storage = "redis://localhost:6379/1"     # Compteurs (recommandé) ; vide = broker Celery
+ratelimit_enabled = true                           # false pour désactiver en dev
+behind_proxy = false
 
 # -----------------------------------------------------------------------------
 # Liste d'échantillons

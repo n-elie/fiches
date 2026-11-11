@@ -1,10 +1,10 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_babel import gettext as _
 from flask_login import login_user, logout_user, login_required, current_user
 
 from ..models import User, db
 from ..auth import dap_auth
-from .. import login_manager
+from .. import login_manager, limiter
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -14,6 +14,7 @@ def load_user(user_id):
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit(lambda: current_app.config['LOGIN_RATE_LIMIT'], methods=['POST'])
 def login():
     """Page de connexion"""
     if current_user.is_authenticated:
