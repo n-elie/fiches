@@ -1,4 +1,5 @@
 import os
+import html
 import logging
 from logging.handlers import RotatingFileHandler
 
@@ -16,6 +17,7 @@ from .tasks import init_celery
 from .config import config
 from .models import db
 from .auth import dap_auth
+from .utils.errors import sanitize_log
 
 # Initialiser Flask-Login au niveau du module
 login_manager = LoginManager()
@@ -34,6 +36,16 @@ def get_locale():
         return lang
     # 2. Sinon, négociation via l'en-tête Accept-Language du navigateur
     return request.accept_languages.best_match(SUPPORTED_LOCALES) or DEFAULT_LOCALE
+    
+class SanitizingFormatter(logging.Formatter):
+    """Anti-injection log : supprime les caractères de contrôle (CRLF) puis
+    échappe le HTML, au cas où les logs seraient rendus dans une interface web."""
+    
+    def format(self, record):
+        record.msg = sanitize_log(record.msg)
+        if record.args:
+            record.args = tuple(sanitize_log(a) for a in record.args)
+        return html.escape(super().format(record))
 
 def create_app():
     """Créer et configurer l'application Flask"""
@@ -69,6 +81,7 @@ def create_app():
         os.makedirs('logs', exist_ok=True)
         handler = RotatingFileHandler('logs/fiches.log', maxBytes=1_000_000, backupCount=5)
         handler.setLevel(logging.ERROR)
+        handler.setFormatter(SanitizingFormatter('%(asctime)s %(levelname)s %(name)s: %(message)s'))
         app.logger.addHandler(handler)
     
     # Configuration de Flask-Login

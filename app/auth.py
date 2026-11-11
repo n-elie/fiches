@@ -3,7 +3,9 @@ from ldap3.utils.conv import escape_filter_chars
 from ldap3.core.exceptions import LDAPException
 from flask import current_app
 from .models import User, db
+
 import logging
+from .utils.errors import sanitize_log
 
 # Configuration du logger
 logger = logging.getLogger(__name__)
@@ -55,7 +57,7 @@ class LDAPAuth:
             conn = Connection(server, user=self.ldap_bind_dn, password=self.ldap_bind_password, auto_bind=True)
             return conn
         except LDAPException as e:
-            logger.error(f"Erreur de connexion LDAP: {e}")
+            logger.error(f"LDAP connection error: {e}")
             return None
 
     def test_connection(self):
@@ -63,12 +65,12 @@ class LDAPAuth:
         try:
             conn = self._create_bind_connection()
             if conn and conn.bound:
-                logger.info("Connexion LDAP réussie")
+                logger.info("LDAP connection successful")
                 conn.unbind()
                 return True
             return False
         except Exception as e:
-            logger.error(f"Erreur de connexion LDAP: {e}")
+            logger.error(f"LDAP connection error: {e}")
             return False
 
     def authenticate(self, username, password):
@@ -82,11 +84,11 @@ class LDAPAuth:
         user = self.get_user_by_username(username)
         if user and user.is_local_user():
             if user.check_password(password):
-                logger.info(f"Local authentication successful for {username}")
+                logger.info(f"Local authentication successful for {sanitize_log(username)}")
                 user.last_login = db.func.now()
                 db.session.commit()
                 return user
-            logger.warning(f"Local authentication failed for {username}")
+            logger.warning(f"Local authentication failed for {sanitize_log(username)}")
             return None
         
         # 2. Compte LDAP
@@ -103,7 +105,7 @@ class LDAPAuth:
                     attributes=self.user_attributes)
 
             if not conn.entries:
-                logger.warning(f"User {username} not found in LDAP")
+                logger.warning(f"User {sanitize_log(username)} not found in LDAP")
                 conn.unbind()
                 return None
 
@@ -117,7 +119,7 @@ class LDAPAuth:
                 user_conn = Connection(server, user=user_dn, password=password, auto_bind=True)
 
                 if user_conn.bound:
-                    logger.info(f"Authentification sucessfill for {username}")
+                    logger.info(f"Authentification sucessfill for {sanitize_log(username)}")
 
                     # Récupérer les informations de l'utilisateur
                     user_info = self._parse_user_data(user_entry)
@@ -129,12 +131,12 @@ class LDAPAuth:
                     conn.unbind()
                     return user
                 else:
-                    logger.error(f"Authentication failed for {username}: invalid credentials")
+                    logger.error(f"Authentication failed for {sanitize_log(username)}: invalid credentials")
                     conn.unbind()
                     return None
 
             except LDAPException as e:
-                logger.error(f"Authentication failed for {username}: {e}")
+                logger.error(f"Authentication failed for {sanitize_log(username)}: {e}")
                 conn.unbind()
                 return None
 

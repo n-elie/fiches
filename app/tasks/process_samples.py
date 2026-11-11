@@ -4,6 +4,7 @@ from celery import shared_task
 import time
 import logging
 
+from ..utils.errors import sanitize_log
 from ..models import db, Analysis, Sample
 from .celery_app import celery
 
@@ -24,7 +25,7 @@ def process_sample_analysis(self, sample_id):
             logger.error(f"Échantillon {sample_id} introuvable")
             return {'status': 'error', 'message': 'Sample not found'}
 
-        logger.info(f"Début du traitement pour l'échantillon {sample.reference}")
+        logger.info(f"Début du traitement pour l'échantillon {sanitize_log(sample.reference)}")
 
         # TODO
 
@@ -37,7 +38,7 @@ def process_sample_analysis(self, sample_id):
         db.session.add(analysis)
         db.session.commit()
 
-        logger.info(f"Analysis créée pour {sample.reference}: ID={analysis.id}")
+        logger.info(f"Analysis créée pour {sanitize_log(sample.reference)}: ID={analysis.id}")
         return {
             'status': 'success',
             'analysis_id': analysis.id,

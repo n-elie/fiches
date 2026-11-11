@@ -8,6 +8,7 @@ import logging
 
 from ..models import db, Analysis, Sample, SampleStatus
 from ..utils.data_processing import UNIFIAPI, extract_trace_name, get_data, peak_picking, lock_mass_correct, mspy_to_openms, RTRange
+from ..utils.errors import sanitize_log
 from .celery_app import celery
 
 LOCK_KEY = 'lock:download_spectra'
@@ -23,7 +24,7 @@ def download_spectra(self):
     r = celery.backend.client
 
     if not r.set(LOCK_KEY, '1', nx=True, ex=3600):
-        logger.info("Tâche déjà en cours, l'éxécution de cette tâche va être ignorée.")
+        logger.info("Task already running, execution of this task will be ignored.")
         return {'status': 'skipped'}
     try:
         unifi_config = current_app.config['UNIFI']
@@ -46,7 +47,7 @@ def download_spectra(self):
             os.makedirs(mzml_folder, exist_ok=True)
             mzml_file = os.path.join(mzml_folder, f'{sample.id}.mzML')
             if os.path.exists(mzml_file):
-                logger.info(f"Skipped spectra downloading for {sample.reference} as mzML file already exists.")
+                logger.info(f"Skipped spectra downloading for {sanitize_log(sample.reference)} as mzML file already exists.")
                 continue
             
             api.connect(unifi_config['username'], unifi_config['password'])
@@ -56,10 +57,10 @@ def download_spectra(self):
             sample_items = [item for item in data_folder.items() if item.type == "SampleResult" and item.name == sample.reference]
             
             if not sample_items:
-                logger.warning(f"No samples items found for sample reference: {sample.reference}.")
+                logger.warning(f"No samples items found for sample reference: {sanitize_log(sample.reference)}.")
                 continue
             else:
-                logger.info(f"{len(sample_items)} samples items found for sample reference: {sample.reference}.")
+                logger.info(f"{len(sample_items)} samples items found for sample reference: {sanitize_log(sample.reference)}.")
             
             sample_items = sorted(sample_items, key=lambda item: item.createdAt, reverse=True)
             sample_results = [item.convert() for item in sample_items]

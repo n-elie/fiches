@@ -1,9 +1,16 @@
 import logging
+import re
 
 from flask import current_app, flash
 
 logger = logging.getLogger(__name__)
 
+_CTRL_RE = re.compile(r"[\x00-\x1f\x7f]")
+
+def sanitize_log(value) -> str:
+    """Supprime les caractères de contrôle (CRLF, tab, etc.) d'une valeur destinée aux logs."""
+    
+    return _CTRL_RE.sub("", str(value))
 
 def log_error(e: Exception, context: str = "") -> None:
     """Journalise l'exception complète (avec traceback) côté serveur uniquement."""

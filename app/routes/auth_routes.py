@@ -1,3 +1,5 @@
+import re
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_babel import gettext as _
 from flask_login import login_user, logout_user, login_required, current_user
@@ -5,6 +7,8 @@ from flask_login import login_user, logout_user, login_required, current_user
 from ..models import User, db
 from ..auth import dap_auth
 from .. import login_manager, limiter
+
+USERNAME_RE = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -27,6 +31,10 @@ def login():
 
         if not username or not password:
             flash(_('Please provide a username and a password'), 'error')
+            return redirect(url_for('auth.login'))
+            
+        if not USERNAME_RE.fullmatch(username):
+            flash(_('Incorrect username or password'), 'error')
             return redirect(url_for('auth.login'))
 
         user = dap_auth.authenticate(username, password)
