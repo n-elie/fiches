@@ -186,8 +186,8 @@ def export_csv():
                 csv_safe(sample.user.email),
                 csv_safe(sample.reference),
                 csv_safe(sample.quantity),
-                csv_sage(sample.structure_file),
-                csv_sage(sample.status),
+                csv_safe(sample.structure_file),
+                csv_safe(sample.status),
                 csv_safe(sample.notes or '')]
                 
     output = _export_data(samples, callback, 'csv')
