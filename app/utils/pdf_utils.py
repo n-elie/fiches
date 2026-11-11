@@ -7,6 +7,7 @@ import tempfile
 import io
 from datetime import datetime
 from urllib.parse import urljoin
+from xml.sax.saxutils import escape
 
 from flask_babel import gettext as _, format_datetime
 
@@ -236,7 +237,7 @@ def create_sheet_content(sample, upload_folder, service_name=None, responsible_n
     for label, value in common_fields:
         data.append([
             Paragraph(label, label_style),
-            Paragraph(str(value), value_style)
+            Paragraph(escape(str(value)), value_style)
         ])
 
     # Créer le tableau
@@ -260,11 +261,11 @@ def create_sheet_content(sample, upload_folder, service_name=None, responsible_n
     match sample.analysis_type:
         case 'nmr':
             structural_fields.append(
-                (_("Mass"), f"{round(sample.mass)}" if sample.mass else "N/A"),
+                (_("Mass"), escape(f"{round(sample.mass)}") if sample.mass else "N/A"),
             )
         case 'ms':
             structural_fields.append(
-                (_("Exact mass"), f"{sample.mass:.4f} Da" if sample.mass else "N/A"),
+                (_("Exact mass"), escape(f"{sample.mass:.4f} Da") if sample.mass else "N/A"),
             )
 
     for label, value in structural_fields:
@@ -295,10 +296,10 @@ def create_sheet_content(sample, upload_folder, service_name=None, responsible_n
         nmr_data.append([Paragraph(_("Stability"), label_style), Paragraph(stability_text, value_style)])
 
         # Solvant
-        nmr_data.append([Paragraph(_("Solvent"), label_style), Paragraph(sample.solvent or _("Not specified"), value_style)])
+        nmr_data.append([Paragraph(_("Solvent"), label_style), Paragraph(escape(sample.solvent) or _("Not specified"), value_style)])
 
         # Frequence
-        nmr_data.append([Paragraph(_("Frequency"), label_style), Paragraph(f"{sample.frequency} MHz", value_style)])
+        nmr_data.append([Paragraph(_("Frequency"), label_style), Paragraph(f"{escape(sample.frequency)} MHz", value_style)])
 
         # Experiences
         experiments = sample.experiments or ""
@@ -309,7 +310,7 @@ def create_sheet_content(sample, upload_folder, service_name=None, responsible_n
         if other_experiment:
             all_experiments.append(other_experiment)
         experiments_text = ", ".join(all_experiments) if all_experiments else _("None")
-        nmr_data.append([Paragraph(_("Experiments"), label_style), Paragraph(experiments_text, value_style)])
+        nmr_data.append([Paragraph(_("Experiments"), label_style), Paragraph(escape(experiments_text), value_style)])
 
         nmr_table = Table(nmr_data, colWidths=[40*mm, 55*mm])
         nmr_table.setStyle(table_style)
@@ -332,7 +333,7 @@ def create_sheet_content(sample, upload_folder, service_name=None, responsible_n
         if other_solvent:
             all_solvents.append(other_solvent)
         solvents_text = ", ".join(all_solvents) if all_solvents else _("None")
-        ms_data.append([Paragraph(_("Solvents"), label_style), Paragraph(solvents_text, value_style)])
+        ms_data.append([Paragraph(_("Solvents"), label_style), Paragraph(escape(solvents_text), value_style)])
 
         ms_table = Table(ms_data, colWidths=[40*mm, 55*mm])
         ms_table.setStyle(table_style)
