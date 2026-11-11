@@ -351,7 +351,7 @@ def _parse_import_file(file) -> tuple[list[dict], list[str]]:
                 errors.append(_('Line %(line)s: invalid reference', line=line))
                 continue
                 
-            if not is_valid_formula(str(formula) if formula else ''):
+            if formula and not is_valid_formula(str(formula)):
                 errors.append(_('Line %(line)s: invalid formula', line=line))
                 continue
             
