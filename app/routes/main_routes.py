@@ -227,16 +227,12 @@ def generate_pdf(sample_id):
     
     try:
         # Générer le PDF
-        service_infos = current_app.config['SERVICES'].get(sample.analysis_type, {})
-        service_name = service_infos.get('name', None)
-        responsible_name = service_infos.get('responsible', None)
-        phone_number = service_infos.get('phone', None)
         logo_path = os.path.join(current_app.static_folder, 'images', current_app.config['LOGO'])
         if not os.path.exists(logo_path):
             logo_path = None
         pdf_buffer = create_analysis_sheet_pdf(
             [sample], os.path.join(current_app.config['UPLOAD_FOLDER'], sample.analysis_type, 'structures'),
-            service_name=service_name, responsible_name=responsible_name, phone_number=phone_number,
+            services=current_app.config['SERVICES'],
             logo_path=logo_path,
             base_url=request.host_url
         )
@@ -297,7 +293,7 @@ def batch_generate_pdf():
             logo_path = None
         pdf_buffer = create_analysis_sheet_pdf(
             samples, os.path.join(current_app.config['UPLOAD_FOLDER'], sample.analysis_type, 'structures'),
-            service_name=service_name, responsible_name=responsible_name, phone_number=phone_number,
+            services=current_app.config['SERVICES'],
             logo_path=logo_path,
             base_url=request.host_url
         )

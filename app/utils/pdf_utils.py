@@ -183,8 +183,18 @@ def generate_qr_code(url: str, size: int = 100) -> io.BytesIO:
     buffer.seek(0)
     return buffer
     
-def create_sheet_content(sample, upload_folder, service_name=None, responsible_name=None, phone_number=None, logo_path=None):
-    """Cree le contenu d'une fiche individuelle"""
+def create_sheet_content(sample, upload_folder, services=None, logo_path=None):
+    """Cree le contenu d'une fiche individuelle
+    
+    upload_folder: racine des uploads (UPLOAD_FOLDER) ; le sous-dossier
+    <analysis_type>/structures est résolu ici, par échantillon.
+    services: dict app.config['SERVICES'] (résout nom/responsable/téléphone par type).
+    """
+    
+    service_infos = (services or {}).get(sample.analysis_type, {})
+    service_name = service_infos.get('name')
+    responsible_name = service_infos.get('responsible')
+    phone_number = service_infos.get('phone')
     
     hr = HRFlowable(
         width="100%",
@@ -299,7 +309,7 @@ def create_sheet_content(sample, upload_folder, service_name=None, responsible_n
         nmr_data.append([Paragraph(_("Solvent"), label_style), Paragraph(escape(sample.solvent) or _("Not specified"), value_style)])
 
         # Frequence
-        nmr_data.append([Paragraph(_("Frequency"), label_style), Paragraph(f"{escape(sample.frequency)} MHz", value_style)])
+        nmr_data.append([Paragraph(_("Frequency"), label_style), Paragraph(f"{escape(str(sample.frequency))} MHz", value_style)])
 
         # Experiences
         experiments = sample.experiments or ""
@@ -345,7 +355,7 @@ def create_sheet_content(sample, upload_folder, service_name=None, responsible_n
         elements.append(Paragraph(_("CHEMICAL STRUCTURE"), subtitle_style))
 
         # Chemin complet du fichier
-        file_path = os.path.join(upload_folder, sample.structure_file)
+        file_path = os.path.join(upload_folder, sample.analysis_type, 'structures', sample.structure_file)
 
         # Generer l'image de la structure
         mol = mol_from_smiles(sample.smiles)
@@ -364,7 +374,7 @@ def create_sheet_content(sample, upload_folder, service_name=None, responsible_n
 
     return elements
 
-def create_analysis_sheet_pdf(samples: list[Sample], upload_folder: str, service_name=None, responsible_name=None, phone_number=None, logo_path=None, base_url=None):
+def create_analysis_sheet_pdf(samples: list[Sample], upload_folder: str, services=None, logo_path=None, base_url=None):
     """
     Créer une fiche d'analyse PDF pour un echantillon avec deux copies A5 sur une page A4 landscape
 
@@ -432,9 +442,7 @@ def create_analysis_sheet_pdf(samples: list[Sample], upload_folder: str, service
     for sample in samples:
         # Créer le contenu pour une seule fiche
         sheet_content = create_sheet_content(
-            sample, upload_folder, service_name=service_name,
-            responsible_name=responsible_name, phone_number=phone_number,
-            logo_path=logo_path
+            sample, upload_folder, services=services, logo_path=logo_path
         )
         
         # Construire le PDF avec FrameBreak
