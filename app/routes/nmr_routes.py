@@ -210,7 +210,7 @@ def sample_edit(sample_id):
                     # Sauvegarder le nouveau fichier
                     filename = secure_filename(file.filename)
                     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-                    unique_filename = f"{current_user.username}_{timestamp}_{filename}"
+                    unique_filename = f"{secure_filename(current_user.username)}_{timestamp}_{filename}"
                     filepath = os.path.join(structures_folder, unique_filename)
                     file.save(filepath)
                     sample.structure_file = unique_filename
