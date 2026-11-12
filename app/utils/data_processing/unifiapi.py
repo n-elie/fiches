@@ -58,7 +58,8 @@ class CheckDataTypeMixin:
                             value.pop('@odata.type', None)
                             setattr(self, f.name, f.type(**value))
             except AttributeError:
-                print(f.type, isinstance(f.type, ForwardRef))
+                pass
+                #print(f.type, isinstance(f.type, ForwardRef))
 
 #  'AnalysisMethod',
 #  'Report',
@@ -363,7 +364,7 @@ class UNIFIAPI:
         if response.ok:
             contents = response.json()
             self._token = contents.get('access_token')
-            print('Login sucessfull')
+            #print('Login sucessfull')
         else:
             raise ValueError('Authentication error, Response: ', response.status_code, ' ', response.reason, ' Text: ', response.text )
 
