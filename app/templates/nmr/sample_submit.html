@@ -31,7 +31,7 @@
         </div>
 
         <div class="col-md-4">
-            label for="frequency" class="form-label">{{ _("Instrument frequency") }} <span class="required-star">*</span>
+            <label for="frequency" class="form-label">{{ _("Instrument frequency") }} <span class="required-star">*</span>
         </label>
         <select id="frequency" name="frequency" class="form-select" required>
             {% for frequency in experiments_by_frequency.keys() %}
