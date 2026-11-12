@@ -15,6 +15,7 @@ import pandas as pd
 
 from ..models import db, Sample, SampleStatus, User, Analysis, MSSample, NMRSample
 from ..tasks import process_sample_analysis
+from ..utils.urls import safe_redirect_back
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -363,7 +364,7 @@ def update_sample_status(sample_id):
     else:
         flash(_('Invalid status'), 'error')
 
-    return redirect(request.referrer)
+    return safe_redirect_back('admin.dashboard')
     
 @admin_bp.route('/users/create', methods=['GET', 'POST'])
 @login_required
@@ -534,7 +535,7 @@ def start_analysis_task(sample_id):
     db.session.commit()
 
     flash(_('Analysis task started for %(ref)s (ID: %(task_id)s)', ref=sample.reference, task_id=task.id), 'success')
-    return redirect(request.referrer)
+    return safe_redirect_back('admin.dashboard')
 
 @admin_bp.route('/analysis/task/<task_id>/status')
 @login_required

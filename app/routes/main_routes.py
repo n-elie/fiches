@@ -12,19 +12,16 @@ from urllib.parse import urlparse
 from ..models import db, Sample, User, STATUS_NAMES, MSSample, NMRSample
 from ..utils.pdf_utils import create_analysis_sheet_pdf
 from ..utils.errors import log_error, report_error
+from ..utils.urls import safe_redirect_back
 
 main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/lang/<lang>')
 def set_language(lang):
-    ref = request.referrer
     if lang in current_app.config['BABEL_SUPPORTED_LOCALES']:
         session['lang'] = lang
         
-    ref = request.referrer
-    if ref and urlparse(ref).netloc == request.host:
-        return redirect(ref)
-    return redirect(url_for('main.index'))
+    return safe_redirect_back('main.index')
 
 def allowed_file(filename):
     """Vérifier si le fichier a une extension autorisée"""
@@ -253,7 +250,7 @@ def generate_pdf(sample_id):
         return response
     except Exception as e:
         report_error(e, _('Error while generating the PDF.'))
-        return redirect(request.referrer)
+        return safe_redirect_back('main.user_samples')
         
 @main_bp.route('/samples/batch-pdf', methods=['POST'])
 @login_required
