@@ -191,7 +191,7 @@
                 <p class="mb-0">&nbsp;</p>
             </div>
         </footer>
-        <script>
+        <script nonce="{{ csp_nonce }}">
             window.I18N = {
                 fileTooLarge: {{ _('The file is too large. Maximum allowed size is 16 MB.') | tojson }}
             };

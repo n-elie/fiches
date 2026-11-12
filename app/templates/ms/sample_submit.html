@@ -55,7 +55,7 @@
 
 {% block scripts %}
     {{ super() }}
-    <script>
+    <script nonce="{{ csp_nonce }}">
         $(document).ready(function() {
             const $otherCheckBox = $('#other_solvent');
             const $otherTextBox = $('#other_solvent_name');

@@ -397,7 +397,7 @@
 {% block scripts %}
     {{ super() }}
     {% if sample.celery_task_id %}
-        <script>
+        <script nonce="{{ csp_nonce }}">
             $(document).ready(function() {
                 const taskId = "{{ sample.celery_task_id }}";
                 const statusUrl = `/admin/analysis/task/${taskId}/status`;

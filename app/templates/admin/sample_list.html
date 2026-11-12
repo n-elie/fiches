@@ -197,7 +197,7 @@
 {% block scripts %}
     {{ super() }}
     <script src="{{ url_for('static', filename='js/jquery-ui-1.14.2.min.js') }}"></script>
-    <script>
+    <script nonce="{{ csp_nonce }}">
         $(document).ready(function() {
             const $list = $('#sample-list');
             const $emptyMessage = $('#empty-list-message');

@@ -115,7 +115,7 @@
 
 {% block scripts %}
     {{ super() }}
-    <script>
+    <script nonce="{{ csp_nonce }}">
         $(document).ready(function() {
             const $form = $('#import-form');
             const $file = $('#excel_file');

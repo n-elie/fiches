@@ -200,7 +200,7 @@
                                     {% if sample.is_pending() %}
                                         <form method="post"
                                               action="{{ url_for('main.delete_sample', sample_id=sample.id) }}"
-                                              onsubmit='return confirm({{ _("Are you sure you want to delete this sample? This action is irreversible.") | tojson }});'
+                                              data-confirm="{{ _('Are you sure you want to delete this sample? This action is irreversible.') }}"
                                               class="action-form">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <button type="submit" class="btn-icon btn-delete" title="{{ _("Delete") }}">
@@ -233,7 +233,7 @@
 
                         <form method="post"
                               action="{{ url_for("main.batch_delete_samples") }}"
-                              onsubmit='return confirm({{ _("Are you sure you want to delete these samples? This action is irreversible.") | tojson }});'
+                              data-confirm="{{ _('Are you sure you want to delete these samples? This action is irreversible.') }}"
                               class="batch-form ms-auto">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-danger" disabled id="batch-delete-btn">
@@ -318,7 +318,7 @@
 
 {% block scripts %}
     {{ super() }}
-    <script>
+    <script nonce="{{ csp_nonce }}">
         $(document).ready(function() {
             const $selectAllCheckbox = $('#select-all');
             const $sampleCheckboxes = $('.sample-checkbox:not([disabled])');

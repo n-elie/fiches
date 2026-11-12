@@ -6,7 +6,7 @@
 
 {% block scripts %}
     <script src="{{ url_for('static', filename='js/echarts-6.1.0.min.js') }}"></script>
-    <script>
+    <script nonce="{{ csp_nonce }}">
         $(document).ready(function() {
 
             // ================= Données =================

@@ -2,8 +2,9 @@ import os
 import html
 import logging
 from logging.handlers import RotatingFileHandler
+import secrets
 
-from flask import Flask, render_template, request, session, flash, redirect, url_for
+from flask import Flask, render_template, request, session, flash, redirect, url_for, g
 from flask_babel import Babel, lazy_gettext as _l
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -129,11 +130,24 @@ def create_app():
         return render_template('500.html'), 500
         
     # Prevent click-jacking
+    @app.before_request
+    def generate_csp_nonce():
+        g.csp_nonce = secrets.token_hex(16)
+
+    @app.context_processor
+    def inject_csp_nonce():
+        return {'csp_nonce': g.get('csp_nonce', '')}
+        
     @app.after_request
     def set_security_headers(resp):
         resp.headers['X-Content-Type-Options'] = 'nosniff'
         resp.headers['X-Frame-Options'] = 'DENY'
-        resp.headers['Content-Security-Policy'] = "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+        resp.headers['Content-Security-Policy'] = (
+            "default-src 'self'; "
+            f"script-src 'self' 'nonce-{g.get('csp_nonce', '')}'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data:"
+        )
         resp.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
         return resp
 

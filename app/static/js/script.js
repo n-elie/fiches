@@ -67,3 +67,21 @@ function initFileUpload() {
         });
     });
 }
+
+/**
+ * Remplace onsubmit="return confirm(...)" / onclick inline,
+ * bloqués par la CSP (script-src-attr). Lire avec .attr() pour éviter le
+ * parsing JSON de jQuery .data().
+*/
+$(document).on('submit', 'form[data-confirm]', function () {
+    return window.confirm($(this).attr('data-confirm'));
+});
+
+$(document).on('click', '[data-confirm-click]', function () {
+    if (window.confirm($(this).attr('data-confirm-click'))) {
+        const target = $(this).attr('data-target');
+        if (target) {
+            document.getElementById(target).submit();
+        }
+    }
+});

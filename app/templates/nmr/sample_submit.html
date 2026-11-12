@@ -56,7 +56,7 @@
 
 {% block scripts %}
     {{ super() }}
-    <script>
+    <script nonce="{{ csp_nonce }}">
         $(document).ready(function() {
             const experimentsByFrequency = {{ experiments_by_frequency|tojson|safe }};
             {% if sample %}
