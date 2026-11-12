@@ -425,32 +425,34 @@ def import_samples():
         created_samples = []
         for sample_data in samples_data:
             try:
-                sample = MSSample(
-                    team=team,
-                    reference=sample_data['reference'],
-                    quantity=sample_data['quantity'],
-                    formula=sample_data['formula'] or None,
-                    mass=sample_data['mass'],
-                    smiles=sample_data['smiles'] or None,
-                    solvents=sample_data['solvent'] or None,
-                    notes=sample_data['notes'] or None,
-                    user_id=current_user.id
-                )
-                db.session.add(sample)
-                db.session.flush()  # pour récupérer l'ID
-                created_samples.append(sample)
+                with db.session.begin_nested():
+                    sample = MSSample(
+                        team=team,
+                        reference=sample_data['reference'],
+                        quantity=sample_data['quantity'],
+                        formula=sample_data['formula'] or None,
+                        mass=sample_data['mass'],
+                        smiles=sample_data['smiles'] or None,
+                        solvents=sample_data['solvent'] or None,
+                        notes=sample_data['notes'] or None,
+                        user_id=current_user.id
+                    )
+                    db.session.add(sample)
+                    db.session.flush()  # pour récupérer l'ID
+                    created_samples.append(sample)
             except Exception as e:
-                log_error(e, f"Import, ligne {line}")
+                log_error(e, f"Import, line {sample_data['line']}")
                 errors.append(_('Line %(line)s: invalid data', line=line))
-                db.session.rollback()
                 continue
-
-        created_count = len(created_samples)
-        if created_count > 0:
-            db.session.commit()
-            # Mémoriser les échantillons créés pour la page de confirmation
+                
+        if created_samples:
+            db.session.commit()  # un seul commit atomique pour tout le lot valide
             session['imported_sample_ids'] = [s.id for s in created_samples]
-            flash(ngettext('%(num)s sample imported successfully!', '%(num)s samples imported successfully!', num=created_count), 'success')
+            flash(ngettext('%(num)s sample imported successfully!',
+                           '%(num)s samples imported successfully!',
+                           num=len(created_samples)), 'success')
+        else:
+            db.session.rollback()
 
         for error in errors:
             flash(error, 'error')
