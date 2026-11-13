@@ -204,7 +204,7 @@ def get_data(channel: SpectrumInfos, rt_range: RTRange = None, output_filename: 
     
     # Save OpenMS experiment if needed
     if output_filename is not None:
-        oms.MzMLFile().store(output_filename + ".mzML.gz", exp)
+        oms.MzMLFile().store(output_filename + ".mzML", exp)
     
     # Average all spectra into one spectrum (in an OpenMS experiment)
     avg_exp = average_spectrum(exp, rt_range=rt_range)
