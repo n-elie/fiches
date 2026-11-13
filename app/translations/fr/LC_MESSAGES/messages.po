@@ -7,16 +7,17 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-13 15:21+0100\n"
-"PO-Revision-Date: 2026-11-10 15:23+0100\n"
+"POT-Creation-Date: 2026-11-13 16:45+0100\n"
+"PO-Revision-Date: 2026-11-13 16:46+0100\n"
 "Last-Translator: \n"
-"Language: fr\n"
 "Language-Team: fr <LL@li.org>\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "Generated-By: Babel 2.18.0\n"
+"X-Generator: Poedit 3.10\n"
 
 #: app/__init__.py:90
 msgid "Please log in to access this page"
@@ -25,6 +26,8 @@ msgstr "Veuillez vous connecter pour accéder à cette page"
 #: app/__init__.py:124
 msgid "Too many login attempts. Please wait a minute and try again."
 msgstr ""
+"Nombre de tentatives de connexion dépassé. Veuillez patienter une minute, puis "
+"réessayer."
 
 #: app/models.py:114 app/utils/pdf_utils.py:304
 msgid "Unknown"
@@ -135,10 +138,10 @@ msgstr "En attente..."
 
 #: app/routes/admin_routes.py:557
 msgid "Task failed"
-msgstr ""
+msgstr "Échec de la tâche"
 
 #: app/routes/admin_routes.py:590
-#, fuzzy, python-format
+#, python-format
 msgid "%(num)s orphan file deleted"
 msgid_plural "%(num)s orphan files deleted"
 msgstr[0] "%(num)s échantillon supprimé avec succès"
@@ -167,14 +170,14 @@ msgid "%(ref)s: only pending samples can be deleted"
 msgstr "%(ref)s : seuls les échantillons en attente peuvent être supprimés"
 
 #: app/routes/main_routes.py:138
-#, fuzzy, python-format
+#, python-format
 msgid "%(ref)s: file deletion error"
-msgstr "%(ref)s : erreur de suppression du fichier - %(err)s"
+msgstr "%(ref)s : erreur de suppression du fichier"
 
 #: app/routes/main_routes.py:148
-#, fuzzy, python-format
+#, python-format
 msgid "%(ref)s: database deletion error"
-msgstr "%(ref)s : erreur de suppression en base - %(err)s"
+msgstr "%(ref)s : erreur de suppression en base"
 
 #: app/routes/main_routes.py:154
 #, python-format
@@ -188,39 +191,36 @@ msgid "No valid sample selected"
 msgstr "Aucun échantillon valide sélectionné"
 
 #: app/routes/main_routes.py:211 app/routes/main_routes.py:225
-#: app/routes/ms_routes.py:162 app/routes/ms_routes.py:175
-#: app/routes/ms_routes.py:200 app/routes/ms_routes.py:219
-#: app/routes/nmr_routes.py:117 app/routes/nmr_routes.py:132
-#: app/routes/nmr_routes.py:161
+#: app/routes/ms_routes.py:162 app/routes/ms_routes.py:175 app/routes/ms_routes.py:200
+#: app/routes/ms_routes.py:219 app/routes/nmr_routes.py:117
+#: app/routes/nmr_routes.py:132 app/routes/nmr_routes.py:161
 msgid "Access denied"
 msgstr "Accès non autorisé"
 
 #: app/routes/main_routes.py:248 app/routes/main_routes.py:309
-#, fuzzy, python-format
 msgid "Error while generating the PDF."
-msgstr "Erreur lors de la génération du PDF : %(err)s"
+msgstr "Erreur lors de la génération du PDF."
 
 #: app/routes/main_routes.py:282
 #, python-format
 msgid "Access denied for sample %(ref)s"
 msgstr "Accès non autorisé pour l'échantillon %(ref)s"
 
-#: app/routes/ms_routes.py:29 app/routes/ms_routes.py:118
-#: app/routes/nmr_routes.py:76
+#: app/routes/ms_routes.py:29 app/routes/ms_routes.py:118 app/routes/nmr_routes.py:76
 msgid "File type not allowed. Accepted formats:"
 msgstr "Type de fichier non autorisé. Formats acceptés :"
 
 #: app/routes/ms_routes.py:34 app/routes/ms_routes.py:39
 msgid "The file is not a valid .xlsx/.ods archive"
-msgstr ""
+msgstr "Le fichier n'est pas une archive .xlsx/.ods valide"
 
 #: app/routes/ms_routes.py:41
 msgid "The file is not a valid .xlsx workbook"
-msgstr ""
+msgstr "Le fichier n'est pas un classeur .xlsx valide"
 
 #: app/routes/ms_routes.py:43
 msgid "The file is not a valid .ods document"
-msgstr ""
+msgstr "Le fichier n'est pas un document .ods valide"
 
 #: app/routes/ms_routes.py:70 app/routes/ms_routes.py:237
 msgid "The solvent is not available."
@@ -230,22 +230,27 @@ msgstr "Le solvant n'est pas disponible."
 msgid "Please select at least one solvent"
 msgstr "Veuillez sélectionner au moins un solvant"
 
-#: app/routes/ms_routes.py:78 app/routes/ms_routes.py:245
-#: app/routes/nmr_routes.py:50 app/routes/nmr_routes.py:189
+#: app/routes/ms_routes.py:78 app/routes/ms_routes.py:245 app/routes/nmr_routes.py:50
+#: app/routes/nmr_routes.py:189
 msgid ""
-"Invalid reference: only letters, digits, spaces, \".\", \"-\" or \"_\" "
-"(max 100 characters)"
+"Invalid reference: only letters, digits, spaces, \".\", \"-\" or \"_\" (max 100 "
+"characters)"
 msgstr ""
+"Référence non valide : uniquement des lettres, des chiffres, des espaces, « . », "
+"« - » ou « _ » (100 caractères maximum)"
 
-#: app/routes/ms_routes.py:82 app/routes/ms_routes.py:249
-#: app/routes/nmr_routes.py:54 app/routes/nmr_routes.py:193
+#: app/routes/ms_routes.py:82 app/routes/ms_routes.py:249 app/routes/nmr_routes.py:54
+#: app/routes/nmr_routes.py:193
 msgid ""
-"Invalid formula: only letters, numbers, parentheses, brackets, charges "
-"(+, -), dots/asterisks for hydrates, and spaces (max 256 characters)"
+"Invalid formula: only letters, numbers, parentheses, brackets, charges (+, -), dots/"
+"asterisks for hydrates, and spaces (max 256 characters)"
 msgstr ""
+"Formule non valide : uniquement des lettres, des chiffres, des parenthèses, des "
+"crochets, des signes de charge (+, -), des points ou des astérisques pour les "
+"hydrates, et des espaces (256 caractères maximum)"
 
-#: app/routes/ms_routes.py:86 app/routes/ms_routes.py:253
-#: app/routes/nmr_routes.py:58 app/routes/nmr_routes.py:197
+#: app/routes/ms_routes.py:86 app/routes/ms_routes.py:253 app/routes/nmr_routes.py:58
+#: app/routes/nmr_routes.py:197
 msgid "Please fill in all required fields"
 msgstr "Veuillez remplir tous les champs obligatoires"
 
@@ -254,9 +259,8 @@ msgid "No structure file provided"
 msgstr "Aucun fichier de structure fourni"
 
 #: app/routes/ms_routes.py:115
-#, fuzzy
 msgid "The structure file could not be parsed."
-msgstr "Aucun fichier de structure fourni"
+msgstr "Le fichier de structure n'a pas pu être analysé."
 
 #: app/routes/ms_routes.py:124
 msgid "Please select a structure file or enter a molecular formula"
@@ -268,28 +272,26 @@ msgid "Sample submitted successfully!"
 msgstr "Échantillon soumis avec succès !"
 
 #: app/routes/ms_routes.py:148 app/routes/nmr_routes.py:101
-#, fuzzy, python-format
 msgid "Error during submission: the sample was not saved."
-msgstr "Erreur lors de la soumission : %(err)s"
+msgstr "Erreur lors de l'envoi : l'échantillon n'a pas été enregistré."
 
 #: app/routes/ms_routes.py:285
 msgid "Sample updated successfully!"
 msgstr "Échantillon mis à jour avec succès !"
 
 #: app/routes/ms_routes.py:289 app/routes/nmr_routes.py:235
-#, fuzzy, python-format
 msgid "Error during update: the sample was not saved."
-msgstr "Erreur lors de la mise à jour : %(err)s"
+msgstr "Erreur lors de la mise à jour : l'échantillon n'a pas été enregistré."
 
 #: app/routes/ms_routes.py:312
 msgid "Empty file"
-msgstr ""
+msgstr "Fichier vide"
 
 #: app/routes/ms_routes.py:333
-msgid ""
-"Error while reading the file: it is corrupted or not a supported "
-"spreadsheet."
+msgid "Error while reading the file: it is corrupted or not a supported spreadsheet."
 msgstr ""
+"Erreur lors de la lecture du fichier : celui-ci est corrompu ou n'est pas un "
+"tableur pris en charge."
 
 #: app/routes/ms_routes.py:340
 #, python-format
@@ -297,14 +299,14 @@ msgid "Missing columns in the file: %(cols)s"
 msgstr "Colonnes manquantes dans le fichier : %(cols)s"
 
 #: app/routes/ms_routes.py:355
-#, fuzzy, python-format
+#, python-format
 msgid "Line %(line)s: invalid reference"
-msgstr "Ligne %(line)s : %(err)s"
+msgstr "Ligne %(line)s : référence invalide"
 
 #: app/routes/ms_routes.py:359
-#, fuzzy, python-format
+#, python-format
 msgid "Line %(line)s: invalid formula"
-msgstr "Ligne %(line)s : %(err)s"
+msgstr "Ligne %(line)s : formule invalide"
 
 #: app/routes/ms_routes.py:363
 #, python-format
@@ -312,9 +314,9 @@ msgid "Line %(line)s: reference and quantity are required"
 msgstr "Ligne %(line)s : référence et quantité sont obligatoires"
 
 #: app/routes/ms_routes.py:388 app/routes/ms_routes.py:445
-#, fuzzy, python-format
+#, python-format
 msgid "Line %(line)s: invalid data"
-msgstr "Ligne %(line)s : %(err)s"
+msgstr "Ligne %(line)s : données invalides"
 
 #: app/routes/ms_routes.py:404
 msgid "No Excel file provided"
@@ -344,9 +346,8 @@ msgid "Please select a file"
 msgstr "Veuillez sélectionner un fichier"
 
 #: app/routes/ms_routes.py:486
-#, fuzzy, python-format
 msgid "Error while reading the import file"
-msgstr "Erreur lors de la lecture du fichier : %(err)s"
+msgstr "Erreur lors de la lecture du fichier"
 
 #: app/routes/nmr_routes.py:42 app/routes/nmr_routes.py:181
 #, python-format
@@ -381,17 +382,16 @@ msgstr "Mes Échantillons"
 
 #: app/templates/500.html:3
 msgid "Server error"
-msgstr ""
+msgstr "Erreur du serveur"
 
 #: app/templates/500.html:9
 msgid "An internal error occurred"
-msgstr ""
+msgstr "Une erreur interne s'est produite"
 
 #: app/templates/500.html:10
-msgid ""
-"The incident has been logged. Please try again or contact an "
-"administrator."
+msgid "The incident has been logged. Please try again or contact an administrator."
 msgstr ""
+"L'incident a été enregistré. Veuillez réessayer ou contacter un administrateur."
 
 #: app/templates/base.html:6 app/templates/base.html:20
 msgid "Chemical Analysis Service"
@@ -409,8 +409,7 @@ msgstr "Nouveau"
 msgid "Mass Spectrometry"
 msgstr "Spectrométrie de Masse"
 
-#: app/templates/base.html:50 app/templates/base.html:79
-#: app/templates/samples.html:71
+#: app/templates/base.html:50 app/templates/base.html:79 app/templates/samples.html:71
 msgid "NMR"
 msgstr "RMN"
 
@@ -468,8 +467,8 @@ msgstr "Bienvenue sur la plateforme d'analyse chimique"
 msgid "Chemical analysis service banner"
 msgstr "Bannière du service d'analyse chimique"
 
-#: app/templates/index.html:14 app/templates/login.html:3
-#: app/templates/login.html:12 app/templates/login.html:55
+#: app/templates/index.html:14 app/templates/login.html:3 app/templates/login.html:12
+#: app/templates/login.html:55
 msgid "Log in"
 msgstr "Connexion"
 
@@ -512,8 +511,8 @@ msgstr "Échantillons"
 msgid "Actions"
 msgstr "Actions"
 
-#: app/templates/admin/dashboard.html:84
-#: app/templates/ms/import_success.html:25 app/templates/sample_detail.html:63
+#: app/templates/admin/dashboard.html:84 app/templates/ms/import_success.html:25
+#: app/templates/sample_detail.html:63
 msgid "Status"
 msgstr "Statut"
 
@@ -549,18 +548,15 @@ msgstr "Lancer l'analyse"
 msgid "Main information"
 msgstr "Informations principales"
 
-#: app/templates/admin/dashboard.html:82
-#: app/templates/admin/sample_list.html:101
-#: app/templates/admin/sample_list.html:174
-#: app/templates/ms/import_samples.html:88
+#: app/templates/admin/dashboard.html:82 app/templates/admin/sample_list.html:101
+#: app/templates/admin/sample_list.html:174 app/templates/ms/import_samples.html:88
 #: app/templates/ms/import_success.html:22 app/templates/sample_detail.html:133
 #: app/utils/pdf_utils.py:241
 msgid "Reference"
 msgstr "Référence"
 
-#: app/templates/admin/sample_list.html:103
-#: app/templates/ms/import_success.html:23 app/templates/sample_detail.html:144
-#: app/utils/pdf_utils.py:242
+#: app/templates/admin/sample_list.html:103 app/templates/ms/import_success.html:23
+#: app/templates/sample_detail.html:144 app/utils/pdf_utils.py:242
 msgid "Quantity"
 msgstr "Quantité"
 
@@ -572,18 +568,15 @@ msgstr "Créé le"
 msgid "Updated on"
 msgstr "Mis à jour le"
 
-#: app/templates/admin/dashboard.html:138
-#: app/templates/admin/sample_list.html:99
-#: app/templates/partials/_user_info.html:31
-#: app/templates/partials/_user_info.html:63
+#: app/templates/admin/dashboard.html:138 app/templates/admin/sample_list.html:99
+#: app/templates/partials/_user_info.html:31 app/templates/partials/_user_info.html:63
 #: app/templates/sample_detail.html:178 app/utils/pdf_utils.py:240
 msgid "Team"
 msgid_plural "Teams"
 msgstr[0] "Équipe"
 msgstr[1] "Équipes"
 
-#: app/templates/partials/_user_info.html:3
-#: app/templates/sample_detail.html:191
+#: app/templates/partials/_user_info.html:3 app/templates/sample_detail.html:191
 msgid "User information"
 msgstr "Informations de l'utilisateur"
 
@@ -591,9 +584,8 @@ msgstr "Informations de l'utilisateur"
 msgid "NMR settings"
 msgstr "Paramètres RMN"
 
-#: app/templates/ms/import_samples.html:90
-#: app/templates/nmr/sample_submit.html:23 app/templates/sample_detail.html:221
-#: app/utils/pdf_utils.py:309
+#: app/templates/ms/import_samples.html:90 app/templates/nmr/sample_submit.html:23
+#: app/templates/sample_detail.html:221 app/utils/pdf_utils.py:309
 msgid "Solvent"
 msgstr "Solvant"
 
@@ -683,8 +675,8 @@ msgstr "Modifiez les informations de l'échantillon"
 #: app/templates/sample_submit.html:19
 msgid "Fill in the form below to submit a new sample for analysis."
 msgstr ""
-"Remplissez le formulaire ci-dessous pour soumettre un nouvel échantillon "
-"à l'analyse."
+"Remplissez le formulaire ci-dessous pour soumettre un nouvel échantillon à "
+"l'analyse."
 
 #: app/templates/sample_submit.html:34
 msgid "Sample information"
@@ -737,20 +729,15 @@ msgstr "Ajoutez des notes ou commentaires sur l'échantillon..."
 #: app/templates/sample_submit.html:111
 #, python-format
 msgid "Enter information useful for the operator (max. %(maxlen)s characters)"
-msgstr ""
-"Entrez des informations utiles pour l'opérateur (max. %(maxlen)s "
-"caractères)"
+msgstr "Entrez des informations utiles pour l'opérateur (max. %(maxlen)s caractères)"
 
-#: app/templates/admin/create_user.html:136
-#: app/templates/sample_submit.html:119
+#: app/templates/admin/create_user.html:136 app/templates/sample_submit.html:119
 msgid "Save"
 msgstr "Sauvegarder"
 
 #: app/templates/admin/create_analysis.html:57
-#: app/templates/admin/create_user.html:143
-#: app/templates/ms/import_samples.html:58
-#: app/templates/ms/import_samples.html:103
-#: app/templates/sample_submit.html:123
+#: app/templates/admin/create_user.html:143 app/templates/ms/import_samples.html:58
+#: app/templates/ms/import_samples.html:103 app/templates/sample_submit.html:123
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -812,7 +799,7 @@ msgstr "Rechercher..."
 msgid "Filter"
 msgstr "Filtrer"
 
-#: app/templates/ms/sample_spectrum.html:121 app/templates/samples.html:136
+#: app/templates/ms/sample_spectrum.html:51 app/templates/samples.html:136
 msgid "Select all"
 msgstr "Sélectionner tout"
 
@@ -824,9 +811,8 @@ msgid_plural "Users"
 msgstr[0] "Utilisateur"
 msgstr[1] "Utilisateurs"
 
-#: app/templates/admin/sample_list.html:102
-#: app/templates/ms/import_samples.html:91 app/templates/samples.html:143
-#: app/utils/pdf_utils.py:269
+#: app/templates/admin/sample_list.html:102 app/templates/ms/import_samples.html:91
+#: app/templates/samples.html:143 app/utils/pdf_utils.py:269
 msgid "Formula"
 msgstr "Formule"
 
@@ -849,8 +835,7 @@ msgstr "Générer PDF"
 #: app/templates/samples.html:203
 msgid "Are you sure you want to delete this sample? This action is irreversible."
 msgstr ""
-"Êtes-vous sûr de vouloir supprimer cet échantillon ? Cette action est "
-"irréversible."
+"Êtes-vous sûr de vouloir supprimer cet échantillon ? Cette action est irréversible."
 
 #: app/templates/admin/create_user.html:150 app/templates/admin/users.html:143
 #: app/templates/samples.html:206
@@ -866,12 +851,9 @@ msgid "Generate PDFs"
 msgstr "Générer PDFs"
 
 #: app/templates/samples.html:236
-msgid ""
-"Are you sure you want to delete these samples? This action is "
-"irreversible."
+msgid "Are you sure you want to delete these samples? This action is irreversible."
 msgstr ""
-"Êtes-vous sûr de vouloir supprimer ces échantillons ? Cette action est "
-"irréversible."
+"Êtes-vous sûr de vouloir supprimer ces échantillons ? Cette action est irréversible."
 
 #: app/templates/samples.html:240
 msgid "Delete selected samples"
@@ -885,8 +867,8 @@ msgstr "Pagination des échantillons"
 msgid "Showing"
 msgstr "Affichage de"
 
-#: app/templates/admin/sample_list.html:402
-#: app/templates/admin/sample_list.html:403 app/templates/samples.html:305
+#: app/templates/admin/sample_list.html:402 app/templates/admin/sample_list.html:403
+#: app/templates/samples.html:305
 msgid "sample"
 msgid_plural "samples"
 msgstr[0] "échantillon"
@@ -954,8 +936,7 @@ msgid "Manually add analysis results for a sample"
 msgstr "Ajoutez manuellement les résultats d'analyse pour un échantillon"
 
 #: app/templates/admin/create_analysis.html:19
-#: app/templates/admin/create_analysis.html:22
-#: app/templates/admin/dashboard.html:17
+#: app/templates/admin/create_analysis.html:22 app/templates/admin/dashboard.html:17
 msgid "Sample"
 msgid_plural "Samples"
 msgstr[0] "Échantillon"
@@ -981,8 +962,7 @@ msgstr "Détails de l'analyse, observations, etc."
 msgid "Create analysis"
 msgstr "Créer l'Analysis"
 
-#: app/templates/admin/create_user.html:9
-#: app/templates/admin/create_user.html:14
+#: app/templates/admin/create_user.html:9 app/templates/admin/create_user.html:14
 msgid "Add a new user"
 msgstr "Créer un nouvel utilisateur"
 
@@ -1092,8 +1072,7 @@ msgstr "Créer l'utilisateur"
 #: app/templates/admin/create_user.html:148 app/templates/admin/users.html:140
 msgid "Are you sure you want to delete this user? This action is irreversible."
 msgstr ""
-"Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est "
-"irréversible."
+"Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible."
 
 #: app/templates/admin/dashboard.html:3 app/templates/admin/dashboard.html:8
 msgid "Admin Dashboard"
@@ -1147,7 +1126,7 @@ msgstr "Aucun utilisateur trouvé."
 
 #: app/templates/admin/dashboard.html:170
 msgid "Delete orphan files"
-msgstr ""
+msgstr "Supprimer les fichiers orphelins"
 
 #: app/templates/admin/dashboard.html:178
 msgid "Data export"
@@ -1161,8 +1140,7 @@ msgstr "Exporter en CSV"
 msgid "Export as Excel"
 msgstr "Exporter en Excel"
 
-#: app/templates/admin/sample_list.html:3
-#: app/templates/admin/sample_list.html:18
+#: app/templates/admin/sample_list.html:3 app/templates/admin/sample_list.html:18
 #: app/templates/admin/sample_list.html:159
 msgid "Sample List"
 msgstr "Sample list"
@@ -1172,13 +1150,12 @@ msgid "Create a Sample List"
 msgstr "Créer une sample list"
 
 #: app/templates/admin/sample_list.html:23
-#, fuzzy
 msgid ""
-"Search for “pending” MS samples, add them to the list, reorder them, and "
-"then export the list."
+"Search for “pending” MS samples, add them to the list, reorder them, and then "
+"export the list."
 msgstr ""
-"Recherchez des échantillons MS « en attente », ajoutez-les à la liste, "
-"réorganisez-les, puis exportez la liste."
+"Recherchez des échantillons MS « en attente », ajoutez-les à la liste, réorganisez-"
+"les, puis exportez la liste."
 
 #: app/templates/admin/sample_list.html:31
 msgid "Search for pending MS samples"
@@ -1213,11 +1190,9 @@ msgid "No pending MS sample found"
 msgstr "Aucun échantillon MS en attente trouvé"
 
 #: app/templates/admin/sample_list.html:120
-#, fuzzy
 msgid "No ”pending\" MS samples match your search criteria."
 msgstr ""
-"Aucun échantillon MS « en attente » ne correspond à vos critères de "
-"recherche."
+"Aucun échantillon MS « en attente » ne correspond à vos critères de recherche."
 
 #: app/templates/admin/sample_list.html:129
 msgid "My Sample List"
@@ -1228,7 +1203,6 @@ msgid "Drag and drop the samples to reorder the list."
 msgstr "Glissez-déposez les échantillons pour réorganiser la liste."
 
 #: app/templates/admin/sample_list.html:139
-#, fuzzy
 msgid "No samples in the list. Use the “Add” button."
 msgstr "Aucun échantillon dans la liste. Utilisez le bouton « Ajouter »."
 
@@ -1236,8 +1210,7 @@ msgstr "Aucun échantillon dans la liste. Utilisez le bouton « Ajouter »."
 msgid "UUID"
 msgstr "UUID"
 
-#: app/templates/admin/sample_list.html:185
-#: app/templates/admin/sample_list.html:483
+#: app/templates/admin/sample_list.html:185 app/templates/admin/sample_list.html:483
 msgid "Copy"
 msgstr "Copier"
 
@@ -1245,8 +1218,7 @@ msgstr "Copier"
 msgid "Validate Sample List"
 msgstr "Valider la sample list"
 
-#: app/templates/admin/sample_list.html:252
-#: app/templates/admin/sample_list.html:253
+#: app/templates/admin/sample_list.html:252 app/templates/admin/sample_list.html:253
 msgid "MS pending sample"
 msgid_plural "MS pending samples"
 msgstr[0] "échantillon MS en attente"
@@ -1269,16 +1241,16 @@ msgid "Remove from list"
 msgstr "Retirer de la liste"
 
 #: app/templates/admin/sample_list.html:413
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Mark the {num_samples} sample(s) from sample list as “Analysing“?"
 msgstr ""
-"Passer les {num_samples} échantillon(s) de la sample list en « En cours "
+"Marquer les {num_samples} échantillon(s) de la sample list comme « En cours "
 "d'analyse » ?"
 
 #: app/templates/admin/sample_list.html:451
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "{updated} sample(s) marked as “Analysing“."
-msgstr "{updated} échantillon(s) passé(s) en « En cours d'analyse »."
+msgstr "{updated} échantillon(s) marqué(s) comme « En cours d'analyse »."
 
 #: app/templates/admin/sample_list.html:454
 msgid "Validation error"
@@ -1342,21 +1314,19 @@ msgstr "Aucun utilisateur trouvé"
 msgid "No users match your search criteria."
 msgstr "Aucun utilisateur ne correspond à vos critères de recherche."
 
-#: app/templates/ms/import_samples.html:3
-#: app/templates/ms/import_samples.html:8
+#: app/templates/ms/import_samples.html:3 app/templates/ms/import_samples.html:8
 msgid "Import MS Samples"
 msgstr "Importer des échantillons MS"
 
 #: app/templates/ms/import_samples.html:9
 #, python-format
 msgid ""
-"Upload an XLSX, XLS, ODS or CSV file (Excel or LibreOffice) containing "
-"the samples to import. A template is available <a "
-"href=\"%(template_url)s\">here</a>"
+"Upload an XLSX, XLS, ODS or CSV file (Excel or LibreOffice) containing the samples "
+"to import. A template is available <a href=\"%(template_url)s\">here</a>"
 msgstr ""
-"Téléchargez un fichier XLSX, XLS, ODS ou CSV (Excel ou LibreOffice) "
-"contenant les échantillons à importer. Un modèle est disponible <a "
-"href=\"%(template_url)s\">ici</a>"
+"Téléchargez un fichier XLSX, XLS, ODS ou CSV (Excel ou LibreOffice) contenant les "
+"échantillons à importer. Un modèle est disponible <a href=\"%(template_url)s\">ici</"
+"a>"
 
 #: app/templates/ms/import_samples.html:14
 msgid "Expected format:"
@@ -1395,9 +1365,8 @@ msgid "Import parameters"
 msgstr "Paramètres d'import"
 
 #: app/templates/ms/import_samples.html:40
-#, fuzzy
 msgid "Excel File"
-msgstr "Fichier Excel :"
+msgstr "Fichier Excel"
 
 #: app/templates/ms/import_samples.html:54
 msgid "Import"
@@ -1441,16 +1410,12 @@ msgstr "Import réussi !"
 
 #: app/templates/ms/import_success.html:14
 #, python-format
-msgid ""
-"%(num_samples)s sample has been sucessfully submitted to the analysis "
-"service."
+msgid "%(num_samples)s sample has been sucessfully submitted to the analysis service."
 msgid_plural ""
-"%(num_samples)s samples has been sucessfully submitted to the analysis "
-"service."
+"%(num_samples)s samples has been sucessfully submitted to the analysis service."
 msgstr[0] "%(num_samples)s échantillon a été soumis avec succès au service d'analyse."
 msgstr[1] ""
-"%(num_samples)s échantillons ont été soumis avec succès au service "
-"d'analyse."
+"%(num_samples)s échantillons ont été soumis avec succès au service d'analyse."
 
 #: app/templates/ms/import_success.html:24
 msgid "Submission date"
@@ -1471,37 +1436,43 @@ msgstr "Importer un autre fichier"
 #: app/templates/ms/import_success.html:74
 msgid "You will receive an email notification when the analyses are complete."
 msgstr ""
-"Vous recevrez une notification par email lorsque les analyses seront "
-"terminées."
+"Vous recevrez une notification par email lorsque les analyses seront terminées."
 
-#: app/templates/ms/sample_spectrum.html:78
-#, fuzzy, python-format
+#: app/templates/ms/sample_spectrum.html:49
+#, python-format
 msgid "Relative intensity (%%)"
-msgstr "Intensité relative (%)"
+msgstr "Intensité relative (%%)"
 
-#: app/templates/ms/sample_spectrum.html:109
+#: app/templates/ms/sample_spectrum.html:50
 msgid "Restore zoom"
 msgstr "Restaurer le zoom"
 
-#: app/templates/ms/sample_spectrum.html:133
+#: app/templates/ms/sample_spectrum.html:52
 msgid "Clear selection"
 msgstr "Effacer la sélection"
+
+#: app/templates/ms/sample_spectrum.html:57
+msgid "Positive mode"
+msgstr "Mode positif"
+
+#: app/templates/ms/sample_spectrum.html:61
+msgid "Negative mode"
+msgstr "Mode négatif"
 
 #: app/templates/ms/sample_submit.html:10
 #, python-format
 msgid ""
-"You can also <a href=\"%(template_url)s\">import samples in bulk</a> from"
-" an Excel file'."
+"You can also <a href=\"%(template_url)s\">import samples in bulk</a> from an Excel "
+"file'."
 msgstr ""
-"Vous pouvez aussi <a href=\"%(template_url)s\">importer des échantillons "
-"par lot</a> à partir d'un fichier Excel."
+"Vous pouvez aussi <a href=\"%(template_url)s\">importer des échantillons par lot</"
+"a> à partir d'un fichier Excel."
 
 #: app/templates/ms/sample_submit.html:16
 msgid "Solvent used"
 msgstr "Solvant utilisé"
 
-#: app/templates/ms/sample_submit.html:42
-#: app/templates/nmr/sample_submit.html:122
+#: app/templates/ms/sample_submit.html:42 app/templates/nmr/sample_submit.html:122
 #: app/templates/nmr/sample_submit.html:131
 msgid "Other"
 msgstr "Autre"
@@ -1514,8 +1485,7 @@ msgstr "Précisez..."
 msgid "Solvents used for sample preparation"
 msgstr "Solvants utilisés pour la préparation d'échantillon"
 
-#: app/templates/ms/sample_submit.html:91
-#: app/templates/nmr/sample_submit.html:178
+#: app/templates/ms/sample_submit.html:91 app/templates/nmr/sample_submit.html:178
 msgid "Please check at least one box"
 msgstr "Veuillez cocher au moins une case"
 
@@ -1567,13 +1537,12 @@ msgstr "Poste"
 msgid "MAIN INFORMATION"
 msgstr "INFORMATIONS PRINCIPALES"
 
-#: app/utils/pdf_utils.py:240 app/utils/pdf_utils.py:269
-#: app/utils/pdf_utils.py:305 app/utils/pdf_utils.py:309
+#: app/utils/pdf_utils.py:240 app/utils/pdf_utils.py:269 app/utils/pdf_utils.py:305
+#: app/utils/pdf_utils.py:309
 msgid "Not specified"
 msgstr "Non précisé"
 
-#: app/utils/pdf_utils.py:243 app/utils/pdf_utils.py:322
-#: app/utils/pdf_utils.py:345
+#: app/utils/pdf_utils.py:243 app/utils/pdf_utils.py:322 app/utils/pdf_utils.py:345
 msgid "None"
 msgstr "Aucun(e)"
 
@@ -1655,4 +1624,3 @@ msgstr "Fiche à conserver"
 
 #~ msgid "Last login"
 #~ msgstr "Dernière connexion"
-
