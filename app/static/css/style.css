@@ -266,3 +266,8 @@ textarea:disabled,
 .btn.disabled {
     pointer-events: auto !important;
 }
+
+/* Spectres */
+#mschart-pos, #mschart-neg {
+	height: 400px;
+}

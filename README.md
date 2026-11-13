@@ -210,5 +210,5 @@ This project uses `djlint`, `css-beautify`, `js-beautify` to reformat templates:
 ```bash
 djlint --reformat app/templates
 css-beautify -r app/static/css/style.css
-js-beautify -r app/static/js/script.js
+js-beautify -r app/static/js/script.js app/static/js/mass_spectrum.js
 ```

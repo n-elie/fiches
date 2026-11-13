@@ -1,16 +1,17 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div id="mschart" style="height: 400px"></div>
+    <div id="mschart-pos"></div>
+    <div id="mschart-neg"></div>
 {% endblock %}
 
 {% block scripts %}
     <script src="{{ url_for('static', filename='js/echarts-6.1.0.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mass_spectrum.js') }}"></script>
     <script nonce="{{ csp_nonce }}">
         $(document).ready(function() {
 
-            // ================= Données =================
-            const spectrum = [{
+            const spectrumPos = [{
                 x: 43.018,
                 y: 100.0
             }, {
@@ -26,302 +27,51 @@
                 x: 118.050,
                 y: 24.1
             }, ];
+            const spectrumNeg = [{
+                x: 59.012,
+                y: 100.0
+            }, {
+                x: 88.040,
+                y: 41.5
+            }, {
+                x: 105.033,
+                y: 22.7
+            }, {
+                x: 133.014,
+                y: 12.9
+            }, {
+                x: 161.024,
+                y: 35.6
+            }, ];
             const reference = '{{ sample.reference }}';
 
-            const $container = $('#mschart');
-
-            // Fenêtre X initiale (avec marge autour des pics)
-            const xMinOrig = Math.min(...spectrum.map(p => p.x)) - 5;
-            const xMaxOrig = Math.max(...spectrum.map(p => p.x)) + 5;
-            const yMaxOrig = Math.max(10, Math.ceil(Math.max(...spectrum.map(p => p.y)) * 1.1));
-
-            // ==== Sélection ====
-            const selected = new Set(); // indices des pics sélectionnés
-
-            // ================= Initialisation =================
-            const chart = echarts.init($container[0], null, {
-                renderer: 'svg'
-            });
-
-            const option = {
-                animation: true,
-                title: {
-                    text: reference,
-                    left: 'center'
-                },
-                grid: {
-                    left: 65,
-                    right: 25,
-                    top: 35,
-                    bottom: 70
-                },
-
-                xAxis: {
-                    type: 'value', // axe m/z numérique
-                    name: 'm/z',
-                    nameLocation: 'middle',
-                    nameGap: 28,
-                    nameTextStyle: {
-                        fontStyle: 'italic',
-                        fontSize: 14
-                    },
-                    splitLine: {
-                        show: false
-                    },
-                    axisLabel: {
-                        formatter: v => v.toFixed(0)
-                    },
-                },
-
-                yAxis: {
-                    type: 'value',
-                    name: {{ _('Relative intensity (%%)') | tojson }},
-                    nameLocation: 'middle',
-                    nameGap: 45,
-                    min: 0,
-                    max: yMaxOrig,
-                    splitLine: {
-                        show: true,
-                        lineStyle: {
-                            color: '#eee'
-                        }
-                    },
-                },
-
-                tooltip: {
-                    trigger: 'item',
-                    confine: true,
-                    formatter: p => {
-                        const [mz, inten] = p.value;
-                        return `<i>m/z</i> <b>${mz.toFixed(4)}</b> — <b>${inten.toFixed(2)}</b> %`;
-                    },
-                },
-
-                toolbox: {
-                    feature: {
-                        dataZoom: {
-                            yAxisIndex: 'none',
-                            brushStyle: {
-                                color: 'rgb(52, 152, 219, 0.3)',
-                            }
-                        },
-                        restore: {
-                            title: {{ _('Restore zoom') | tojson }}
-                        },
-                        mySpacer1: {
-                            show: true,
-                            title: ' ',
-                            icon: 'path://',
-                            onclick: function() {
-                                return false;
-                            }
-                        },
-                        mySelectAll: {
-                            show: true,
-                            title: {{ _('Select all') | tojson }},
-                            icon: 'path://m74.3164 90.752v10.4551h10.625V90.752Zm8.4021 2.3303-4.3429 4.3434-2.4365-2.4365-.4243.4243 2.8608 2.8608 4.7682-4.7677z',
-                            onclick: function() {
-                                selected.clear();
-                                spectrum.forEach((p, i) => {
-                                    if (p.y > 0) selected.add(i);
-                                });
-                                chart.setOption(option);
-                            }
-                        },
-                        myClearSelection: {
-                            show: true,
-                            title: {{ _('Clear selection') | tojson }},
-                            icon: 'path://M6 6l12 12M18 6L6 18',
-                            onclick: function() {
-                                selected.clear();
-                                chart.setOption(option);
-                            }
-                        },
-                        mySpacer2: {
-                            show: true,
-                            title: ' ',
-                            icon: 'path://',
-                            onclick: function() {
-                                return false;
-                            }
-                        },
-                        dataView: {
-                            readOnly: true,
-                        },
-                        saveAsImage: {}
-                    }
-                },
-
-                // ============ Zoom natif ============
-                dataZoom: [{
-                    type: 'inside', // molette + pan à la souris
-                    xAxisIndex: 0,
-                    //filterMode: 'none',                 // garde les points hors fenêtre (important)
-                    zoomOnMouseWheel: true,
-                    moveOnMouseMove: false,
-                    moveOnMouseWheel: true,
-                    startValue: xMinOrig,
-                    endValue: xMaxOrig
-                }],
-
-                // ============ Série custom : bâtons du spectrum ============
-                series: [{
-                    type: 'custom',
-                    data: spectrum.map(p => [p.x, p.y]),
-                    encode: {
-                        x: 0,
-                        y: 1
-                    },
-                    name: 'm/z\tIntensities (%)',
-                    renderItem: (params, api) => {
-                        const mz = api.value(0);
-                        const inten = api.value(1);
-                        const idx = params.dataIndex;
-
-                        const isSelected = selected.has(idx);
-
-                        // Conversion coordonnées données -> pixels
-                        const xPix = api.coord([mz, 0])[0]; // x à la base
-                        const yPix = api.coord([mz, inten])[1]; // y au sommet
-                        const yBase = api.coord([mz, 0])[1]; // y = 0 en pixels
-
-                        const half = 2; // bâton de 4 px de large
-
-                        const children = [{
-                            type: 'rect',
-                            shape: {
-                                x: xPix - half,
-                                y: yPix,
-                                width: half * 2,
-                                height: Math.max(yBase - yPix, 0),
-                            },
-                            style: {
-                                fill: isSelected ? '#1f77b4' : '#1e1e1e',
-                            },
-                            emphasis: {
-                                style: {
-                                    fill: 'red'
-                                }
-                            },
-                        }];
-
-                        // Étiquette m/z au-dessus du pic si intensité > 5 %
-                        if (inten > 5) {
-                            children.push({
-                                type: 'text',
-                                silent: true, // le label ne capture pas les events
-                                style: {
-                                    text: mz.toFixed(4),
-                                    x: xPix,
-                                    y: yPix - 5,
-                                    textAlign: 'center',
-                                    textVerticalAlign: 'bottom',
-                                    fontSize: 9,
-                                    fill: isSelected ? '#1f77b4' : '#333',
-                                    fontWeight: isSelected ? 'bold' : 'normal',
-                                },
-                            });
-                        }
-
-                        return {
-                            type: 'group',
-                            children
-                        };
-                    },
-                }],
+            const i18n = {
+                intensity: {{ _('Relative intensity (%%)') | tojson }},
+                restoreZoom: {{ _('Restore zoom') | tojson }},
+                selectAll: {{ _('Select all') | tojson }},
+                clearSelection: {{ _('Clear selection') | tojson }}
             };
 
-            chart.setOption(option);
-            // Auto activate zoom feature
-            chart.dispatchAction({
-                type: 'takeGlobalCursor',
-                key: 'dataZoomSelect',
-                dataZoomSelectActive: true
-            });
+            const charts = [
+                MassSpectrum.create('#mschart-pos', spectrumPos, {
+                    title: reference + ' — ' + {{ _('Positive mode') | tojson }},
+                    i18n: i18n
+                }),
+                MassSpectrum.create('#mschart-neg', spectrumNeg, {
+                    title: reference + ' — ' + {{ _('Negative mode') | tojson }},
+                    i18n: i18n
+                })
+            ];
 
-            // ============ rescaleY : axe Y recalculé selon la fenêtre visible ============
-            function rescaleY() {
-                const dz = chart.getOption().dataZoom[0];
-                const x0 = (dz.startValue !== undefined && dz.startValue !== null) ?
-                    dz.startValue :
-                    xMinOrig;
-                const x1 = (dz.endValue !== undefined && dz.endValue !== null) ?
-                    dz.endValue :
-                    xMaxOrig;
+            $(window).on('resize', () => charts.forEach(c => c.resize()));
 
-                const visible = spectrum.filter(p => p.x >= x0 && p.x <= x1);
-                const newMax = visible.length ?
-                    Math.max(10, Math.ceil(Math.max(...visible.map(p => p.y)) * 1.1)) :
-                    yMaxOrig;
-
-                const curMax = chart.getOption().yAxis[0].max;
-                if (curMax !== newMax) {
-                    chart.setOption({
-                        yAxis: {
-                            max: newMax
-                        }
-                    });
-                }
-            }
-
-            chart.on('dataZoom', rescaleY);
-
-            // ============ Reset zoom ============
-            function resetZoom() {
-                chart.setOption({
-                    dataZoom: [{
-                        startValue: xMinOrig,
-                        endValue: xMaxOrig
-                    }],
-                    yAxis: {
-                        max: yMaxOrig
-                    },
-                });
-            }
-
-            $container.on('dblclick', resetZoom);
-
-            // Redimensionnement responsive
-            $(window).on('resize', () => chart.resize());
-
-            // ==== Clic gauche sur un pic : toggle sélection ====
-            let lastClickedIndex = null;
-            chart.on('click', {
-                seriesIndex: 0
-            }, function(params) {
-                const idx = params.dataIndex;
-
-                // Un pic fantôme (marges) ou d'intensité 0 n'est pas sélectionnable
-                if (!spectrum[idx] || spectrum[idx].y <= 0) return;
-
-                if (params.event && params.event.event.shiftKey && lastClickedIndex !== null) {
-                    // Shift : sélection en plage (du dernier pic cliqué à celui-ci)
-                    const [a, b] = [lastClickedIndex, idx].sort((x, y) => x - y);
-                    for (let i = a; i <= b; i++) selected.add(i);
-
-                } else if (params.event && params.event.event.ctrlKey) {
-                    // Ctrl : ajout/retrait à la sélection sans effacer le reste
-                    selected.has(idx) ? selected.delete(idx) : selected.add(idx);
-
-                } else {
-                    // Clic simple : sélection unique (toggle)
-                    selected.has(idx) && selected.size === 1 ?
-                        selected.clear() :
-                        (selected.clear(), selected.add(idx));
-                }
-                lastClickedIndex = idx;
-
-                chart.setOption(option);
-            });
-
-            // Échap désactive le zoom
             $(document).on('keydown', function(e) {
                 if (e.key === 'Escape') {
-                    chart.dispatchAction({
+                    charts.forEach(chart => chart.dispatchAction({
                         type: 'takeGlobalCursor',
                         key: 'dataZoomSelect',
                         dataZoomSelectActive: false
-                    });
+                    }));
                 }
             });
         });
