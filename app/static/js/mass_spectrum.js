@@ -65,6 +65,7 @@
             options = options || {};
             const i18n = options.i18n || {};
             const title = options.title || options.reference || '';
+			const locale = options.locale || 'EN';
 
             const $container = $(container);
 
@@ -74,7 +75,7 @@
 			const yMaxOrig = spectrum.length ? Math.max(10, Math.ceil(Math.max(...spectrum.map(p => p.y)) * 1.1)) : 100;
 
             const chart = echarts.init($container[0], null, {
-                renderer: 'svg'
+                renderer: 'svg', locale: locale
             });
 
             function getSelected() {
@@ -147,6 +148,9 @@
                 },
 
                 toolbox: {
+					orient: 'vertical',
+					left: 'right',
+					top: 'top',
                     feature: {
                         dataZoom: {
                             yAxisIndex: 'none',

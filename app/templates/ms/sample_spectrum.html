@@ -42,13 +42,15 @@
             if (spectrumPos && spectrumPos.length) {
                 charts.push(MassSpectrum.create('#mschart-pos', spectrumPos, {
                     title: reference + ' (+)',
-                    i18n: i18n
+                    i18n: i18n,
+					locale: {{ get_locale() | upper | tojson }}
                 }));
             }
             if (spectrumNeg && spectrumNeg.length) {
                 charts.push(MassSpectrum.create('#mschart-neg', spectrumNeg, {
                     title: reference + ' (—)',
-                    i18n: i18n
+                    i18n: i18n,
+					locale: {{ get_locale() | upper | tojson }}
                 }));
             }
 
