@@ -126,21 +126,21 @@ volumes:
 ```
 
 ```bash
-	echo 'REDIS_PASSWORD=<strong-random-password>' > .env && chmod 600 .env
-	docker compose up -d
+echo 'REDIS_PASSWORD=<strong-random-password>' > .env && chmod 600 .env
+docker compose up -d
 ```
 
 ### Option B — local redis-server
 
 ```bash
-	# never bind 0.0.0.0 without a password
-	redis-server --requirepass '<strong-random-password>' --bind 127.0.0.1 --protected-mode yes
+# never bind 0.0.0.0 without a password
+redis-server --requirepass '<strong-random-password>' --bind 127.0.0.1 --protected-mode yes
 ```
 
 or
 
 ```bash
-	redis-server redis.conf
+redis-server redis.conf
 ```
 
 `redis.conf`:
@@ -177,12 +177,12 @@ ratelimit_db = 2     # DB 2 dédiée au rate limiting (même Redis, même passwo
 ratelimit_enabled = true                           # false pour désactiver en d
 ```
 
-Notes:
+### Notes:
 
-    If the password contains @ : / % etc., percent-escape it in the URLs (python -c "from urllib.parse import quote; print(quote('pwd', safe=''))").
-    For TLS use rediss:// instead of redis:// (same password, port 6379→6380 or stunnel).
-    Use separate DBs (0 = queue, 1 = results, 2 = rate limiting) so that purging results or counters (FLUSHDB on DB 1/2) never destroys pending tasks in DB 0.
-    Then start the processes (they pick up config.toml automatically):
+If the password contains @ : / % etc., percent-escape it in the URLs (python -c "from urllib.parse import quote; print(quote('pwd', safe=''))").
+For TLS use rediss:// instead of redis:// (same password, port 6379→6380 or stunnel).
+Use separate DBs (0 = queue, 1 = results, 2 = rate limiting) so that purging results or counters (FLUSHDB on DB 1/2) never destroys pending tasks in DB 0.
+Then start the processes (they pick up config.toml automatically):
 	
 ```bash
 celery -A run_celery worker --loglevel=info
