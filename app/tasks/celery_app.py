@@ -4,7 +4,13 @@ from ..config import config
 celery = Celery(
     __name__,
     broker_url=config.CELERY_BROKER_URL,
-    result_backend=config.CELERY_RESULT_BACKEND)
+    result_backend=config.CELERY_RESULT_BACKEND,
+)
+celery.conf.update(
+    task_serializer='json',
+    result_serializer='json',
+    accept_content=['json'],   # jamais de pickle : un message forgé = RCE
+)
 
 def init_celery(app):
     class ContextTask(celery.Task):

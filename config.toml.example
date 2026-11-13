@@ -37,7 +37,8 @@ port = 5000                            # Port de l'application
 debug = false                           # Mode debug
 admin_users = ["admin"]               # Utilisateurs administrateurs
 login_rate_limit = "5 per minute"                  # Limite de tentatives sur /login
-ratelimit_storage = "redis://localhost:6379/1"     # Compteurs (recommandé) ; vide = broker Celery
+ratelimit_db = 2     # DB 2 dédiée au rate limiting (même Redis, même password)
+# ratelimit_storage = "redis://:<password-échappé>@localhost:6379/2"  # alternative : URL complète explicite
 ratelimit_enabled = true                           # false pour désactiver en dev
 behind_proxy = false
 
@@ -119,5 +120,10 @@ certificate = "some-file.perm"
 # Configuration Celery (pour les taches lourdes)
 # -----------------------------------------------------------------------------
 [celery]
-broker_url = "redis://localhost:6379/0"
-result_backend = "redis://localhost:6379/0"
+host = "localhost"
+port = 6379
+password = ""          # OBLIGATOIRE : même valeur que Redis requirepass
+ssl = false            # true -> rediss:// (TLS), recommandé si Redis est distant
+broker_db = 0          # file des tâches (broker)
+backend_db = 1         # résultats des tâches (backend)
+# broker_url / result_backend : URLs complètes prioritaires si renseignées

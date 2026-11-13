@@ -246,3 +246,6 @@ uploads/
 # Frontend : dépendances npm et CSS Bootstrap compilé
 node_modules/
 app/static/css/bootstrap.custom*.css
+
+# Redis config
+redis.conf

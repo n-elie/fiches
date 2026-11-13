@@ -93,21 +93,102 @@ Then open http://localhost:5000
 
 ## Redis, Celery Worker, and Celery Beat
 
-```bash
-# 1. Redis (broker) — locally
-redis-server
-# or via Docker
-docker run -d --name fiches-redis -p 6379:6379 redis:7
+Redis is used by this app as the **Celery broker**, the **Celery result backend**, and the
+**Flask-Limiter rate-limit storage**. ⚠️ Never publish port 6379 and always set
+`requirepass`: anyone who can reach an unauthenticated Redis can submit Celery tasks
+(= execute code inside the worker) or read task results.
 
-# 2. Worker Celery (performs the following tasks: processing test results)
-celery -A run_celery worker --loglevel=info
+### Option A — docker-compose (recommended)
 
-# 3. Beat (schedules the download of UNIFI spectra every hour)
-celery -A run_celery beat --loglevel=info
+`docker-compose.yml`:
+
+```yaml
+services:
+  redis:
+    image: redis:7
+    command: redis-server --requirepass ${REDIS_PASSWORD} --bind 127.0.0.1 --protected-mode yes
+    volumes:
+      - redis-data:/data
+    # NO "ports:" section: Redis is only reachable inside the compose network
+  worker:
+    build: .
+    command: celery -A run_celery worker --loglevel=info
+    env_file: .env
+    depends_on: [redis]
+  beat:
+    build: .
+    command: celery -A run_celery beat --loglevel=info
+    env_file: .env
+    depends_on: [redis]
+
+volumes:
+  redis-data:
 ```
 
-Configurable Redis URLs in `config.toml` (`[celery] broker_url`, `result_backend`, by default `redis://localhost:6379/0`).
+```bash
+	echo 'REDIS_PASSWORD=<strong-random-password>' > .env && chmod 600 .env
+	docker compose up -d
+```
 
+### Option B — local redis-server
+
+```bash
+	# never bind 0.0.0.0 without a password
+	redis-server --requirepass '<strong-random-password>' --bind 127.0.0.1 --protected-mode yes
+```
+
+or
+
+```bash
+	redis-server redis.conf
+```
+
+`redis.conf`:
+
+```conf
+bind 127.0.0.1            # or internal IP, never 0.0.0.0
+protected-mode yes
+requirepass <strong-random-password>
+# désactiver les commandes dangereuses si non utilisées :
+rename-command FLUSHALL ""
+rename-command CONFIG ""
+rename-command SLAVEOF ""
+rename-command MODULE ""
+```
+
+## Configure the URLs in config.toml
+
+The worker and beat read their Redis URLs from config.toml — the commands
+celery -A run_celery worker / celery -A run_celery beat take no URL argument
+(app/config.py loads [celery] broker_url / result_backend into
+CELERY_BROKER_URL / CELERY_RESULT_BACKEND):
+
+```toml
+[celery]
+host = "localhost"
+port = 6379
+password = "<strong-random-password>"
+broker_db = 0          # file des tâches (broker)
+backend_db = 1         # résultats des tâches (backend)
+
+[app]
+login_rate_limit = "5 per minute"                  # Limite de tentatives sur /login
+ratelimit_db = 2     # DB 2 dédiée au rate limiting (même Redis, même password)
+ratelimit_enabled = true                           # false pour désactiver en d
+```
+
+Notes:
+
+    If the password contains @ : / % etc., percent-escape it in the URLs (python -c "from urllib.parse import quote; print(quote('pwd', safe=''))").
+    For TLS use rediss:// instead of redis:// (same password, port 6379→6380 or stunnel).
+    Use separate DBs (0 = queue, 1 = results, 2 = rate limiting) so that purging results or counters (FLUSHDB on DB 1/2) never destroys pending tasks in DB 0.
+    Then start the processes (they pick up config.toml automatically):
+	
+```bash
+celery -A run_celery worker --loglevel=info
+celery -A run_celery beat --loglevel=info    # downloads UNIFI spectra every hour
+```
+	
 ## Internationalization (i18n)
 
 - Default language: **English** (`BABEL_DEFAULT_LOCALE = ‘en’` in `app/__init__.py`); falls back to the `Accept-Language` header; user can choose EN/FR in the navbar (`/set-language/<lang>`, stored in the session).

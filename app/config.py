@@ -2,6 +2,7 @@ import os
 import sys
 from pathlib import Path
 from typing import Dict, Tuple, List
+from urllib.parse import quote
 
 # Charger le module TOML approprié (standard pour Python ≥ 3.11)
 if sys.version_info >= (3, 11):
@@ -151,7 +152,7 @@ class Config:
         self.LOGO = app_config.get('logo', 'logo.png')
         
         self.LOGIN_RATE_LIMIT = app_config.get('login_rate_limit', '5 per minute')
-        self.RATELIMIT_STORAGE_URI = app_config.get('ratelimit_storage') or None
+        self.RATELIMIT_STORAGE_URI = app_config.get('ratelimit_storage') or None  # URL complète explicite, résolue plus bas
         self.RATELIMIT_ENABLED = app_config.get('ratelimit_enabled', not self.DEBUG)
         self.BEHIND_PROXY = app_config.get('behind_proxy', False)
         
@@ -206,10 +207,31 @@ class Config:
     def _init_celery_config(self):
         """Initialise la configuration celery"""
         
-        redis_config = self._config.get('celery', {})
+        celery_config = self._config.get('celery', {})
         
-        self.CELERY_BROKER_URL =  redis_config.get('broker_url', 'redis://localhost:6379/0')
-        self.CELERY_RESULT_BACKEND = redis_config.get('result_backend', 'redis://localhost:6379/0')
+        password = celery_config.get('password', '')
+        if not password:
+            raise RuntimeError("Define [celery] password in config.toml (Redis requirepass)")
+        scheme = 'rediss' if celery_config.get('ssl', False) else 'redis'
+        host = celery_config.get('host', 'localhost')
+        port = celery_config.get('port', 6379)
+        db = celery_config.get('db', 0)
+        auth = f":{quote(password, safe='')}@"
+        
+        def url(db: int) -> str:
+            return f"{scheme}://{auth}{host}:{port}/{db}"
+
+        self.CELERY_BROKER_URL = celery_config.get('broker_url') or url(int(celery_config.get('broker_db', 0)))
+        self.CELERY_RESULT_BACKEND = celery_config.get('result_backend') or url(int(celery_config.get('backend_db', 1)))
+        
+        # Flask-Limiter : même instance Redis, DB dédiée.
+        # Priorité à une URL complète fournie dans [app] ratelimit_storage,
+        # sinon construite depuis host/port/password de [celery] + ratelimit_db.
+        if self.RATELIMIT_STORAGE_URI:
+            pass  # URL complète fournie telle quelle (doit contenir le password)
+        else:
+            db = int(self._config.get('app', {}).get('ratelimit_db', 2))
+            self.RATELIMIT_STORAGE_URI = url(db)
 
 # Instanciation de la configuration (sera utilisée par Flask)
 config = Config()
