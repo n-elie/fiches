@@ -45,7 +45,7 @@ def download_spectra(self):
         for sample in samples:
             mzml_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], sample.analysis_type, 'spectra')
             os.makedirs(mzml_folder, exist_ok=True)
-            mzml_file = os.path.join(mzml_folder, f'{sample.id}.mzML')
+            mzml_file = os.path.join(mzml_folder, f'{sample.id}.mzML.gz')
             if os.path.exists(mzml_file):
                 logger.info(f"Skipped spectra downloading for {sanitize_log(sample.reference)} as mzML file already exists.")
                 continue

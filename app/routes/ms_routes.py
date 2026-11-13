@@ -202,7 +202,7 @@ def sample_spectrum(sample_id):
         return redirect(url_for('main.index'))
     
     spectrum_pos, spectrum_neg = [], []
-    mzml_file = os.path.join(current_app.config['UPLOAD_FOLDER'], 'ms', 'spectra', f'{sample.id}.mzML')
+    mzml_file = os.path.join(current_app.config['UPLOAD_FOLDER'], 'ms', 'spectra', f'{sample.id}.mzML.gz')
     if os.path.exists(mzml_file):
         try:
             exp = oms.MSExperiment()
