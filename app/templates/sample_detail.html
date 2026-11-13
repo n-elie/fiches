@@ -412,24 +412,24 @@
 
                             if (data.state === 'SUCCESS') {
                                 resultElement.empty().append(
-									$('<div class="alert alert-success py-2 px-3 mb-0"></div>')
-										.append($('<i class="fas fa-check-circle"></i>'))
-										.append(' ')
-										.append($('<strong></strong>').text("{{ _('Success!') }}"))
-										.append(' ')
-										.append($('<span></span>').text((data.result && data.result.sample_reference) || ''))
-								);
-								clearInterval(intervalId);
+                                    $('<div class="alert alert-success py-2 px-3 mb-0"></div>')
+                                    .append($('<i class="fas fa-check-circle"></i>'))
+                                    .append(' ')
+                                    .append($('<strong></strong>').text("{{ _('Success!') }}"))
+                                    .append(' ')
+                                    .append($('<span></span>').text((data.result && data.result.sample_reference) || ''))
+                                );
+                                clearInterval(intervalId);
                             } else if (data.state === 'FAILURE') {
                                 resultElement.empty().append(
-								$('<div class="alert alert-danger py-2 px-3 mb-0"></div>')
-									.append($('<i class="fas fa-exclamation-circle"></i>'))
-									.append(' ')
-									.append($('<strong></strong>').text("{{ _('Error:') }}"))
-									.append(' ')
-									.append($('<span></span>').text(data.status || ''))
-							);
-							clearInterval(intervalId);
+                                    $('<div class="alert alert-danger py-2 px-3 mb-0"></div>')
+                                    .append($('<i class="fas fa-exclamation-circle"></i>'))
+                                    .append(' ')
+                                    .append($('<strong></strong>').text("{{ _('Error:') }}"))
+                                    .append(' ')
+                                    .append($('<span></span>').text(data.status || ''))
+                                );
+                                clearInterval(intervalId);
                             }
                         })
                         .fail(function(xhr, textStatus, errorThrown) {

@@ -31,16 +31,17 @@
         </div>
 
         <div class="col-md-4">
-            <label for="frequency" class="form-label">{{ _("Instrument frequency") }} <span class="required-star">*</span>
-        </label>
-        <select id="frequency" name="frequency" class="form-select" required>
-            {% for frequency in experiments_by_frequency.keys() %}
-                <option value="{{ frequency }}"
-                        {% if sample and sample.frequency == frequency %}selected{% endif %}>{{ frequency }} MHz</option>
-            {% endfor %}
-        </select>
-        <span class="help-text">{{ _("Select the instrument frequency") }}</span>
-    </div>
+            <label for="frequency" class="form-label">
+                {{ _("Instrument frequency") }} <span class="required-star">*</span>
+            </label>
+            <select id="frequency" name="frequency" class="form-select" required>
+                {% for frequency in experiments_by_frequency.keys() %}
+                    <option value="{{ frequency }}"
+                            {% if sample and sample.frequency == frequency %}selected{% endif %}>{{ frequency }} MHz</option>
+                {% endfor %}
+            </select>
+            <span class="help-text">{{ _("Select the instrument frequency") }}</span>
+        </div>
     </div>
 
     <div class="row g-3 mt-0">
