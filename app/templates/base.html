@@ -151,13 +151,13 @@
                                data-bs-toggle="dropdown"
                                aria-expanded="false">
                                 <i class="fa-solid fa-language"></i>
-                                {{ 'FR' if get_locale() == 'fr' else 'EN' }}
+                                {{ get_locale() | upper }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end"
                                 aria-labelledby="langDropdown">
-                                <li><a class="dropdown-item{% if get_locale() == 'en' %} active{% endif %}"
+                                <li><a class="dropdown-item{% if get_locale() == 'fr' %} active{% endif %}"
                                        href="{{ url_for('main.set_language', lang='fr') }}">🇫🇷 Français</a></li>
-                                <li><a class="dropdown-item{% if get_locale().language == 'fr' %} active{% endif %}"
+                                <li><a class="dropdown-item{% if get_locale() == 'en' %} active{% endif %}"
                                        href="{{ url_for('main.set_language', lang='en') }}">🇬🇧 English</a></li>
                             </ul>
                         </li>
