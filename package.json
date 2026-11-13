@@ -2,5 +2,8 @@
   "scripts": {
     "build:css": "sass --load-path=node_modules app/static/scss/custom.scss app/static/css/bootstrap.custom.min.css --style=compressed --no-source-map"
   },
-  "devDependencies": { "bootstrap": "5.3.3", "sass": "^1.80.6" }
+  "devDependencies": {
+    "bootstrap": "^5.3.9",
+    "sass": "^1.80.6"
+  }
 }
