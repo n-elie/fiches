@@ -1,8 +1,24 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div id="mschart-pos"></div>
-    <div id="mschart-neg"></div>
+    <div class="row">
+        <div class="col-lg-6 col-12">
+            <h5 class="text-center">{{ _('Positive mode') }}</h5>
+            {% if spectrum_pos %}
+                <div id="mschart-pos" style="height: 400px"></div>
+            {% else %}
+                <p class="text-center text-muted my-5">{{ _('No data available for this polarity.') }}</p>
+            {% endif %}
+        </div>
+        <div class="col-lg-6 col-12">
+            <h5 class="text-center">{{ _('Negative mode') }}</h5>
+            {% if spectrum_neg %}
+                <div id="mschart-neg" style="height: 400px"></div>
+            {% else %}
+                <p class="text-center text-muted my-5">{{ _('No data available for this polarity.') }}</p>
+            {% endif %}
+        </div>
+    </div>
 {% endblock %}
 
 {% block scripts %}
@@ -11,38 +27,8 @@
     <script nonce="{{ csp_nonce }}">
         $(document).ready(function() {
 
-            const spectrumPos = [{
-                x: 43.018,
-                y: 100.0
-            }, {
-                x: 60.021,
-                y: 62.4
-            }, {
-                x: 73.029,
-                y: 15.8
-            }, {
-                x: 91.018,
-                y: 8.2
-            }, {
-                x: 118.050,
-                y: 24.1
-            }, ];
-            const spectrumNeg = [{
-                x: 59.012,
-                y: 100.0
-            }, {
-                x: 88.040,
-                y: 41.5
-            }, {
-                x: 105.033,
-                y: 22.7
-            }, {
-                x: 133.014,
-                y: 12.9
-            }, {
-                x: 161.024,
-                y: 35.6
-            }, ];
+            const spectrumPos = {{ spectrum_pos | tojson }};
+            const spectrumNeg = {{ spectrum_neg | tojson }};
             const reference = '{{ sample.reference }}';
 
             const i18n = {
@@ -52,16 +38,19 @@
                 clearSelection: {{ _('Clear selection') | tojson }}
             };
 
-            const charts = [
-                MassSpectrum.create('#mschart-pos', spectrumPos, {
-                    title: reference + ' — ' + {{ _('Positive mode') | tojson }},
+            const charts = [];
+            if (spectrumPos && spectrumPos.length) {
+                charts.push(MassSpectrum.create('#mschart-pos', spectrumPos, {
+                    title: reference + ' (+)',
                     i18n: i18n
-                }),
-                MassSpectrum.create('#mschart-neg', spectrumNeg, {
-                    title: reference + ' — ' + {{ _('Negative mode') | tojson }},
+                }));
+            }
+            if (spectrumNeg && spectrumNeg.length) {
+                charts.push(MassSpectrum.create('#mschart-neg', spectrumNeg, {
+                    title: reference + ' (—)',
                     i18n: i18n
-                })
-            ];
+                }));
+            }
 
             $(window).on('resize', () => charts.forEach(c => c.resize()));
 

@@ -8,6 +8,7 @@ import io
 import zipfile
 from datetime import datetime
 import pandas as pd
+import pyopenms as oms
 
 from ..models import db, MSSample, STATUS_NAMES
 from .main_routes import allowed_file
@@ -200,9 +201,50 @@ def sample_spectrum(sample_id):
         flash(_('Access denied'), 'error')
         return redirect(url_for('main.index'))
     
+    spectrum_pos, spectrum_neg = [], []
+    mzml_file = os.path.join(current_app.config['UPLOAD_FOLDER'], 'ms', 'spectra', f'{sample.id}.mzML')
+    if os.path.exists(mzml_file):
+        try:
+            exp = oms.MSExperiment()
+            oms.MzMLFile().load(mzml_file, exp)
+
+            spectra = {'positive': [], 'negative': []}
+            for spec in exp.getSpectra():
+                if spec.getMSLevel() != 1:
+                    continue
+                if spec.getType() != oms.SpectrumSettings.SpectrumType.CENTROID:
+                    continue
+                polarity = spec.getInstrumentSettings().getPolarity()
+                if polarity == oms.IonSource.Polarity.POSITIVE:
+                    key = 'positive'
+                elif polarity == oms.IonSource.Polarity.NEGATIVE:
+                    key = 'negative'
+                else:
+                    continue
+                mz_array, intensity_array = spec.get_peaks()
+                spectra[key].extend(
+                    {'x': float(mz), 'y': float(inten)}
+                    for mz, inten in zip(mz_array, intensity_array)
+                )
+
+            for key in spectra:
+                peaks = spectra[key]
+                if peaks:
+                    max_inten = max(p['y'] for p in peaks)
+                    if max_inten > 0:
+                        for p in peaks:
+                            p['y'] = p['y'] / max_inten * 100.0
+
+            spectrum_pos = spectra['positive']
+            spectrum_neg = spectra['negative']
+        except Exception as e:
+            log_error(e, f"Reading mzML file {mzml_file}")
+            flash(_('The spectrum could not be read.'), 'error')
+
     return render_template('ms/sample_spectrum.html',
-                           sample=sample)
-    
+                           sample=sample,
+                           spectrum_pos=spectrum_pos,
+                           spectrum_neg=spectrum_neg)
     
 @ms_bp.route('/sample/<int:sample_id>/edit', methods=['GET', 'POST'])
 @login_required

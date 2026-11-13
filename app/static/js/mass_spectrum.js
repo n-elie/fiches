@@ -68,9 +68,10 @@
 
             const $container = $(container);
 
-            const xMinOrig = Math.min(...spectrum.map(p => p.x)) - 5;
-            const xMaxOrig = Math.max(...spectrum.map(p => p.x)) + 5;
-            const yMaxOrig = Math.max(10, Math.ceil(Math.max(...spectrum.map(p => p.y)) * 1.1));
+			spectrum = Array.isArray(spectrum) ? spectrum : [];
+			const xMinOrig = spectrum.length ? Math.min(...spectrum.map(p => p.x)) - 5 : 0;
+			const xMaxOrig = spectrum.length ? Math.max(...spectrum.map(p => p.x)) + 5 : 100;
+			const yMaxOrig = spectrum.length ? Math.max(10, Math.ceil(Math.max(...spectrum.map(p => p.y)) * 1.1)) : 100;
 
             const chart = echarts.init($container[0], null, {
                 renderer: 'svg'

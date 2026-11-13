@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-13 16:45+0100\n"
-"PO-Revision-Date: 2026-11-13 16:46+0100\n"
+"POT-Creation-Date: 2026-11-13 19:44+0100\n"
+"PO-Revision-Date: 2026-11-13 19:45+0100\n"
 "Last-Translator: \n"
 "Language-Team: fr <LL@li.org>\n"
 "Language: fr\n"
@@ -191,8 +191,8 @@ msgid "No valid sample selected"
 msgstr "Aucun échantillon valide sélectionné"
 
 #: app/routes/main_routes.py:211 app/routes/main_routes.py:225
-#: app/routes/ms_routes.py:162 app/routes/ms_routes.py:175 app/routes/ms_routes.py:200
-#: app/routes/ms_routes.py:219 app/routes/nmr_routes.py:117
+#: app/routes/ms_routes.py:163 app/routes/ms_routes.py:176 app/routes/ms_routes.py:201
+#: app/routes/ms_routes.py:261 app/routes/nmr_routes.py:117
 #: app/routes/nmr_routes.py:132 app/routes/nmr_routes.py:161
 msgid "Access denied"
 msgstr "Accès non autorisé"
@@ -206,31 +206,31 @@ msgstr "Erreur lors de la génération du PDF."
 msgid "Access denied for sample %(ref)s"
 msgstr "Accès non autorisé pour l'échantillon %(ref)s"
 
-#: app/routes/ms_routes.py:29 app/routes/ms_routes.py:118 app/routes/nmr_routes.py:76
+#: app/routes/ms_routes.py:30 app/routes/ms_routes.py:119 app/routes/nmr_routes.py:76
 msgid "File type not allowed. Accepted formats:"
 msgstr "Type de fichier non autorisé. Formats acceptés :"
 
-#: app/routes/ms_routes.py:34 app/routes/ms_routes.py:39
+#: app/routes/ms_routes.py:35 app/routes/ms_routes.py:40
 msgid "The file is not a valid .xlsx/.ods archive"
 msgstr "Le fichier n'est pas une archive .xlsx/.ods valide"
 
-#: app/routes/ms_routes.py:41
+#: app/routes/ms_routes.py:42
 msgid "The file is not a valid .xlsx workbook"
 msgstr "Le fichier n'est pas un classeur .xlsx valide"
 
-#: app/routes/ms_routes.py:43
+#: app/routes/ms_routes.py:44
 msgid "The file is not a valid .ods document"
 msgstr "Le fichier n'est pas un document .ods valide"
 
-#: app/routes/ms_routes.py:70 app/routes/ms_routes.py:237
+#: app/routes/ms_routes.py:71 app/routes/ms_routes.py:279
 msgid "The solvent is not available."
 msgstr "Le solvant n'est pas disponible."
 
-#: app/routes/ms_routes.py:74 app/routes/ms_routes.py:241
+#: app/routes/ms_routes.py:75 app/routes/ms_routes.py:283
 msgid "Please select at least one solvent"
 msgstr "Veuillez sélectionner au moins un solvant"
 
-#: app/routes/ms_routes.py:78 app/routes/ms_routes.py:245 app/routes/nmr_routes.py:50
+#: app/routes/ms_routes.py:79 app/routes/ms_routes.py:287 app/routes/nmr_routes.py:50
 #: app/routes/nmr_routes.py:189
 msgid ""
 "Invalid reference: only letters, digits, spaces, \".\", \"-\" or \"_\" (max 100 "
@@ -239,7 +239,7 @@ msgstr ""
 "Référence non valide : uniquement des lettres, des chiffres, des espaces, « . », "
 "« - » ou « _ » (100 caractères maximum)"
 
-#: app/routes/ms_routes.py:82 app/routes/ms_routes.py:249 app/routes/nmr_routes.py:54
+#: app/routes/ms_routes.py:83 app/routes/ms_routes.py:291 app/routes/nmr_routes.py:54
 #: app/routes/nmr_routes.py:193
 msgid ""
 "Invalid formula: only letters, numbers, parentheses, brackets, charges (+, -), dots/"
@@ -249,103 +249,107 @@ msgstr ""
 "crochets, des signes de charge (+, -), des points ou des astérisques pour les "
 "hydrates, et des espaces (256 caractères maximum)"
 
-#: app/routes/ms_routes.py:86 app/routes/ms_routes.py:253 app/routes/nmr_routes.py:58
+#: app/routes/ms_routes.py:87 app/routes/ms_routes.py:295 app/routes/nmr_routes.py:58
 #: app/routes/nmr_routes.py:197
 msgid "Please fill in all required fields"
 msgstr "Veuillez remplir tous les champs obligatoires"
 
-#: app/routes/ms_routes.py:90 app/routes/nmr_routes.py:62
+#: app/routes/ms_routes.py:91 app/routes/nmr_routes.py:62
 msgid "No structure file provided"
 msgstr "Aucun fichier de structure fourni"
 
-#: app/routes/ms_routes.py:115
+#: app/routes/ms_routes.py:116
 msgid "The structure file could not be parsed."
 msgstr "Le fichier de structure n'a pas pu être analysé."
 
-#: app/routes/ms_routes.py:124
+#: app/routes/ms_routes.py:125
 msgid "Please select a structure file or enter a molecular formula"
 msgstr "Veuillez sélectionner un fichier de structure ou entrer une formule brute"
 
-#: app/routes/ms_routes.py:144 app/routes/nmr_routes.py:97
+#: app/routes/ms_routes.py:145 app/routes/nmr_routes.py:97
 #: app/routes/nmr_routes.py:231
 msgid "Sample submitted successfully!"
 msgstr "Échantillon soumis avec succès !"
 
-#: app/routes/ms_routes.py:148 app/routes/nmr_routes.py:101
+#: app/routes/ms_routes.py:149 app/routes/nmr_routes.py:101
 msgid "Error during submission: the sample was not saved."
 msgstr "Erreur lors de l'envoi : l'échantillon n'a pas été enregistré."
 
-#: app/routes/ms_routes.py:285
+#: app/routes/ms_routes.py:242
+msgid "The spectrum could not be read."
+msgstr "Le spectre n'a pas pu être lu."
+
+#: app/routes/ms_routes.py:327
 msgid "Sample updated successfully!"
 msgstr "Échantillon mis à jour avec succès !"
 
-#: app/routes/ms_routes.py:289 app/routes/nmr_routes.py:235
+#: app/routes/ms_routes.py:331 app/routes/nmr_routes.py:235
 msgid "Error during update: the sample was not saved."
 msgstr "Erreur lors de la mise à jour : l'échantillon n'a pas été enregistré."
 
-#: app/routes/ms_routes.py:312
+#: app/routes/ms_routes.py:354
 msgid "Empty file"
 msgstr "Fichier vide"
 
-#: app/routes/ms_routes.py:333
+#: app/routes/ms_routes.py:375
 msgid "Error while reading the file: it is corrupted or not a supported spreadsheet."
 msgstr ""
 "Erreur lors de la lecture du fichier : celui-ci est corrompu ou n'est pas un "
 "tableur pris en charge."
 
-#: app/routes/ms_routes.py:340
+#: app/routes/ms_routes.py:382
 #, python-format
 msgid "Missing columns in the file: %(cols)s"
 msgstr "Colonnes manquantes dans le fichier : %(cols)s"
 
-#: app/routes/ms_routes.py:355
+#: app/routes/ms_routes.py:397
 #, python-format
 msgid "Line %(line)s: invalid reference"
 msgstr "Ligne %(line)s : référence invalide"
 
-#: app/routes/ms_routes.py:359
+#: app/routes/ms_routes.py:401
 #, python-format
 msgid "Line %(line)s: invalid formula"
 msgstr "Ligne %(line)s : formule invalide"
 
-#: app/routes/ms_routes.py:363
+#: app/routes/ms_routes.py:405
 #, python-format
 msgid "Line %(line)s: reference and quantity are required"
 msgstr "Ligne %(line)s : référence et quantité sont obligatoires"
 
-#: app/routes/ms_routes.py:388 app/routes/ms_routes.py:445
+#: app/routes/ms_routes.py:430 app/routes/ms_routes.py:487
 #, python-format
 msgid "Line %(line)s: invalid data"
 msgstr "Ligne %(line)s : données invalides"
 
-#: app/routes/ms_routes.py:404
+#: app/routes/ms_routes.py:446
 msgid "No Excel file provided"
 msgstr "Aucun fichier Excel fourni"
 
-#: app/routes/ms_routes.py:409
+#: app/routes/ms_routes.py:451
 msgid "Please select an Excel file"
 msgstr "Veuillez sélectionner un fichier Excel"
 
-#: app/routes/ms_routes.py:421
+#: app/routes/ms_routes.py:463
 msgid "Please select a team"
 msgstr "Veuillez sélectionner une équipe"
 
-#: app/routes/ms_routes.py:451
+#: app/routes/ms_routes.py:493
 #, python-format
 msgid "%(num)s sample imported successfully!"
 msgid_plural "%(num)s samples imported successfully!"
 msgstr[0] "%(num)s échantillon importé avec succès !"
 msgstr[1] "%(num)s échantillons importés avec succès !"
 
-#: app/routes/ms_routes.py:476
+#: app/routes/ms_routes.py:518
 msgid "No file provided"
 msgstr "Aucun fichier fourni"
 
-#: app/routes/ms_routes.py:480
+#: app/routes/ms_routes.py:522
 msgid "Please select a file"
 msgstr "Veuillez sélectionner un fichier"
 
-#: app/routes/ms_routes.py:486
+#: app/routes/ms_routes.py:528
 msgid "Error while reading the import file"
 msgstr "Erreur lors de la lecture du fichier"
 
@@ -799,7 +803,7 @@ msgstr "Rechercher..."
 msgid "Filter"
 msgstr "Filtrer"
 
-#: app/templates/ms/sample_spectrum.html:51 app/templates/samples.html:136
+#: app/templates/ms/sample_spectrum.html:32 app/templates/samples.html:136
 msgid "Select all"
 msgstr "Sélectionner tout"
 
@@ -1438,26 +1442,30 @@ msgid "You will receive an email notification when the analyses are complete."
 msgstr ""
 "Vous recevrez une notification par email lorsque les analyses seront terminées."
 
-#: app/templates/ms/sample_spectrum.html:49
+#: app/templates/ms/sample_spectrum.html:4
+msgid "Positive mode"
+msgstr "Mode positif"
+
+#: app/templates/ms/sample_spectrum.html:8 app/templates/ms/sample_spectrum.html:15
+msgid "No data available for this polarity."
+msgstr "Aucune donnée n'est disponible pour cette polarité."
+
+#: app/templates/ms/sample_spectrum.html:11
+msgid "Negative mode"
+msgstr "Mode négatif"
+
+#: app/templates/ms/sample_spectrum.html:30
 #, python-format
 msgid "Relative intensity (%%)"
 msgstr "Intensité relative (%%)"
 
-#: app/templates/ms/sample_spectrum.html:50
+#: app/templates/ms/sample_spectrum.html:31
 msgid "Restore zoom"
 msgstr "Restaurer le zoom"
 
-#: app/templates/ms/sample_spectrum.html:52
+#: app/templates/ms/sample_spectrum.html:33
 msgid "Clear selection"
 msgstr "Effacer la sélection"
-
-#: app/templates/ms/sample_spectrum.html:57
-msgid "Positive mode"
-msgstr "Mode positif"
-
-#: app/templates/ms/sample_spectrum.html:61
-msgid "Negative mode"
-msgstr "Mode négatif"
 
 #: app/templates/ms/sample_submit.html:10
 #, python-format
