@@ -10,7 +10,7 @@ from datetime import datetime
 from urllib.parse import urlparse
 
 from ..models import db, Sample, User, STATUS_NAMES, MSSample, NMRSample
-from ..utils.pdf_utils import create_analysis_sheet_pdf
+from ..utils.pdf.analysis_sheet import create_analysis_sheet_pdf
 from ..utils.errors import log_error, report_error
 from ..utils.urls import safe_redirect_back
 
