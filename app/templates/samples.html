@@ -319,28 +319,32 @@
 {% block scripts %}
     {{ super() }}
     <script nonce="{{ csp_nonce }}">
-        $(document).ready(function() {
-            const $selectAllCheckbox = $('#select-all');
-            const $sampleCheckboxes = $('.sample-checkbox:not([disabled])');
-            const $batchButtons = $('#batch-delete-btn, #batch-export-btn, #batch-pdf-btn');
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectAllCheckbox = document.getElementById('select-all');
+            const sampleCheckboxes = document.querySelectorAll('.sample-checkbox:not([disabled])');
+            const batchButtons = document.querySelectorAll('#batch-delete-btn, #batch-export-btn, #batch-pdf-btn');
 
             function updateBatchActions() {
-                const selectedIds = $sampleCheckboxes.filter(':checked').map(function() {
-                    return $(this).val();
-                }).get();
+                const selectedIds = Array.from(sampleCheckboxes)
+                    .filter(function(cb) { return cb.checked; })
+                    .map(function(cb) { return cb.value; });
 
-                $('input[name="sample_ids"]').val(selectedIds.join(','));
+                document.querySelectorAll('input[name="sample_ids"]').forEach(function(input) {
+                    input.value = selectedIds.join(',');
+                });
 
                 const hasSelection = selectedIds.length > 0;
-                $batchButtons.prop('disabled', !hasSelection);
+                batchButtons.forEach(function(btn) { btn.disabled = !hasSelection; });
             }
 
-            $selectAllCheckbox.on('change', function() {
-                $sampleCheckboxes.prop('checked', $(this).is(':checked'));
+            selectAllCheckbox.addEventListener('change', function() {
+                sampleCheckboxes.forEach(function(cb) { cb.checked = selectAllCheckbox.checked; });
                 updateBatchActions();
             });
 
-            $sampleCheckboxes.on('change', updateBatchActions);
+            sampleCheckboxes.forEach(function(cb) {
+                cb.addEventListener('change', updateBatchActions);
+            });
         });
     </script>
 {% endblock %}

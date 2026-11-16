@@ -2,11 +2,6 @@
 
 {% block title %}{{ _("Sample List") }}{% endblock %}
 
-{% block css %}
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='css/jquery-ui-1.14.2.min.css') }}">
-{% endblock %}
-
 {% block content %}
     <div class="samples-container">
         <nav aria-label="breadcrumb">
@@ -196,136 +191,173 @@
 
 {% block scripts %}
     {{ super() }}
-    <script src="{{ url_for('static', filename='js/jquery-ui-1.14.2.min.js') }}"></script>
     <script nonce="{{ csp_nonce }}">
-        $(document).ready(function() {
-            const $list = $('#sample-list');
-            const $emptyMessage = $('#empty-list-message');
-            const $count = $('#list-count');
-            const $idsInput = $('#sample-ids-export');
-            const $exportBtn = $('#export-btn');
-            const $showListBtn = $('#show-list-btn');
+        document.addEventListener('DOMContentLoaded', function() {
+            const list = document.getElementById('sample-list');
+            const emptyMessage = document.getElementById('empty-list-message');
+            const count = document.getElementById('list-count');
+            const showListBtn = document.getElementById('show-list-btn');
+            const clearListBtn = document.getElementById('clear-list-btn');
+            const resultsBody = document.getElementById('results-body');
+            const resultsTableWrapper = document.getElementById('results-table-wrapper');
+            const bulkAddWrapper = document.getElementById('bulk-add-wrapper');
+            const resultsCount = document.getElementById('results-count');
+            const noResults = document.getElementById('no-results');
+            const searchForm = document.getElementById('search-form');
+            const searchInput = document.getElementById('search');
+            const userSelect = document.getElementById('user');
+            const resetSearchBtn = document.getElementById('reset-search-btn');
+            const selectAllResults = document.getElementById('select-all-results');
+            const addSelectedBtn = document.getElementById('add-selected-btn');
+            const selectedCount = document.getElementById('selected-count');
+            const popupTbody = document.getElementById('popup-sample-tbody');
+            const popupCount = document.getElementById('popup-count');
+            const validateFeedback = document.getElementById('validate-feedback');
+            const validateListBtn = document.getElementById('validate-list-btn');
+            const copyTableBtn = document.getElementById('copy-table-btn');
+            const modalEl = document.getElementById('sample-list-modal');
+
             const selectedIds = new Set();
             let popupSamples = [];
             let hasCopied = false;
+            let draggedItem = null;
+
+            function toggle(el, show) {
+                el.style.display = show ? '' : 'none';
+            }
 
             function updateValidateBtn() {
-                $('#validate-list-btn').prop('disabled', popupSamples.length === 0 || !hasCopied);
+                validateListBtn.disabled = popupSamples.length === 0 || !hasCopied;
             }
 
             function renderResults(samples) {
-                const $tbody = $('#results-body');
-                $tbody.empty();
+                resultsBody.textContent = '';
                 samples.forEach(function(sample) {
-                    const $checkbox = $('<input type="checkbox" class="form-check-input result-checkbox">')
-                        .attr('data-id', sample.id)
-                        .attr('data-reference', sample.reference)
-                        .attr('data-team', sample.team)
-                        .attr('data-user', sample.user);
-                    const $btn = $('<button type="button" class="btn btn-outline-primary btn-sm add-sample-btn"></button>')
-                        .attr('data-id', sample.id)
-                        .attr('data-reference', sample.reference)
-                        .attr('data-team', sample.team)
-                        .attr('data-user', sample.user)
-                        .html('<i class="fas fa-plus"></i> Ajouter');
-                    const $row = $('<tr></tr>');
-                    $row.append($('<td></td>').append($checkbox));
-                    $row.append($('<td></td>').text(sample.team));
-                    $row.append($('<td></td>').text(sample.user));
-                    $row.append($('<td></td>').text(sample.reference));
-                    $row.append(
-                        $('<td></td>').append(
-                            $('<span></span>').text(sample.formula || '-')
-                        )
-                    );
-                    $row.append($('<td></td>').text(sample.quantity + ' mg'));
-                    $row.append($('<td></td>').text(sample.created_at));
-                    $row.append($('<td class="text-center"></td>').append($btn));
-                    $tbody.append($row);
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'form-check-input result-checkbox';
+                    checkbox.dataset.id = sample.id;
+                    checkbox.dataset.reference = sample.reference;
+                    checkbox.dataset.team = sample.team;
+                    checkbox.dataset.user = sample.user;
+
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'btn btn-outline-primary btn-sm add-sample-btn';
+                    btn.dataset.id = sample.id;
+                    btn.dataset.reference = sample.reference;
+                    btn.dataset.team = sample.team;
+                    btn.dataset.user = sample.user;
+                    btn.innerHTML = '<i class="fas fa-plus"></i> Ajouter';
+
+                    const row = document.createElement('tr');
+                    const tdCheck = document.createElement('td');
+                    tdCheck.append(checkbox);
+                    const tdTeam = document.createElement('td');
+                    tdTeam.textContent = sample.team;
+                    const tdUser = document.createElement('td');
+                    tdUser.textContent = sample.user;
+                    const tdRef = document.createElement('td');
+                    tdRef.textContent = sample.reference;
+                    const tdFormula = document.createElement('td');
+                    const spanFormula = document.createElement('span');
+                    spanFormula.innerHTML = sample.formula || '-';
+                    tdFormula.append(spanFormula);
+                    const tdQty = document.createElement('td');
+                    tdQty.textContent = sample.quantity + ' mg';
+                    const tdDate = document.createElement('td');
+                    tdDate.textContent = sample.created_at;
+                    const tdAction = document.createElement('td');
+                    tdAction.className = 'text-center';
+                    tdAction.append(btn);
+
+                    row.append(tdCheck, tdTeam, tdUser, tdRef, tdFormula, tdQty, tdDate, tdAction);
+                    resultsBody.append(row);
                 });
-                $('#results-table-wrapper').toggle(samples.length > 0);
-                $('#bulk-add-wrapper').toggle(samples.length > 0);
-                $('#results-count').toggle(samples.length > 0)
-                    .text(
-                        samples.length + ' ' +
-                        (samples.length > 1 ?
-                            {{ ngettext('MS pending sample', 'MS pending samples', 2) | tojson }} :
-                            {{ ngettext('MS pending sample', 'MS pending samples', 1) | tojson }})
-                    );
-                $('#no-results').toggle(samples.length === 0);
+                toggle(resultsTableWrapper, samples.length > 0);
+                toggle(bulkAddWrapper, samples.length > 0);
+                toggle(resultsCount, samples.length > 0);
+                resultsCount.textContent =
+                    samples.length + ' ' +
+                    (samples.length > 1 ?
+                        {{ ngettext('MS pending sample', 'MS pending samples', 2) | tojson }} :
+                        {{ ngettext('MS pending sample', 'MS pending samples', 1) | tojson }});
+                toggle(noResults, samples.length === 0);
                 refreshAddButtons();
                 refreshSelection();
             }
 
             function runSearch() {
-                $.getJSON("{{ url_for('admin.sample_list_search') }}", {
-                    search: $('#search').val(),
-                    user: $('#user').val()
-                }, renderResults);
+                const params = new URLSearchParams({
+                    search: searchInput.value,
+                    user: userSelect.value
+                });
+                fetch("{{ url_for('admin.sample_list_search') }}?" + params)
+                    .then(function(resp) { return resp.json(); })
+                    .then(renderResults)
+                    .catch(function(err) { console.error(err); });
             }
 
-            $('#search-form').on('submit', function(e) {
+            searchForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 runSearch();
             });
 
             let searchTimer;
-            $('#search').on('input', function() {
+            searchInput.addEventListener('input', function() {
                 clearTimeout(searchTimer);
                 searchTimer = setTimeout(runSearch, 300);
             });
 
-            $('#user').on('change', runSearch);
+            userSelect.addEventListener('change', runSearch);
 
-            $('#reset-search-btn').on('click', function() {
-                $('#search').val('');
-                $('#user').val('');
+            resetSearchBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                userSelect.value = '';
                 runSearch();
             });
 
             function orderedIds() {
-                return $list.children('li').map(function() {
-                    return String($(this).data('id'));
-                }).get();
+                return Array.from(list.children).map(function(li) {
+                    return String(li.dataset.id);
+                });
             }
 
             function refreshExport() {
                 const ids = orderedIds();
-                $showListBtn.prop('disabled', ids.length === 0);
-                $('#clear-list-btn').prop('disabled', ids.length === 0);
-                $count.text(ids.length);
-                $emptyMessage.toggle(ids.length === 0);
+                showListBtn.disabled = ids.length === 0;
+                clearListBtn.disabled = ids.length === 0;
+                count.textContent = ids.length;
+                toggle(emptyMessage, ids.length === 0);
             }
 
             function refreshAddButtons() {
-                $('.add-sample-btn').each(function() {
-                    const $btn = $(this);
-                    const inList = selectedIds.has(String($btn.data('id')));
-                    $btn.prop('disabled', inList);
-                    $btn.toggleClass('btn-outline-primary', !inList);
-                    $btn.toggleClass('btn-success', inList);
-                    $btn.html(inList ?
+                document.querySelectorAll('.add-sample-btn').forEach(function(btn) {
+                    const inList = selectedIds.has(String(btn.dataset.id));
+                    btn.disabled = inList;
+                    btn.classList.toggle('btn-outline-primary', !inList);
+                    btn.classList.toggle('btn-success', inList);
+                    btn.innerHTML = inList ?
                         '<i class="fas fa-check"></i> {{ _('Added') }}' :
-                        '<i class="fas fa-plus"></i> {{ _('Add') }}');
+                        '<i class="fas fa-plus"></i> {{ _('Add') }}';
                 });
             }
 
             function syncCheckboxStates() {
-                $('.result-checkbox').each(function() {
-                    const $cb = $(this);
-                    const inList = selectedIds.has(String($cb.data('id')));
-                    $cb.prop('checked', inList);
-                    $cb.prop('disabled', inList);
+                document.querySelectorAll('.result-checkbox').forEach(function(cb) {
+                    const inList = selectedIds.has(String(cb.dataset.id));
+                    cb.checked = inList;
+                    cb.disabled = inList;
                 });
             }
 
             function updateBulkAddState() {
-                const $available = $('.result-checkbox:not([disabled])');
-                $('#select-all-results').prop('checked',
-                    $available.length > 0 && $available.filter(':checked').length === $available.length);
-                const selected = $available.filter(':checked').length;
-                $('#selected-count').text(selected);
-                $('#add-selected-btn').prop('disabled', selected === 0);
+                const available = Array.from(document.querySelectorAll('.result-checkbox:not([disabled])'));
+                selectAllResults.checked =
+                    available.length > 0 && available.every(function(cb) { return cb.checked; });
+                const selected = available.filter(function(cb) { return cb.checked; }).length;
+                selectedCount.textContent = selected;
+                addSelectedBtn.disabled = selected === 0;
             }
 
             function refreshSelection() {
@@ -340,73 +372,99 @@
                 }
                 selectedIds.add(id);
 
-                const $item = $('<li class="sample-list-item"></li>').attr('data-id', id);
-                $item.append('<span class="drag-handle" title="{{ _('Move') }}"><i class="fas fa-grip-vertical"></i></span>');
-                $item.append($('<span class="sample-list-ref"></span>').text(reference));
-                $item.append($('<span class="text-muted small sample-list-meta"></span>')
-                    .text(team + ' — ' + user));
-                $item.append('<button type="button" class="btn-icon btn-delete remove-sample-btn ms-auto" title="{{ _('Remove from list' )}}"><i class="fas fa-times"></i></button>');
+                const item = document.createElement('li');
+                item.className = 'sample-list-item';
+                item.dataset.id = id;
 
-                $list.append($item);
+                const handle = document.createElement('span');
+                handle.className = 'drag-handle';
+                handle.title = {{ _('Move') | tojson }};
+                handle.innerHTML = '<i class="fas fa-grip-vertical"></i>';
+
+                const ref = document.createElement('span');
+                ref.className = 'sample-list-ref';
+                ref.textContent = reference;
+
+                const meta = document.createElement('span');
+                meta.className = 'text-muted small sample-list-meta';
+                meta.textContent = team + ' — ' + user;
+
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn-icon btn-delete remove-sample-btn ms-auto';
+                removeBtn.title = {{ _('Remove from list') | tojson }};
+                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+
+                item.append(handle, ref, meta, removeBtn);
+                list.append(item);
             }
 
-            $('#clear-list-btn').on('click', function() {
+            clearListBtn.addEventListener('click', function() {
                 selectedIds.clear();
-                $list.empty();
+                list.textContent = '';
                 refreshExport();
                 refreshAddButtons();
                 refreshSelection();
             });
 
-            $(document).on('click', '.add-sample-btn', function() {
-                const $btn = $(this);
-                addSampleToList($btn.data('id'), $btn.data('reference'), $btn.data('team'), $btn.data('user'));
-                refreshExport();
-                refreshAddButtons();
-                refreshSelection();
+            document.addEventListener('click', function(e) {
+                const addBtn = e.target.closest('.add-sample-btn');
+                if (addBtn) {
+                    addSampleToList(addBtn.dataset.id, addBtn.dataset.reference, addBtn.dataset.team, addBtn.dataset.user);
+                    refreshExport();
+                    refreshAddButtons();
+                    refreshSelection();
+                }
             });
 
-            $(document).on('click', '.remove-sample-btn', function() {
-                const $item = $(this).closest('li');
-                selectedIds.delete(String($item.data('id')));
-                $item.remove();
-                refreshExport();
-                refreshAddButtons();
-                refreshSelection();
+            document.addEventListener('click', function(e) {
+                const removeBtn = e.target.closest('.remove-sample-btn');
+                if (removeBtn) {
+                    const item = removeBtn.closest('li');
+                    selectedIds.delete(String(item.dataset.id));
+                    item.remove();
+                    refreshExport();
+                    refreshAddButtons();
+                    refreshSelection();
+                }
             });
 
-            $('#show-list-btn').on('click', function() {
+            showListBtn.addEventListener('click', function() {
                 const ids = orderedIds();
                 if (ids.length === 0) {
                     return;
                 }
                 hasCopied = false;
-                $.getJSON("{{ url_for('admin.export_sample_list') }}", {
-                    ids: ids.join(',')
-                }, function(samples) {
-                    popupSamples = samples;
-                    updateValidateBtn();
-                    $('#validate-feedback').addClass('d-none').text('');
-                    const $tbody = $('#popup-sample-tbody');
-                    $tbody.empty();
-                    samples.forEach(function(sample, i) {
-                        const $row = $('<tr></tr>');
-                        $row.append($('<td></td>').text(i + 1));
-                        $row.append($('<td></td>').text(sample.reference));
-                        $row.append($('<td></td>').text(sample.uuid));
-                        $tbody.append($row);
+                const params = new URLSearchParams({ids: ids.join(',')});
+                fetch("{{ url_for('admin.export_sample_list') }}?" + params)
+                    .then(function(resp) { return resp.json(); })
+                    .then(function(samples) {
+                        popupSamples = samples;
+                        updateValidateBtn();
+                        validateFeedback.classList.add('d-none');
+                        validateFeedback.textContent = '';
+                        popupTbody.textContent = '';
+                        samples.forEach(function(sample, i) {
+                            const row = document.createElement('tr');
+                            const tdNum = document.createElement('td');
+                            tdNum.textContent = i + 1;
+                            const tdRef = document.createElement('td');
+                            tdRef.textContent = sample.reference;
+                            const tdUuid = document.createElement('td');
+                            tdUuid.textContent = sample.uuid;
+                            row.append(tdNum, tdRef, tdUuid);
+                            popupTbody.append(row);
+                        });
+                        popupCount.textContent =
+                            samples.length + ' ' +
+                            (samples.length > 1 ?
+                                {{ ngettext('sample', 'samples', 2) | tojson }} :
+                                {{ ngettext('sample', 'samples', 1) | tojson }});
+                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
                     });
-                    $('#popup-count').text(
-                        samples.length + ' ' +
-                        (samples.length > 1 ?
-                            {{ ngettext('sample', 'samples', 2) | tojson }} :
-                            {{ ngettext('sample', 'samples', 1) | tojson }})
-                    );
-                    bootstrap.Modal.getOrCreateInstance(document.getElementById('sample-list-modal')).show();
-                });
             });
 
-            $('#validate-list-btn').on('click', function() {
+            validateListBtn.addEventListener('click', function() {
                 if (popupSamples.length === 0) {
                     return;
                 }
@@ -416,23 +474,39 @@
                 const ids = popupSamples.map(function(sample) {
                     return sample.id;
                 });
-                $.ajax({
-                    url: "{{ url_for('admin.validate_sample_list') }}",
+                fetch("{{ url_for('admin.validate_sample_list') }}", {
                     method: 'POST',
-                    data: {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
                         csrf_token: "{{ csrf_token() }}",
                         ids: ids.join(',')
-                    },
-                    success: function(resp) {
+                    })
+                })
+                    .then(function(resp) {
+                        return resp.json().then(function(data) {
+                            return {ok: resp.ok, data: data};
+                        });
+                    })
+                    .then(function(result) {
+                        if (!result.ok) {
+                            const msg = result.data && result.data.error ? result.data.error : {{ _('Validation error') | tojson }};
+                            validateFeedback.classList.remove('d-none', 'alert-success');
+                            validateFeedback.classList.add('alert-danger');
+                            validateFeedback.textContent = msg;
+                            return;
+                        }
+                        const resp = result.data;
                         const validated = new Set(resp.updated.map(function(u) {
                             return String(u.id);
                         }));
                         validated.forEach(function(id) {
                             selectedIds.delete(id);
                         });
-                        $list.children('li').each(function() {
-                            if (validated.has(String($(this).data('id')))) {
-                                $(this).remove();
+                        Array.from(list.children).forEach(function(li) {
+                            if (validated.has(String(li.dataset.id))) {
+                                li.remove();
                             }
                         });
                         refreshExport();
@@ -440,37 +514,33 @@
                         refreshSelection();
                         runSearch();
 
-                        $('#popup-sample-tbody').empty();
+                        popupTbody.textContent = '';
                         popupSamples = [];
                         hasCopied = false;
                         updateValidateBtn();
-                        $('#popup-count').text('0 échantillon');
-                        $('#validate-list-btn').prop('disabled', true);
-                        $('#validate-feedback')
-                            .removeClass('d-none')
-                            .text({{ _('{updated} sample(s) marked as “Analysing“.') | tojson }}.replace('{updated}', resp.updated.length));
-                    },
-                    error: function(xhr) {
-                        const msg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : {{ _('Validation error') | tojson }};
-                        $('#validate-feedback').removeClass('d-none').removeClass('alert-success').addClass('alert-danger').text(msg);
-                    }
-                });
+                        popupCount.textContent = '0 échantillon';
+                        validateListBtn.disabled = true;
+                        validateFeedback.classList.remove('d-none', 'alert-danger');
+                        validateFeedback.classList.add('alert-success');
+                        validateFeedback.textContent = {{ _('{updated} sample(s) marked as “Analysing“.') | tojson }}.replace('{updated}', resp.updated.length);
+                    })
+                    .catch(function(err) { console.error(err); });
             });
 
             function fallbackCopy(text) {
-                const $ta = $('<textarea></textarea>').val(text).css({
-                    position: 'fixed',
-                    opacity: '0'
-                }).appendTo('body');
-                $ta[0].select();
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.append(ta);
+                ta.select();
                 try {
                     document.execCommand('copy');
                 } catch (e) {}
-                $ta.remove();
+                ta.remove();
             }
 
-            $('#copy-table-btn').on('click', function() {
-                const $btn = $(this);
+            copyTableBtn.addEventListener('click', function() {
                 const text = popupSamples.map(function(sample) {
                     return sample.reference + '\t' + sample.uuid;
                 }).join('\n');
@@ -478,9 +548,9 @@
                 const done = function() {
                     hasCopied = true;
                     updateValidateBtn();
-                    $btn.html('<i class="fas fa-check"></i> {{ _('Copied') }} !');
+                    copyTableBtn.innerHTML = '<i class="fas fa-check"></i> {{ _('Copied') }} !';
                     setTimeout(function() {
-                        $btn.html('<i class="fas fa-copy"></i> {{ _('Copy') }}');
+                        copyTableBtn.innerHTML = '<i class="fas fa-copy"></i> {{ _('Copy') }}';
                     }, 2000);
                 };
 
@@ -495,31 +565,87 @@
                 }
             });
 
-            $('#select-all-results').on('change', function() {
-                $('.result-checkbox:not([disabled])').prop('checked', $(this).is(':checked'));
+            selectAllResults.addEventListener('change', function() {
+                document.querySelectorAll('.result-checkbox:not([disabled])').forEach(function(cb) {
+                    cb.checked = selectAllResults.checked;
+                });
                 updateBulkAddState();
             });
 
-            $(document).on('change', '.result-checkbox', updateBulkAddState);
+            document.addEventListener('change', function(e) {
+                if (e.target.classList.contains('result-checkbox')) {
+                    updateBulkAddState();
+                }
+            });
 
-            $('#add-selected-btn').on('click', function() {
-                $('.result-checkbox:checked:not([disabled])').each(function() {
-                    const $cb = $(this);
-                    addSampleToList($cb.data('id'), $cb.data('reference'), $cb.data('team'), $cb.data('user'));
+            addSelectedBtn.addEventListener('click', function() {
+                document.querySelectorAll('.result-checkbox:checked:not([disabled])').forEach(function(cb) {
+                    addSampleToList(cb.dataset.id, cb.dataset.reference, cb.dataset.team, cb.dataset.user);
                 });
                 refreshExport();
                 refreshAddButtons();
                 refreshSelection();
             });
 
-            if ($.fn.sortable) {
-                $list.sortable({
-                    handle: '.drag-handle',
-                    placeholder: 'sample-list-placeholder',
-                    update: refreshExport
-                });
-                $list.disableSelection();
+            function getDropTarget(y) {
+                const items = Array.from(list.querySelectorAll('.sample-list-item'))
+                    .filter(function(item) { return item !== draggedItem; });
+                for (const item of items) {
+                    const box = item.getBoundingClientRect();
+                    if (y < box.top + box.height / 2) {
+                        return item;
+                    }
+                }
+                return null;
             }
+
+            list.addEventListener('pointerdown', function(e) {
+                const item = e.target.closest('.sample-list-item');
+                if (item) {
+                    item.draggable = Boolean(e.target.closest('.drag-handle'));
+                }
+            });
+
+            list.addEventListener('dragstart', function(e) {
+                const item = e.target.closest('.sample-list-item');
+                if (!item || !item.draggable) {
+                    e.preventDefault();
+                    return;
+                }
+                draggedItem = item;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', String(item.dataset.id));
+                item.style.opacity = '0.5';
+            });
+
+            list.addEventListener('dragover', function(e) {
+                if (!draggedItem) {
+                    return;
+                }
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                const after = getDropTarget(e.clientY);
+                if (after === null) {
+                    list.appendChild(draggedItem);
+                } else {
+                    list.insertBefore(draggedItem, after);
+                }
+            });
+
+            list.addEventListener('drop', function(e) {
+                if (draggedItem) {
+                    e.preventDefault();
+                }
+            });
+
+            list.addEventListener('dragend', function() {
+                if (draggedItem) {
+                    draggedItem.style.opacity = '';
+                    draggedItem.draggable = false;
+                    draggedItem = null;
+                }
+                refreshExport();
+            });
 
             refreshExport();
             refreshSelection();

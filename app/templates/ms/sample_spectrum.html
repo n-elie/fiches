@@ -25,7 +25,7 @@
     <script src="{{ url_for('static', filename='js/echarts-6.1.0.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/mass_spectrum.js') }}"></script>
     <script nonce="{{ csp_nonce }}">
-        $(document).ready(function() {
+        document.addEventListener('DOMContentLoaded', function() {
 
             const spectrumPos = {{ spectrum_pos | tojson }};
             const spectrumNeg = {{ spectrum_neg | tojson }};
@@ -54,9 +54,9 @@
                 }));
             }
 
-            $(window).on('resize', () => charts.forEach(c => c.resize()));
+            window.addEventListener('resize', () => charts.forEach(c => c.resize()));
 
-            $(document).on('keydown', function(e) {
+            document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
                     charts.forEach(chart => chart.dispatchAction({
                         type: 'takeGlobalCursor',

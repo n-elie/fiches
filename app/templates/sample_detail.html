@@ -398,42 +398,59 @@
     {{ super() }}
     {% if sample.celery_task_id %}
         <script nonce="{{ csp_nonce }}">
-            $(document).ready(function() {
+            document.addEventListener('DOMContentLoaded', function() {
                 const taskId = "{{ sample.celery_task_id }}";
                 const statusUrl = `/admin/analysis/task/${taskId}/status`;
 
-                const statusElement = $('#task-status');
-                const resultElement = $('#task-result');
+                const statusElement = document.getElementById('task-status');
+                const resultElement = document.getElementById('task-result');
+
+                function buildResultAlert(alertClass, iconClass, strongText, spanText) {
+                    const div = document.createElement('div');
+                    div.className = 'alert ' + alertClass + ' py-2 px-3 mb-0';
+                    const icon = document.createElement('i');
+                    icon.className = iconClass;
+                    const strong = document.createElement('strong');
+                    strong.textContent = strongText;
+                    const span = document.createElement('span');
+                    span.textContent = spanText;
+                    div.append(icon, ' ', strong, ' ', span);
+                    return div;
+                }
 
                 function checkTaskStatus() {
-                    $.getJSON(statusUrl)
-                        .done(function(data) {
-                            statusElement.text(`{{ _('State') }}: ${data.state}`);
+                    fetch(statusUrl)
+                        .then(function(resp) {
+                            if (!resp.ok) {
+                                throw new Error('HTTP ' + resp.status);
+                            }
+                            return resp.json();
+                        })
+                        .then(function(data) {
+                            statusElement.textContent = `{{ _('State') }}: ${data.state}`;
 
                             if (data.state === 'SUCCESS') {
-                                resultElement.empty().append(
-                                    $('<div class="alert alert-success py-2 px-3 mb-0"></div>')
-                                    .append($('<i class="fas fa-check-circle"></i>'))
-                                    .append(' ')
-                                    .append($('<strong></strong>').text("{{ _('Success!') }}"))
-                                    .append(' ')
-                                    .append($('<span></span>').text((data.result && data.result.sample_reference) || ''))
-                                );
+                                resultElement.textContent = '';
+                                resultElement.append(buildResultAlert(
+                                    'alert-success',
+                                    'fas fa-check-circle',
+                                    {{ _('Success!') | tojson }},
+                                    (data.result && data.result.sample_reference) || ''
+                                ));
                                 clearInterval(intervalId);
                             } else if (data.state === 'FAILURE') {
-                                resultElement.empty().append(
-                                    $('<div class="alert alert-danger py-2 px-3 mb-0"></div>')
-                                    .append($('<i class="fas fa-exclamation-circle"></i>'))
-                                    .append(' ')
-                                    .append($('<strong></strong>').text("{{ _('Error:') }}"))
-                                    .append(' ')
-                                    .append($('<span></span>').text(data.status || ''))
-                                );
+                                resultElement.textContent = '';
+                                resultElement.append(buildResultAlert(
+                                    'alert-danger',
+                                    'fas fa-exclamation-circle',
+                                    {{ _('Error:') | tojson }},
+                                    data.status || ''
+                                ));
                                 clearInterval(intervalId);
                             }
                         })
-                        .fail(function(xhr, textStatus, errorThrown) {
-                            console.error('Error:', errorThrown);
+                        .catch(function(err) {
+                            console.error('Error:', err);
                         });
                 }
 

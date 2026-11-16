@@ -1,5 +1,5 @@
 // Document Ready
-$(document).ready(function() {
+document.addEventListener('DOMContentLoaded', function() {
     initFlashMessages();
     initFormValidation();
     initFileUpload();
@@ -11,8 +11,17 @@ $(document).ready(function() {
 function initFlashMessages() {
     // Fermer les messages flash après 5 secondes
     setTimeout(function() {
-        $('.alert').fadeOut(500, function() {
-            $(this).remove();
+        document.querySelectorAll('.alert').forEach(function(alertEl) {
+            if (alertEl.animate) {
+                alertEl.animate(
+                    [{opacity: 1}, {opacity: 0}],
+                    {duration: 500, fill: 'forwards'}
+                ).onfinish = function() {
+                    alertEl.remove();
+                };
+            } else {
+                alertEl.remove();
+            }
         });
     }, 5000);
 }
@@ -21,26 +30,26 @@ function initFlashMessages() {
  * Validation des formulaires
  */
 function initFormValidation() {
-    $('.login-form').each(function() {
-        const $form = $(this);
+    document.querySelectorAll('.login-form').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            const username = document.getElementById('username');
+            const password = document.getElementById('password');
 
-        $form.on('submit', function(e) {
-            const $username = $('#username');
-            const $password = $('#password');
-
-            if ($username.val().trim() === '') {
+            if (username && username.value.trim() === '') {
                 e.preventDefault();
-                $username.addClass('is-invalid');
+                username.classList.add('is-invalid');
             }
 
-            if ($password.val().trim() === '') {
+            if (password && password.value.trim() === '') {
                 e.preventDefault();
-                $password.addClass('is-invalid');
+                password.classList.add('is-invalid');
             }
         });
 
-        $form.on('input', 'input', function() {
-            $(this).removeClass('is-invalid');
+        form.addEventListener('input', function(e) {
+            if (e.target.matches('input')) {
+                e.target.classList.remove('is-invalid');
+            }
         });
     });
 }
@@ -49,19 +58,17 @@ function initFormValidation() {
  * Gestion des uploads de fichiers
  */
 function initFileUpload() {
-    $('form').each(function() {
-        const $form = $(this);
-
-        $form.on('submit', function(e) {
-            const $fileInput = $form.find('input[type="file"]');
-            if ($fileInput.length && $fileInput[0].files.length > 0) {
-                const file = $fileInput[0].files[0];
+    document.querySelectorAll('form').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            const fileInput = form.querySelector('input[type="file"]');
+            if (fileInput && fileInput.files.length > 0) {
+                const file = fileInput.files[0];
                 const maxSize = 16 * 1024 * 1024; // 16 Mo
 
                 if (file.size > maxSize) {
                     e.preventDefault();
                     alert((window.I18N && window.I18N.fileTooLarge) || 'The file is too large. Maximum allowed size is 16 MB.');
-                    $fileInput.addClass('is-invalid');
+                    fileInput.classList.add('is-invalid');
                 }
             }
         });
@@ -70,16 +77,19 @@ function initFileUpload() {
 
 /**
  * Remplace onsubmit="return confirm(...)" / onclick inline,
- * bloqués par la CSP (script-src-attr). Lire avec .attr() pour éviter le
- * parsing JSON de jQuery .data().
+ * bloqués par la CSP (script-src-attr). Lire l'attribut avec getAttribute().
  */
-$(document).on('submit', 'form[data-confirm]', function() {
-    return window.confirm($(this).attr('data-confirm'));
+document.addEventListener('submit', function(e) {
+    const form = e.target.closest('form[data-confirm]');
+    if (form && !window.confirm(form.getAttribute('data-confirm'))) {
+        e.preventDefault();
+    }
 });
 
-$(document).on('click', '[data-confirm-click]', function() {
-    if (window.confirm($(this).attr('data-confirm-click'))) {
-        const target = $(this).attr('data-target');
+document.addEventListener('click', function(e) {
+    const el = e.target.closest('[data-confirm-click]');
+    if (el && window.confirm(el.getAttribute('data-confirm-click'))) {
+        const target = el.getAttribute('data-target');
         if (target) {
             document.getElementById(target).submit();
         }

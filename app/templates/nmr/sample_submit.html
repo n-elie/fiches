@@ -58,26 +58,26 @@
 {% block scripts %}
     {{ super() }}
     <script nonce="{{ csp_nonce }}">
-        $(document).ready(function() {
+        document.addEventListener('DOMContentLoaded', function() {
             const experimentsByFrequency = {{ experiments_by_frequency|tojson|safe }};
             {% if sample %}
-            const sampleExperiments = "{{ sample.experiments }}".split(', ')
+            const sampleExperiments = {{ sample.experiments | tojson }}.split(', ')
                 .map(e => e.trim())
                 .filter(e => e);
-            const sampleOtherExperiment = "{{ sample.other_experiment if sample.other_experiment }}"
+            const sampleOtherExperiment = {{ (sample.other_experiment if sample.other_experiment else '') | tojson }};
             {% else %}
             const sampleExperiments = [];
             const sampleOtherExperiment = "";
             {% endif %}
 
-            const frequencySelect = $('#frequency');
-            const experimentsContainer = $('#experiments-container');
+            const frequencySelect = document.getElementById('frequency');
+            const experimentsContainer = document.getElementById('experiments-container');
 
             // Générer les checkboxes pour une fréquence donnée
             function renderExperiments(frequency) {
                 const experiments = experimentsByFrequency[frequency] || [];
 
-                experimentsContainer.empty();
+                experimentsContainer.textContent = '';
 
                 experiments.forEach(exp => {
                     const idSanitized = `exp_${exp.replace(/\s+/g, '_')}`;
@@ -85,108 +85,97 @@
 
                     const isChecked = sampleExperiments.includes(exp);
 
-                    const div = $('<div>', {
-                        class: 'checkbox-item form-check'
-                    });
+                    const div = document.createElement('div');
+                    div.className = 'checkbox-item form-check';
 
-                    const input = $('<input>', {
-                        type: 'checkbox',
-                        class: 'form-check-input',
-                        id: idSanitized,
-                        name: 'experiments',
-                        value: exp,
-                        prop: {
-                            checked: isChecked
-                        }
-                    });
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.className = 'form-check-input';
+                    input.id = idSanitized;
+                    input.name = 'experiments';
+                    input.value = exp;
+                    input.checked = isChecked;
 
-                    const label = $('<label>', {
-                        class: 'form-check-label',
-                        for: idSanitized,
-                        html: labelHtml
-                    });
+                    const label = document.createElement('label');
+                    label.className = 'form-check-label';
+                    label.htmlFor = idSanitized;
+                    label.innerHTML = labelHtml;
 
-                    div.append(input, label).appendTo(experimentsContainer);
+                    div.append(input, label);
+                    experimentsContainer.append(div);
                 });
 
                 // Ajouter l'option "Autre"
-                const otherDiv = $('<div>', {
-                    class: 'checkbox-item form-check other-experiment'
-                });
+                const otherDiv = document.createElement('div');
+                otherDiv.className = 'checkbox-item form-check other-experiment';
 
-                const otherInput = $('<input>', {
-                    type: 'checkbox',
-                    class: 'form-check-input',
-                    id: 'other_experiment',
-                    name: 'other_experiment',
-                    value: {{ _('Other') | tojson }},
-                    prop: {
-                        checked: !!sampleOtherExperiment
-                    }
-                });
+                const otherInput = document.createElement('input');
+                otherInput.type = 'checkbox';
+                otherInput.className = 'form-check-input';
+                otherInput.id = 'other_experiment';
+                otherInput.name = 'other_experiment';
+                otherInput.value = {{ _('Other') | tojson }};
+                otherInput.checked = !!sampleOtherExperiment;
 
-                const otherLabel = $('<label>', {
-                    class: 'form-check-label',
-                    for: 'other_experiment',
-                    text: {{ _('Other') | tojson }}
-                });
+                const otherLabel = document.createElement('label');
+                otherLabel.className = 'form-check-label';
+                otherLabel.htmlFor = 'other_experiment';
+                otherLabel.textContent = {{ _('Other') | tojson }};
 
-                const otherInputText = $('<input>', {
-                    type: 'text',
-                    class: 'form-control',
-                    id: 'other_experiment_name',
-                    name: 'other_experiment_name',
-                    placeholder: {{ _('Specify the experiment...') | tojson }},
-                    val: sampleOtherExperiment || '',
-                    prop: {
-                        disabled: !sampleOtherExperiment
-                    }
-                });
+                const otherInputText = document.createElement('input');
+                otherInputText.type = 'text';
+                otherInputText.className = 'form-control';
+                otherInputText.id = 'other_experiment_name';
+                otherInputText.name = 'other_experiment_name';
+                otherInputText.placeholder = {{ _('Specify the experiment...') | tojson }};
+                otherInputText.value = sampleOtherExperiment || '';
+                otherInputText.disabled = !sampleOtherExperiment;
 
-                otherDiv.append(otherInput, otherLabel, otherInputText).appendTo(experimentsContainer);
+                otherDiv.append(otherInput, otherLabel, otherInputText);
+                experimentsContainer.append(otherDiv);
 
-                otherInput.on('change', function() {
-                    if ($(this).is(':checked')) {
-                        otherInputText.prop('disabled', false).trigger('focus');
+                otherInput.addEventListener('change', function() {
+                    if (otherInput.checked) {
+                        otherInputText.disabled = false;
+                        otherInputText.focus();
                     } else {
-                        otherInputText.prop('disabled', true).val('');
+                        otherInputText.disabled = true;
+                        otherInputText.value = '';
                     }
                 });
             }
 
-            frequencySelect.on('change', function() {
-                const selectedFrequency = parseInt($(this).val());
+            frequencySelect.addEventListener('change', function() {
+                const selectedFrequency = parseInt(frequencySelect.value);
                 renderExperiments(selectedFrequency);
             });
 
-            const firstOption = frequencySelect.find('option').first();
-            if (firstOption.length > 0) {
-                renderExperiments(parseInt(firstOption.val()));
+            const firstOption = frequencySelect.querySelector('option');
+            if (firstOption) {
+                renderExperiments(parseInt(firstOption.value));
             }
         });
 
         // Vérification du formulaire
-        $('.sample-form').each(function() {
-            const $form = $(this);
-
-            $form.on('submit', function(e) {
+        document.querySelectorAll('.sample-form').forEach(function(form) {
+            form.addEventListener('submit', function(e) {
                 let isValid = true;
 
-                const $checkboxInput = $('.checkbox-item > input[type=checkbox]').first().get(0);
-                if ($('.checkbox-item > input[type=checkbox]:checked').length == 0) {
+                const firstCheckbox = document.querySelector('.checkbox-item > input[type=checkbox]');
+                if (document.querySelectorAll('.checkbox-item > input[type=checkbox]:checked').length === 0) {
                     isValid = false;
-                    $checkboxInput.setCustomValidity({{ _('Please check at least one box') | tojson }});
-                    $checkboxInput.reportValidity();
-                    $checkboxInput.setCustomValidity("");
+                    firstCheckbox.setCustomValidity({{ _('Please check at least one box') | tojson }});
+                    firstCheckbox.reportValidity();
+                    firstCheckbox.setCustomValidity('');
                 }
 
-                const $chkOther = $(".checkbox-item > input[type=checkbox]#other_experiment").get(0);
-                const $chkOtherName = $(".checkbox-item > input[type=text]#other_experiment_name");
-                if (($chkOther.checked == true) && ($chkOtherName.val().length == 0)) {
+                const chkOther = document.querySelector('.checkbox-item > input[type=checkbox]#other_experiment');
+                const chkOtherName = document.querySelector('.checkbox-item > input[type=text]#other_experiment_name');
+                if (chkOther.checked && chkOtherName.value.length === 0) {
                     isValid = false;
-                    $chkOther.setCustomValidity({{ _('Please specify the experiment') | tojson }});
-                    $chkOther.reportValidity();
-                    $chkOther.setCustomValidity("");
+                    chkOther.setCustomValidity({{ _('Please specify the experiment') | tojson }});
+                    chkOther.reportValidity();
+                    chkOther.setCustomValidity('');
                 }
 
                 if (!isValid) {

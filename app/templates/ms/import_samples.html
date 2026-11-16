@@ -116,73 +116,97 @@
 {% block scripts %}
     {{ super() }}
     <script nonce="{{ csp_nonce }}">
-        $(document).ready(function() {
-            const $form = $('#import-form');
-            const $file = $('#excel_file');
-            const $team = $('#team');
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('import-form');
+            const fileInput = document.getElementById('excel_file');
+            const teamSelect = document.getElementById('team');
             const modalEl = document.getElementById('import-preview-modal');
 
-            $('#import-preview-btn').on('click', function() {
-                if (!$file[0].files.length) {
-                    $file.addClass('is-invalid');
-                    return;
-                }
-                $file.removeClass('is-invalid');
-                if (!$team.val()) {
-                    $team.addClass('is-invalid');
-                    return;
-                }
-                $team.removeClass('is-invalid');
+            function showPreviewError(msg) {
+                const errorsDiv = document.getElementById('import-preview-errors');
+                errorsDiv.textContent = '';
+                const div = document.createElement('div');
+                div.textContent = msg;
+                errorsDiv.append(div);
+                errorsDiv.classList.remove('d-none');
+                document.getElementById('import-preview-tbody').textContent = '';
+                document.getElementById('import-preview-summary').textContent = '';
+                document.getElementById('confirm-import-btn').disabled = true;
+                bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            }
 
-                const formData = new FormData($form[0]);
-                $.ajax({
-                    url: "{{ url_for('ms.import_samples_preview') }}",
+            document.getElementById('import-preview-btn').addEventListener('click', function() {
+                if (!fileInput.files.length) {
+                    fileInput.classList.add('is-invalid');
+                    return;
+                }
+                fileInput.classList.remove('is-invalid');
+                if (!teamSelect.value) {
+                    teamSelect.classList.add('is-invalid');
+                    return;
+                }
+                teamSelect.classList.remove('is-invalid');
+
+                const formData = new FormData(form);
+                fetch("{{ url_for('ms.import_samples_preview') }}", {
                     method: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function(resp) {
-                        const $tbody = $('#import-preview-tbody');
-                        $tbody.empty();
+                    body: formData
+                })
+                    .then(function(resp) {
+                        return resp.json().then(function(data) {
+                            return {ok: resp.ok, data: data};
+                        });
+                    })
+                    .then(function(result) {
+                        if (!result.ok) {
+                            const msg = result.data && result.data.error ? result.data.error : {{ _('Error reading the file') | tojson }};
+                            showPreviewError(msg);
+                            return;
+                        }
+                        const resp = result.data;
+                        const tbody = document.getElementById('import-preview-tbody');
+                        tbody.textContent = '';
                         resp.samples.forEach(function(row) {
-                            const $tr = $('<tr></tr>');
-                            $tr.append($('<td></td>').text(row.line));
-                            $tr.append($('<td></td>').text(row.reference));
-                            $tr.append($('<td></td>').text(row.quantity));
-                            $tr.append($('<td></td>').text(row.solvent || '-'));
-                            $tr.append($('<td></td>').text(row.formula || '-'));
-                            $tr.append($('<td></td>').text(row.mass !== null && row.mass !== undefined ? Number(row.mass).toFixed(4) : '-'));
-                            $tr.append($('<td></td>').text(row.smiles || '-'));
-                            $tr.append($('<td></td>').text(row.notes || '-'));
-                            $tbody.append($tr);
+                            const tr = document.createElement('tr');
+                            const cells = [
+                                row.line,
+                                row.reference,
+                                row.quantity,
+                                row.solvent || '-',
+                                row.formula || '-',
+                                row.mass !== null && row.mass !== undefined ? Number(row.mass).toFixed(4) : '-',
+                                row.smiles || '-',
+                                row.notes || '-'
+                            ];
+                            cells.forEach(function(val) {
+                                const td = document.createElement('td');
+                                td.textContent = val;
+                                tr.append(td);
+                            });
+                            tbody.append(tr);
                         });
-                        $('#import-preview-summary').text(
+                        document.getElementById('import-preview-summary').textContent =
                             resp.samples.length + {{ _(' samples to import') | tojson }} +
-                            (resp.team ? ' — team: ' + resp.team : '')
-                        );
-                        const $errors = $('#import-preview-errors');
-                        $errors.empty();
+                            (resp.team ? ' — team: ' + resp.team : '');
+                        const errorsDiv = document.getElementById('import-preview-errors');
+                        errorsDiv.textContent = '';
                         (resp.errors || []).forEach(function(err) {
-                            $errors.append($('<div></div>').text(err));
+                            const div = document.createElement('div');
+                            div.textContent = err;
+                            errorsDiv.append(div);
                         });
-                        $errors.toggleClass('d-none', (resp.errors || []).length === 0);
-                        $('#confirm-import-btn').prop('disabled', resp.samples.length === 0);
+                        errorsDiv.classList.toggle('d-none', (resp.errors || []).length === 0);
+                        document.getElementById('confirm-import-btn').disabled = resp.samples.length === 0;
                         bootstrap.Modal.getOrCreateInstance(modalEl).show();
-                    },
-                    error: function(xhr) {
-                        const msg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : {{ _('Error reading the file') | tojson }};
-                        $('#import-preview-errors').empty().append($('<div></div>').text(msg)).removeClass('d-none');
-                        $('#import-preview-tbody').empty();
-                        $('#import-preview-summary').text('');
-                        $('#confirm-import-btn').prop('disabled', true);
-                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
-                    }
-                });
+                    })
+                    .catch(function(err) {
+                        console.error('Error:', err);
+                    });
             });
 
-            $('#confirm-import-btn').on('click', function() {
+            document.getElementById('confirm-import-btn').addEventListener('click', function() {
                 // Soumission réelle du formulaire (POST ms.import_samples) : crée les échantillons
-                $form[0].submit();
+                form.submit();
             });
         });
     </script>
