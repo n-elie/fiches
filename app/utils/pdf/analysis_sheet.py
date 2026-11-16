@@ -18,7 +18,7 @@ from flask import render_template
 from flask_babel import gettext as _, format_datetime
 from weasyprint import HTML
 
-from .mol import html_formula, mol_to_img, mol_from_smiles
+from ..mol import html_formula, mol_to_img, mol_from_smiles
 
 try:
     import qrcode
