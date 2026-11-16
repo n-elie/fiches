@@ -79,7 +79,7 @@ def submit_sample():
             flash(_('Invalid reference: only letters, digits, spaces, ".", "-" or "_" (max 100 characters)'), 'error')
             return redirect(url_for('ms.submit_sample'))
         
-        if not is_valid_formula(formula):
+        if formula and not is_valid_formula(formula):
             flash(_('Invalid formula: only letters, numbers, parentheses, brackets, charges (+, -), dots/asterisks for hydrates, and spaces (max 256 characters)'), 'error')
             return redirect(url_for('ms.submit_sample'))
 
@@ -287,7 +287,7 @@ def sample_edit(sample_id):
             flash(_('Invalid reference: only letters, digits, spaces, ".", "-" or "_" (max 100 characters)'), 'error')
             return redirect(url_for('ms.sample_edit', sample_id=sample_id))
             
-        if not is_valid_formula(formula):
+        if formula and not is_valid_formula(formula):
             flash(_('Invalid formula: only letters, numbers, parentheses, brackets, charges (+, -), dots/asterisks for hydrates, and spaces (max 256 characters)'), 'error')
             return redirect(url_for('ms.sample_edit', sample_id=sample_id))
         
