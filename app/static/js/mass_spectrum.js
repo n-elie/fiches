@@ -31,7 +31,7 @@
                 height: Math.max(yBase - yPix, 0)
             },
             style: {
-                fill: annotatedLabel ? annotatedColor : (isSelected ? selectedColor : barColor)
+                fill: isSelected ? selectedColor : barColor
             },
             emphasis: {
                 style: {
@@ -56,6 +56,24 @@
                 }
             });
         }
+		
+		if (annotatedLabel) {
+			// label de l'adduit au-dessus du pic annoté (au-dessus du label m/z s'il est affiché)
+			children.push({
+				type: 'text',
+				silent: true,
+				style: {
+					text: ` ${annotatedLabel}`,                       // ex. '[M+H]⁺'
+					x: xPix,
+					y: (inten > labelThreshold ? yPix - 16 : yPix - 5),
+					textAlign: 'center',
+					textVerticalAlign: 'bottom',
+					fontSize: 9,
+					fill: annotatedColor,                       // #e67e22
+					fontWeight: 'bold'
+				}
+			});
+		}
 
         return {
             type: 'group',

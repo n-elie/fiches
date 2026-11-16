@@ -127,7 +127,7 @@
                     annotations.forEach(a => {
                         if (a.polarity !== info.polarity) return;
                         const idx = info.spectrum.findIndex(p => Math.round(p.x * 10000) / 10000 === a.mz);
-                        if (idx >= 0) map[idx] = a.adduct;
+                        if (idx >= 0) map[idx] = a.adduct_label || a.adduct;
                     });
                     info.chart.setAnnotations(map);
                 });
