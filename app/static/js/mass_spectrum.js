@@ -9,6 +9,10 @@
         const barColor = payload.barColor || '#1e1e1e';
         const selectedColor = payload.selectedColor || '#1f77b4';
         const labelThreshold = payload.labelThreshold != null ? payload.labelThreshold : 5;
+		
+		const annotations = payload.annotations || {};
+		const annotatedLabel = annotations[params.dataIndex] || null;
+		const annotatedColor = payload.annotatedColor || '#e67e22';
 
         const mz = api.value(0);
         const inten = api.value(1);
@@ -27,7 +31,7 @@
                 height: Math.max(yBase - yPix, 0)
             },
             style: {
-                fill: isSelected ? selectedColor : barColor
+                fill: annotatedLabel ? annotatedColor : (isSelected ? selectedColor : barColor)
             },
             emphasis: {
                 style: {
@@ -47,8 +51,8 @@
                     textAlign: 'center',
                     textVerticalAlign: 'bottom',
                     fontSize: 9,
-                    fill: isSelected ? selectedColor : '#333',
-                    fontWeight: isSelected ? 'bold' : 'normal'
+                    fill: annotatedLabel ? annotatedColor : (isSelected ? selectedColor : '#333'),
+                    fontWeight: (isSelected || annotatedLabel) ? 'bold' : 'normal'
                 }
             });
         }
@@ -88,6 +92,20 @@
                     series: [{
                         itemPayload: {
                             selected: Array.from(selected)
+                        }
+                    }]
+                });
+            }
+			
+			function getSelectedIndexes() {
+                return Array.from(getSelected());
+            }
+
+            function setAnnotations(annotMap) {
+                chart.setOption({
+                    series: [{
+                        itemPayload: {
+                            annotations: annotMap || {}
                         }
                     }]
                 });
@@ -225,6 +243,7 @@
                     name: 'm/z\tIntensities (%)',
                     itemPayload: {
                         selected: [],
+						annotations: {},
                         barColor: '#1e1e1e',
                         selectedColor: '#1f77b4',
                         labelThreshold: 5
@@ -299,6 +318,9 @@
 
                 setSelected(selected);
             });
+			
+			chart.getSelectedIndexes = getSelectedIndexes;
+            chart.setAnnotations = setAnnotations;
 
             return chart;
         }

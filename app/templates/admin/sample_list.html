@@ -292,10 +292,14 @@
                     search: searchInput.value,
                     user: userSelect.value
                 });
-                fetch("{{ url_for('admin.sample_list_search') }}?" + params)
-                    .then(function(resp) { return resp.json(); })
-                    .then(renderResults)
-                    .catch(function(err) { console.error(err); });
+                fetchJSON("{{ url_for('admin.sample_list_search') }}?" + params)
+					.then(function(result) {
+						if (!result.ok) {
+							throw new Error('HTTP ' + result.status);
+						}
+						renderResults(result.data);
+					})
+					.catch(function(err) { console.error(err); });
             }
 
             searchForm.addEventListener('submit', function(e) {
@@ -436,32 +440,37 @@
                 }
                 hasCopied = false;
                 const params = new URLSearchParams({ids: ids.join(',')});
-                fetch("{{ url_for('admin.export_sample_list') }}?" + params)
-                    .then(function(resp) { return resp.json(); })
-                    .then(function(samples) {
-                        popupSamples = samples;
-                        updateValidateBtn();
-                        validateFeedback.classList.add('d-none');
-                        validateFeedback.textContent = '';
-                        popupTbody.textContent = '';
-                        samples.forEach(function(sample, i) {
-                            const row = document.createElement('tr');
-                            const tdNum = document.createElement('td');
-                            tdNum.textContent = i + 1;
-                            const tdRef = document.createElement('td');
-                            tdRef.textContent = sample.reference;
-                            const tdUuid = document.createElement('td');
-                            tdUuid.textContent = sample.uuid;
-                            row.append(tdNum, tdRef, tdUuid);
-                            popupTbody.append(row);
-                        });
-                        popupCount.textContent =
-                            samples.length + ' ' +
-                            (samples.length > 1 ?
-                                {{ ngettext('sample', 'samples', 2) | tojson }} :
-                                {{ ngettext('sample', 'samples', 1) | tojson }});
-                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
-                    });
+                fetchJSON("{{ url_for('admin.export_sample_list') }}?" + params)
+					.then(function(result) {
+						if (!result.ok) {
+							console.error('HTTP ' + result.status);
+							return;
+						}
+						const samples = result.data;
+						popupSamples = samples;
+						updateValidateBtn();
+						validateFeedback.classList.add('d-none');
+						validateFeedback.textContent = '';
+						popupTbody.textContent = '';
+						samples.forEach(function(sample, i) {
+							const row = document.createElement('tr');
+							const tdNum = document.createElement('td');
+							tdNum.textContent = i + 1;
+							const tdRef = document.createElement('td');
+							tdRef.textContent = sample.reference;
+							const tdUuid = document.createElement('td');
+							tdUuid.textContent = sample.uuid;
+							row.append(tdNum, tdRef, tdUuid);
+							popupTbody.append(row);
+						});
+						popupCount.textContent =
+							samples.length + ' ' +
+							(samples.length > 1 ?
+								{{ ngettext('sample', 'samples', 2) | tojson }} :
+								{{ ngettext('sample', 'samples', 1) | tojson }});
+						bootstrap.Modal.getOrCreateInstance(modalEl).show();
+					})
+					.catch(function(err) { console.error(err); });
             });
 
             validateListBtn.addEventListener('click', function() {
@@ -474,57 +483,52 @@
                 const ids = popupSamples.map(function(sample) {
                     return sample.id;
                 });
-                fetch("{{ url_for('admin.validate_sample_list') }}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: new URLSearchParams({
-                        csrf_token: "{{ csrf_token() }}",
-                        ids: ids.join(',')
-                    })
-                })
-                    .then(function(resp) {
-                        return resp.json().then(function(data) {
-                            return {ok: resp.ok, data: data};
-                        });
-                    })
-                    .then(function(result) {
-                        if (!result.ok) {
-                            const msg = result.data && result.data.error ? result.data.error : {{ _('Validation error') | tojson }};
-                            validateFeedback.classList.remove('d-none', 'alert-success');
-                            validateFeedback.classList.add('alert-danger');
-                            validateFeedback.textContent = msg;
-                            return;
-                        }
-                        const resp = result.data;
-                        const validated = new Set(resp.updated.map(function(u) {
-                            return String(u.id);
-                        }));
-                        validated.forEach(function(id) {
-                            selectedIds.delete(id);
-                        });
-                        Array.from(list.children).forEach(function(li) {
-                            if (validated.has(String(li.dataset.id))) {
-                                li.remove();
-                            }
-                        });
-                        refreshExport();
-                        refreshAddButtons();
-                        refreshSelection();
-                        runSearch();
+                fetchJSON("{{ url_for('admin.validate_sample_list') }}", {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded'
+					},
+					body: new URLSearchParams({
+						csrf_token: "{{ csrf_token() }}",
+						ids: ids.join(',')
+					})
+				})
+					.then(function(result) {
+						if (!result.ok) {
+							const msg = result.data && result.data.error ? result.data.error : {{ _('Validation error') | tojson }};
+							validateFeedback.classList.remove('d-none', 'alert-success');
+							validateFeedback.classList.add('alert-danger');
+							validateFeedback.textContent = msg;
+							return;
+						}
+						const resp = result.data;
+						const validated = new Set(resp.updated.map(function(u) {
+							return String(u.id);
+						}));
+						validated.forEach(function(id) {
+							selectedIds.delete(id);
+						});
+						Array.from(list.children).forEach(function(li) {
+							if (validated.has(String(li.dataset.id))) {
+								li.remove();
+							}
+						});
+						refreshExport();
+						refreshAddButtons();
+						refreshSelection();
+						runSearch();
 
-                        popupTbody.textContent = '';
-                        popupSamples = [];
-                        hasCopied = false;
-                        updateValidateBtn();
-                        popupCount.textContent = '0 échantillon';
-                        validateListBtn.disabled = true;
-                        validateFeedback.classList.remove('d-none', 'alert-danger');
-                        validateFeedback.classList.add('alert-success');
-                        validateFeedback.textContent = {{ _('{updated} sample(s) marked as “Analysing“.') | tojson }}.replace('{updated}', resp.updated.length);
-                    })
-                    .catch(function(err) { console.error(err); });
+						popupTbody.textContent = '';
+						popupSamples = [];
+						hasCopied = false;
+						updateValidateBtn();
+						popupCount.textContent = '0 échantillon';
+						validateListBtn.disabled = true;
+						validateFeedback.classList.remove('d-none', 'alert-danger');
+						validateFeedback.classList.add('alert-success');
+						validateFeedback.textContent = {{ _('{updated} sample(s) marked as “Analysing“.') | tojson }}.replace('{updated}', resp.updated.length);
+					})
+					.catch(function(err) { console.error(err); });
             });
 
             function fallbackCopy(text) {

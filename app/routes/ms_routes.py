@@ -10,11 +10,12 @@ from datetime import datetime
 import pandas as pd
 import pyopenms as oms
 
-from ..models import db, MSSample, STATUS_NAMES
+from ..models import db, MSSample, STATUS_NAMES, PeakAnnotation
 from .main_routes import allowed_file
 from ..utils.mol import read_mol, mol_from_smiles, mol_to_smiles, mol_to_formula, formula_to_mass
 from ..utils.check_data import is_valid_reference, is_valid_formula
 from ..utils.errors import log_error, report_error
+from ..utils.adducts import ADDUCTS, find_adduct, neutral_mass
 
 ms_bp = Blueprint('ms', __name__, url_prefix='/ms')
 
@@ -244,7 +245,89 @@ def sample_spectrum(sample_id):
     return render_template('ms/sample_spectrum.html',
                            sample=sample,
                            spectrum_pos=spectrum_pos,
-                           spectrum_neg=spectrum_neg)
+                           spectrum_neg=spectrum_neg,
+                           adducts=ADDUCTS)
+                           
+@ms_bp.route('/sample/<int:sample_id>/spectrum/annotations')
+@login_required
+def spectrum_annotations(sample_id):
+    """Liste des attributions d'adduits d'un spectre (JSON)"""
+    sample = db.get_or_404(MSSample, sample_id)
+    if sample.user_id != current_user.id and not current_user.is_admin:
+        return jsonify({'error': _('Access denied')}), 403
+    rows = db.session.scalars(
+        db.select(PeakAnnotation)
+        .where(PeakAnnotation.sample_id == sample_id)
+        .order_by(PeakAnnotation.charge.desc(), PeakAnnotation.mz)
+    ).all()
+    return jsonify([{
+        'id': r.id,
+        'polarity': 'positive' if r.charge > 0 else 'negative',
+        'mz': r.mz,
+        'adduct': r.adduct,  # code stable stocké en base (ex. 'M+H')
+        'adduct_label': (find_adduct('positive' if r.charge > 0 else 'negative', r.adduct) or {}).get('label', r.adduct),
+        'neutral_mass': r.neutral_mass,
+        'created_at': r.created_at.isoformat() if r.created_at else None,
+    } for r in rows])
+
+@ms_bp.route('/sample/<int:sample_id>/spectrum/annotations', methods=['POST'])
+@login_required
+def save_annotation(sample_id):
+    """Crée ou met à jour l'adduit attribué à un pic (JSON : polarity, mz, adduct)."""
+    sample = db.get_or_404(MSSample, sample_id)
+    if sample.user_id != current_user.id and not current_user.is_admin:
+        return jsonify({'error': _('Access denied')}), 403
+
+    data = request.get_json(force=True, silent=True) or {}
+    polarity = data.get('polarity')  # 'positive' | 'negative' (contrat API, inchangé)
+    key = data.get('adduct')  # code de l'adduit (ex. 'M+H') ; un label est accepté en secours
+    try:
+        mz = float(data.get('mz'))
+    except (TypeError, ValueError):
+        return jsonify({'error': _('Invalid m/z')}), 400
+    adduct = find_adduct(polarity, key)
+    if adduct is None:
+        return jsonify({'error': _('Unknown adduct')}), 400
+
+    charge = adduct['z']  # charge signée de l'adduit, stockée en SmallInteger (ex. +1 / -1)
+    mz_r = round(mz, 4)
+    row = db.session.scalars(db.select(PeakAnnotation).where(
+        PeakAnnotation.sample_id == sample_id,
+        PeakAnnotation.charge == charge,
+        PeakAnnotation.mz == mz_r
+    )).first()
+    code = adduct['code']  # on stocke le code, pas le label affichable
+    if row:
+        # upsert : le pic était déjà annoté, on réattribue l'adduit
+        row.adduct = code
+        row.neutral_mass = neutral_mass(mz_r, adduct)
+        row.user_id = current_user.id
+    else:
+        row = PeakAnnotation(
+            sample_id=sample_id, charge=charge, mz=mz_r,
+            adduct=code, neutral_mass=neutral_mass(mz_r, adduct),
+            user_id=current_user.id,
+        )
+        db.session.add(row)
+    db.session.commit()
+    return jsonify({'ok': True, 'id': row.id, 'polarity': polarity, 'mz': row.mz,
+                    'adduct': row.adduct, 'adduct_label': adduct['label'],
+                    'neutral_mass': row.neutral_mass})
+
+@ms_bp.route('/sample/<int:sample_id>/spectrum/annotations/<int:annotation_id>', methods=['DELETE'])
+@login_required
+def delete_annotation(sample_id, annotation_id):
+    """Supprime une attribution d'adduit."""
+    sample = db.get_or_404(MSSample, sample_id)
+    if sample.user_id != current_user.id and not current_user.is_admin:
+        return jsonify({'error': _('Access denied')}), 403
+    row = db.get_or_404(PeakAnnotation, annotation_id)
+    if row.sample_id != sample_id:
+        return jsonify({'error': _('Invalid annotation')}), 400
+    db.session.delete(row)
+    db.session.commit()
+    return jsonify({'ok': True})
+
     
 @ms_bp.route('/sample/<int:sample_id>/edit', methods=['GET', 'POST'])
 @login_required

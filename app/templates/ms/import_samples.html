@@ -148,60 +148,55 @@
                 teamSelect.classList.remove('is-invalid');
 
                 const formData = new FormData(form);
-                fetch("{{ url_for('ms.import_samples_preview') }}", {
-                    method: 'POST',
-                    body: formData
-                })
-                    .then(function(resp) {
-                        return resp.json().then(function(data) {
-                            return {ok: resp.ok, data: data};
-                        });
-                    })
-                    .then(function(result) {
-                        if (!result.ok) {
-                            const msg = result.data && result.data.error ? result.data.error : {{ _('Error reading the file') | tojson }};
-                            showPreviewError(msg);
-                            return;
-                        }
-                        const resp = result.data;
-                        const tbody = document.getElementById('import-preview-tbody');
-                        tbody.textContent = '';
-                        resp.samples.forEach(function(row) {
-                            const tr = document.createElement('tr');
-                            const cells = [
-                                row.line,
-                                row.reference,
-                                row.quantity,
-                                row.solvent || '-',
-                                row.formula || '-',
-                                row.mass !== null && row.mass !== undefined ? Number(row.mass).toFixed(4) : '-',
-                                row.smiles || '-',
-                                row.notes || '-'
-                            ];
-                            cells.forEach(function(val) {
-                                const td = document.createElement('td');
-                                td.textContent = val;
-                                tr.append(td);
-                            });
-                            tbody.append(tr);
-                        });
-                        document.getElementById('import-preview-summary').textContent =
-                            resp.samples.length + {{ _(' samples to import') | tojson }} +
-                            (resp.team ? ' — team: ' + resp.team : '');
-                        const errorsDiv = document.getElementById('import-preview-errors');
-                        errorsDiv.textContent = '';
-                        (resp.errors || []).forEach(function(err) {
-                            const div = document.createElement('div');
-                            div.textContent = err;
-                            errorsDiv.append(div);
-                        });
-                        errorsDiv.classList.toggle('d-none', (resp.errors || []).length === 0);
-                        document.getElementById('confirm-import-btn').disabled = resp.samples.length === 0;
-                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
-                    })
-                    .catch(function(err) {
-                        console.error('Error:', err);
-                    });
+				fetchJSON("{{ url_for('ms.import_samples_preview') }}", {
+					method: 'POST',
+					body: formData
+				})
+					.then(function(result) {
+						if (!result.ok) {
+							const msg = result.data && result.data.error ? result.data.error : {{ _('Error reading the file') | tojson }};
+							showPreviewError(msg);
+							return;
+						}
+						const resp = result.data;
+						const tbody = document.getElementById('import-preview-tbody');
+						tbody.textContent = '';
+						resp.samples.forEach(function(row) {
+							const tr = document.createElement('tr');
+							const cells = [
+								row.line,
+								row.reference,
+								row.quantity,
+								row.solvent || '-',
+								row.formula || '-',
+								row.mass !== null && row.mass !== undefined ? Number(row.mass).toFixed(4) : '-',
+								row.smiles || '-',
+								row.notes || '-'
+							];
+							cells.forEach(function(val) {
+								const td = document.createElement('td');
+								td.textContent = val;
+								tr.append(td);
+							});
+							tbody.append(tr);
+						});
+						document.getElementById('import-preview-summary').textContent =
+							resp.samples.length + {{ _(' samples to import') | tojson }} +
+							(resp.team ? ' — team: ' + resp.team : '');
+						const errorsDiv = document.getElementById('import-preview-errors');
+						errorsDiv.textContent = '';
+						(resp.errors || []).forEach(function(err) {
+							const div = document.createElement('div');
+							div.textContent = err;
+							errorsDiv.append(div);
+						});
+						errorsDiv.classList.toggle('d-none', (resp.errors || []).length === 0);
+						document.getElementById('confirm-import-btn').disabled = resp.samples.length === 0;
+						bootstrap.Modal.getOrCreateInstance(modalEl).show();
+					})
+					.catch(function(err) {
+						console.error('Error:', err);
+					});
             });
 
             document.getElementById('confirm-import-btn').addEventListener('click', function() {

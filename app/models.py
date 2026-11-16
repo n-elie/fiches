@@ -154,6 +154,25 @@ class NMRSample(Sample):
     @classmethod
     def get_type(self):
         return 'RMN'
+        
+class PeakAnnotation(db.Model):
+    """Modèle pour stocker les annotations de pics pour les échantillons MS"""
+    
+    __tablename__ = 'peak_annotations'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    sample_id = db.Column(db.Integer, db.ForeignKey('samples.id'), nullable=False)
+    charge = db.Column(db.SmallInteger, nullable=False)   # z signé de l'adduit : +1 / -1 ; polarité = signe de charge (2 octets en SMALLINT MySQL/SQLite : extensible aux adduits multichargés z=±2...)
+    mz = db.Column(db.Float, nullable=False)               # m/z du pic (arrondi à 4 déc.)
+    adduct = db.Column(db.String(12), nullable=False)      # ex. '[M+H]+'
+    neutral_mass = db.Column(db.Float, nullable=True)      # M calculée
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    sample = db.relationship('Sample', backref='peak_annotations')
+    user = db.relationship('User', backref='peak_annotations')
+
+    def __repr__(self):
+        return f'<PeakAnnotation {self.adduct} @ {self.mz} (sample {self.sample_id}, z={self.charge})>'
 
 class Analysis(db.Model):
     """Modèle analyse pour stocker les résultats d'analyse"""

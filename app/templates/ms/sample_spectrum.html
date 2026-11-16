@@ -19,6 +19,24 @@
             {% endif %}
         </div>
     </div>
+	
+	<div class="row">
+		<div class="col-lg-12">
+			<div class="card sticky-top" style="top: 1rem;">
+                <div class="card-header">
+                    <i class="fas fa-tags"></i> {{ _('Adduct assignment') }}
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">{{ _('Click a peak on the spectrum, then choose its adduct.') }}</p>
+                    <div id="selected-peaks" class="mb-3"></div>
+                    <hr>
+                    <h3 class="h6">{{ _('Saved annotations') }}</h3>
+                    <ul id="annotations-list" class="list-group list-group-flush"></ul>
+                    <p id="no-annotations" class="text-muted small mb-0">{{ _('No annotation yet.') }}</p>
+                </div>
+            </div>
+		</div>
+	</div>
 {% endblock %}
 
 {% block scripts %}
@@ -30,33 +48,45 @@
             const spectrumPos = {{ spectrum_pos | tojson }};
             const spectrumNeg = {{ spectrum_neg | tojson }};
             const reference = '{{ sample.reference }}';
+            const sampleId = {{ sample.id }};
+            const adducts = {{ adducts | tojson }};
+            const annotationsUrl = `/ms/sample/${sampleId}/spectrum/annotations`;
 
-            const i18n = {
+			const i18n = {
                 intensity: {{ _('Relative intensity (%%)') | tojson }},
                 restoreZoom: {{ _('Restore zoom') | tojson }},
                 selectAll: {{ _('Select all') | tojson }},
                 clearSelection: {{ _('Clear selection') | tojson }}
             };
 
-            const charts = [];
+            const chartInfos = [];
             if (spectrumPos && spectrumPos.length) {
-                charts.push(MassSpectrum.create('#mschart-pos', spectrumPos, {
-                    title: reference + ' (+)',
-                    i18n: i18n,
-					locale: {{ get_locale() | upper | tojson }}
-                }));
+                chartInfos.push({
+                    polarity: 'positive',
+                    spectrum: spectrumPos,
+                    chart: MassSpectrum.create('#mschart-pos', spectrumPos, {
+                        title: reference + ' (+)',
+                        i18n: i18n,
+                        locale: {{ get_locale() | upper | tojson }}
+                    })
+                });
             }
             if (spectrumNeg && spectrumNeg.length) {
-                charts.push(MassSpectrum.create('#mschart-neg', spectrumNeg, {
-                    title: reference + ' (—)',
-                    i18n: i18n,
-					locale: {{ get_locale() | upper | tojson }}
-                }));
+                chartInfos.push({
+                    polarity: 'negative',
+                    spectrum: spectrumNeg,
+                    chart: MassSpectrum.create('#mschart-neg', spectrumNeg, {
+                        title: reference + ' (—)',
+                        i18n: i18n,
+                        locale: {{ get_locale() | upper | tojson }}
+                    })
+                });
             }
+            const charts = chartInfos.map(ci => ci.chart);
 
             window.addEventListener('resize', () => charts.forEach(c => c.resize()));
 
-            document.addEventListener('keydown', function(e) {
+			document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
                     charts.forEach(chart => chart.dispatchAction({
                         type: 'takeGlobalCursor',
@@ -65,6 +95,184 @@
                     }));
                 }
             });
+
+            // ---------- Attribution d'adduits ----------
+
+            const selectedPeaksEl = document.getElementById('selected-peaks');
+            const annotationsListEl = document.getElementById('annotations-list');
+            const noAnnotationsEl = document.getElementById('no-annotations');
+
+            let annotations = [];  // annotations enregistrées [{id, polarity, mz, adduct, neutral_mass}]
+
+            function neutralMass(mz, adduct) {
+                return (Math.abs(adduct.z || 1) * mz - adduct.mass) / (adduct.n || 1);
+            }
+
+            function findAdduct(polarity, code) {
+                return (adducts[polarity] || []).find(a => a.code === code) || null;
+            }
+
+            function annotationFor(polarity, mzRounded) {
+                return annotations.find(a => a.polarity === polarity && Math.abs(a.mz - mzRounded) < 1e-9) || null;
+            }
+
+            function mzOf(info, idx) {
+                return Math.round(info.spectrum[idx].x * 10000) / 10000;
+            }
+
+            // Applique les annotations sur les graphiques (pics orange)
+            function applyAnnotationsToCharts() {
+                chartInfos.forEach(info => {
+                    const map = {};
+                    annotations.forEach(a => {
+                        if (a.polarity !== info.polarity) return;
+                        const idx = info.spectrum.findIndex(p => Math.round(p.x * 10000) / 10000 === a.mz);
+                        if (idx >= 0) map[idx] = a.adduct;
+                    });
+                    info.chart.setAnnotations(map);
+                });
+            }
+
+            function renderAnnotationsList() {
+                annotationsListEl.textContent = '';
+                noAnnotationsEl.style.display = annotations.length ? 'none' : '';
+                annotations.forEach(a => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center py-1 px-0';
+                    const text = document.createElement('span');
+                    const pol = document.createElement('span');
+                    pol.className = 'badge bg-secondary me-1';
+                    pol.textContent = a.polarity === 'positive' ? '+' : '−';
+                    const mzSpan = document.createElement('strong');
+                    mzSpan.textContent = ` ${a.mz.toFixed(4)}`;
+					const mzTextSpan = document.createElement('i');
+					mzTextSpan.textContent = 'm/z';
+					mzSpan.prepend(mzTextSpan);
+                    const adductSpan = document.createElement('span');
+                    adductSpan.className = 'ms-1';
+                    adductSpan.textContent = a.adduct_label || a.adduct;
+                    const massSpan = document.createElement('span');
+                    massSpan.className = 'text-muted small ms-1';
+                    massSpan.textContent = a.neutral_mass != null ? ` (M = ${a.neutral_mass.toFixed(4)})` : '';
+                    text.append(pol, mzSpan, adductSpan, massSpan);
+                    const delBtn = document.createElement('button');
+                    delBtn.type = 'button';
+                    delBtn.className = 'btn-icon btn-delete btn-sm';
+                    delBtn.title = {{ _('Remove') | tojson }};
+                    delBtn.innerHTML = '<i class="fas fa-times"></i>';
+                    delBtn.addEventListener('click', function() {
+                        fetchJSON(`${annotationsUrl}/${a.id}`, {method: 'DELETE'})
+						.then(function(result) {
+							if (!result.ok) return;
+							annotations = annotations.filter(x => x.id !== a.id);
+							renderAnnotationsList();
+							applyAnnotationsToCharts();
+							refreshSelectedPeaks();
+						})
+						.catch(function(err) { console.error(err); });
+                    });
+                    li.append(text, delBtn);
+                    annotationsListEl.append(li);
+                });
+            }
+
+            // Panneau des pics sélectionnés : m/z + select adduit + M neutre + Save
+            function refreshSelectedPeaks() {
+                selectedPeaksEl.textContent = '';
+                let any = false;
+                chartInfos.forEach(info => {
+                    info.chart.getSelectedIndexes().forEach(idx => {
+                        any = true;
+                        const mz = mzOf(info, idx);
+                        const existing = annotationFor(info.polarity, mz);
+
+                        const row = document.createElement('div');
+                        row.className = 'd-flex align-items-center gap-1 mb-1';
+
+                        const mzLabel = document.createElement('span');
+                        mzLabel.className = 'small fw-bold';
+                        mzLabel.style.minWidth = '7rem';
+                        mzLabel.textContent = ` ${mz.toFixed(4)}`;
+						
+						mzTextSpan = document.createElement('i');
+						mzTextSpan.textContent = 'm/z';
+						mzLabel.prepend(mzTextSpan);
+
+                        const select = document.createElement('select');
+                        select.className = 'form-select form-select-sm';
+                        (adducts[info.polarity] || []).forEach(a => {
+                            const opt = document.createElement('option');
+                            opt.value = a.code;
+                            opt.textContent = a.label;
+                            if (existing && existing.adduct === a.code) opt.selected = true;
+                            select.append(opt);
+                        });
+
+                        const massSpan = document.createElement('span');
+                        massSpan.className = 'small text-muted';
+                        const updateMass = () => {
+                            const a = findAdduct(info.polarity, select.value);
+                            massSpan.textContent = a ? `M=${neutralMass(mz, a).toFixed(4)}` : '';
+                        };
+                        select.addEventListener('change', updateMass);
+                        updateMass();
+
+                        const saveBtn = document.createElement('button');
+                        saveBtn.type = 'button';
+                        saveBtn.className = 'btn btn-primary btn-sm';
+                        saveBtn.innerHTML = '<i class="fas fa-save"></i>';
+                        saveBtn.title = {{ _('Save') | tojson }};
+                        saveBtn.addEventListener('click', function() {
+                            fetchJSON(annotationsUrl, {
+								method: 'POST',
+								headers: {'Content-Type': 'application/json'},
+								body: JSON.stringify({polarity: info.polarity, mz: mz, adduct: select.value})
+							})
+								.then(function(result) {
+									if (!result.ok) return;
+									const resp = result.data;
+									const i = annotations.findIndex(x => x.polarity === resp.polarity && Math.abs(x.mz - resp.mz) < 1e-9);
+									if (i >= 0) annotations[i] = resp; else annotations.push(resp);
+									renderAnnotationsList();
+									applyAnnotationsToCharts();
+								})
+								.catch(function(err) { console.error(err); });
+                        });
+
+                        row.append(mzLabel, select, massSpan, saveBtn);
+                        selectedPeaksEl.append(row);
+                    });
+                });
+                if (!any) {
+                    const p = document.createElement('p');
+                    p.className = 'text-muted small mb-0';
+                    p.textContent = {{ _('No peak selected.') | tojson }};
+                    selectedPeaksEl.append(p);
+                }
+            }
+
+            // Au clic sur un pic, rafraîchir le panneau
+            chartInfos.forEach(info => {
+                info.chart.on('click', function() {
+                    refreshSelectedPeaks();
+                });
+            });
+
+            // Chargement initial des annotations
+			fetchJSON(annotationsUrl)
+				.then(function(result) {
+					annotations = result.ok ? result.data : [];
+					renderAnnotationsList();
+					applyAnnotationsToCharts();
+					refreshSelectedPeaks();
+				})
+				.catch(function(err) {
+					console.error(err);
+					annotations = [];
+					renderAnnotationsList();
+					refreshSelectedPeaks();
+				});
+
         });
     </script>
 {% endblock %}

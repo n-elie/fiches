@@ -95,3 +95,38 @@ document.addEventListener('click', function(e) {
         }
     }
 });
+
+/**
+ * fetch + parsing JSON robuste : rejette proprement si la réponse n'est pas
+ * du JSON (redirection vers la page de login, erreur 500 en HTML, proxy...),
+ * au lieu de planter avec "JSON.parse: unexpected character".
+ * Contrat : {ok, status, data}
+ */
+window.fetchJSON = function(url, options) {
+	options = Object.assign({}, options);
+    const method = (options.method || 'GET').toUpperCase();
+    if (method !== 'GET' && method !== 'HEAD') {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta && meta.content) {
+            const headers = Object.assign({}, options.headers);
+            const hasToken = Object.keys(headers).some(function(h) {
+                return h.toLowerCase() === 'x-csrftoken';
+            });
+            if (!hasToken) {
+                headers['X-CSRFToken'] = meta.content;
+            }
+            options.headers = headers;
+        }
+    }
+    return fetch(url, options).then(function(resp) {
+        const contentType = resp.headers.get('Content-Type') || '';
+        if (!contentType.includes('application/json')) {
+            const err = new Error('HTTP ' + resp.status + ' : réponse non JSON (' + (contentType || 'Content-Type absent') + ')');
+            err.status = resp.status;
+            throw err;
+        }
+        return resp.json().then(function(data) {
+            return {ok: resp.ok, status: resp.status, data: data};
+        });
+    });
+};

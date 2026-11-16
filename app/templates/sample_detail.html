@@ -418,41 +418,39 @@
                     return div;
                 }
 
-                function checkTaskStatus() {
-                    fetch(statusUrl)
-                        .then(function(resp) {
-                            if (!resp.ok) {
-                                throw new Error('HTTP ' + resp.status);
-                            }
-                            return resp.json();
-                        })
-                        .then(function(data) {
-                            statusElement.textContent = `{{ _('State') }}: ${data.state}`;
+				function checkTaskStatus() {
+					fetchJSON(statusUrl)
+						.then(function(result) {
+							if (!result.ok) {
+								throw new Error('HTTP ' + result.status);
+							}
+							const data = result.data;
+							statusElement.textContent = `{{ _('State') }}: ${data.state}`;
 
-                            if (data.state === 'SUCCESS') {
-                                resultElement.textContent = '';
-                                resultElement.append(buildResultAlert(
-                                    'alert-success',
-                                    'fas fa-check-circle',
-                                    {{ _('Success!') | tojson }},
-                                    (data.result && data.result.sample_reference) || ''
-                                ));
-                                clearInterval(intervalId);
-                            } else if (data.state === 'FAILURE') {
-                                resultElement.textContent = '';
-                                resultElement.append(buildResultAlert(
-                                    'alert-danger',
-                                    'fas fa-exclamation-circle',
-                                    {{ _('Error:') | tojson }},
-                                    data.status || ''
-                                ));
-                                clearInterval(intervalId);
-                            }
-                        })
-                        .catch(function(err) {
-                            console.error('Error:', err);
-                        });
-                }
+							if (data.state === 'SUCCESS') {
+								resultElement.textContent = '';
+								resultElement.append(buildResultAlert(
+									'alert-success',
+									'fas fa-check-circle',
+									{{ _('Success!') | tojson }},
+									(data.result && data.result.sample_reference) || ''
+								));
+								clearInterval(intervalId);
+							} else if (data.state === 'FAILURE') {
+								resultElement.textContent = '';
+								resultElement.append(buildResultAlert(
+									'alert-danger',
+									'fas fa-exclamation-circle',
+									{{ _('Error:') | tojson }},
+									data.status || ''
+								));
+								clearInterval(intervalId);
+							}
+						})
+						.catch(function(err) {
+							console.error('Error:', err);
+						});
+				}
 
                 checkTaskStatus();
                 const intervalId = setInterval(checkTaskStatus, 2000);
