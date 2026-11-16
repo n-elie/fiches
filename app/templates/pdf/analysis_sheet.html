@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>{{ title }}</title>
+<style>
+    @page {
+        size: A4 landscape;
+        margin: 0;
+    }
+    * { box-sizing: border-box; }
+    body {
+        margin: 0;
+        font-family: 'DejaVu Sans', sans-serif;
+        font-size: 8pt;
+        color: #000;
+    }
+    /* Une page A4 paysage = deux copies A5 côte à côte */
+    .page {
+        width: 297mm;
+        height: 210mm;
+        display: flex;
+        page-break-after: always;
+    }
+    .page:last-child { page-break-after: auto; }
+    .sheet {
+        width: 148.5mm;
+        height: 210mm;
+        padding: 5mm 8mm 32mm 8mm;
+        position: relative;
+        overflow: hidden;
+    }
+    .sheet.right { border-left: 0.4mm solid #bdc3c7; }
+    .logo { display: block; margin: 0 auto 2mm auto; height: 15mm; }
+    .service-name { text-align: center; font-size: 14pt; color: #2c3e50; margin: 1mm 0; }
+    .service-contact { text-align: center; font-size: 10pt; color: #2c3e50; }
+    hr { border: none; border-top: 0.4mm solid #000; margin: 2mm 0; }
+    .sheet-title { text-align: center; font-size: 12pt; color: #2c3e50; margin: 2mm 0; }
+    h3 { font-size: 9pt; color: #34495e; margin: 2.5mm 0 1mm 0; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 2mm; }
+    td { border: 0.3mm solid #bdc3c7; padding: 1mm 2mm; vertical-align: top; }
+    td.label { width: 40mm; text-align: right; font-size: 7pt; color: #7f8c8d; background-color: #ecf0f1; }
+    td.value { font-size: 8pt; }
+    .structure-img { display: block; margin: 0 auto; width: 50mm; height: 50mm; }
+    .qr { position: absolute; right: 3mm; bottom: 5mm; width: 25mm; height: 25mm; }
+    .footer { font-size: 8pt; color: grey; margin-top: 2mm; }
+</style>
+</head>
+<body>
+{% macro render_sheet(ctx, side) %}
+    <div class="sheet {{ side }}">
+        {% if logo_data_uri %}<img class="logo" src="{{ logo_data_uri }}" alt="logo">{% endif %}
+        <div class="service-name">{{ ctx.service_name }}</div>
+        <div class="service-contact">{{ _('Phone') }}: {{ ctx.phone }} - {{ ctx.responsible }}</div>
+        <hr>
+        <div class="sheet-title">{{ _('Analysis sheet') if side == 'left' else _('Sheet to keep') }}</div>
+        <hr>
+
+        <h3>{{ _('MAIN INFORMATION') }}</h3>
+        <table>
+            <tr><td class="label">{{ _('Team') }}</td><td class="value">{{ ctx.team }}</td></tr>
+            <tr><td class="label">{{ _('Reference') }}</td><td class="value">{{ ctx.reference }}</td></tr>
+            <tr><td class="label">{{ _('Quantity') }}</td><td class="value">{{ ctx.quantity }}</td></tr>
+            <tr><td class="label">{{ _('Notes') }}</td><td class="value">{{ ctx.notes }}</td></tr>
+            <tr><td class="label">{{ _('Creation date') }}</td><td class="value">{{ ctx.created_at }}</td></tr>
+        </table>
+
+        <h3>{{ _('STRUCTURAL INFORMATION') }}</h3>
+        <table>
+            <tr><td class="label">{{ _('Formula') }}</td><td class="value">{{ ctx.formula_html | safe }}</td></tr>
+            {% if ctx.mass_label %}
+            <tr><td class="label">{{ ctx.mass_label }}</td><td class="value">{{ ctx.mass_text }}</td></tr>
+            {% endif %}
+        </table>
+
+        {% if ctx.nmr %}
+        <h3>{{ _('NMR INFORMATION') }}</h3>
+        <table>
+            <tr><td class="label">{{ _('Stability') }}</td><td class="value">{{ ctx.nmr.stability }}</td></tr>
+            <tr><td class="label">{{ _('Solvent') }}</td><td class="value">{{ ctx.nmr.solvent }}</td></tr>
+            <tr><td class="label">{{ _('Frequency') }}</td><td class="value">{{ ctx.nmr.frequency }}</td></tr>
+            <tr><td class="label">{{ _('Experiments') }}</td><td class="value">{{ ctx.nmr.experiments }}</td></tr>
+        </table>
+        {% elif ctx.ms %}
+        <h3>{{ _('MS INFORMATION') }}</h3>
+        <table>
+            <tr><td class="label">{{ _('Solvents') }}</td><td class="value">{{ ctx.ms.solvents }}</td></tr>
+        </table>
+        {% endif %}
+
+        {% if ctx.has_structure %}
+        <h3>{{ _('CHEMICAL STRUCTURE') }}</h3>
+        {% if ctx.structure_data_uri %}
+        <img class="structure-img" src="{{ ctx.structure_data_uri }}" alt="{{ _('Chemical structure') }}">
+        {% else %}
+        <p class="value">{{ _('Structure: unable to load the structure') }}</p>
+        {% endif %}
+        {% endif %}
+
+        <div class="footer">{{ _('Generated on %(date)s', date=generated_on) }}</div>
+        {% if ctx.qr_data_uri %}<img class="qr" src="{{ ctx.qr_data_uri }}" alt="QR code">{% endif %}
+    </div>
+{% endmacro %}
+
+{% for ctx in sheets %}
+    <div class="page">
+        {{ render_sheet(ctx, 'left') }}
+        {{ render_sheet(ctx, 'right') }}
+    </div>
+{% endfor %}
+</body>
+</html>

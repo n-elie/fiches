@@ -1,165 +1,38 @@
-""""
-Utilitaire pour générer des fiches d'analyse au format PDF
+"""
+Utilitaire pour générer des fiches d'analyse au format PDF avec WeasyPrint.
+
+Le rendu passe par un template HTML (app/templates/pdf/analysis_sheet.html) :
+une page A4 paysage par échantillon, avec deux copies A5 côte à côte
+(« Analysis sheet » à gauche, « Sheet to keep » à droite).
+Les images (logo, QR codes, structure chimique) sont intégrées en data URI
+base64, donc aucun accès disque externe n'est nécessaire côté WeasyPrint.
 """
 
-import os
-import tempfile
+import base64
 import io
+import os
 from datetime import datetime
 from urllib.parse import urljoin
-from xml.sax.saxutils import escape
 
+from flask import render_template
 from flask_babel import gettext as _, format_datetime
-
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4, A5, landscape
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import mm, inch
-from reportlab.platypus import (BaseDocTemplate, Paragraph, Spacer,
-                                Table, TableStyle, PageBreak,
-                                Frame, PageTemplate, FrameBreak,
-                                HRFlowable)
-from reportlab.platypus.flowables import Image
-from reportlab.lib.utils import ImageReader
-from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
+from weasyprint import HTML
 
 from .mol import html_formula, mol_to_img, mol_from_smiles
-from ..models import Sample
 
-# Enregistrer les polices si nécessaire
-try:
-    pdfmetrics.registerFont(TTFont('DejaVuSans', 'DejaVuSans.ttf'))
-    pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', 'DejaVuSans-Bold.ttf'))
-except:
-    pass
-    
-# QR Code
 try:
     import qrcode
     QRCODE_AVAILABLE = True
 except ImportError:
     QRCODE_AVAILABLE = False
-    
-# Styles
-styles = getSampleStyleSheet()
 
-# Style personnalise pour les titres
-title_style = ParagraphStyle(
-    name='CustomTitle',
-    parent=styles['Heading1'],
-    fontSize=14,
-    leading=16,
-    alignment=TA_CENTER,
-    spaceAfter=2,
-    textColor=colors.HexColor('#2c3e50')
-)
 
-# Style pour les sous-titres
-subtitle_style = ParagraphStyle(
-    name='CustomSubtitle',
-    parent=styles['Heading2'],
-    fontSize=9,
-    leading=12,
-    spaceBefore=2,
-    spaceAfter=2,
-    textColor=colors.HexColor('#34495e')
-)
+def _image_to_data_uri(buffer: io.BytesIO) -> str:
+    """Encode un buffer image PNG en data URI base64 (intégrable dans le HTML)."""
+    return "data:image/png;base64," + base64.b64encode(buffer.getvalue()).decode("ascii")
 
-# Style pour les labels
-label_style = ParagraphStyle(
-    name='LabelStyle',
-    fontSize=7,
-    leading=9,
-    textColor=colors.HexColor('#7f8c8d'),
-    spaceAfter=0.5
-)
 
-# Style pour les valeurs
-value_style = ParagraphStyle(
-    name='ValueStyle',
-    fontSize=8,
-    leading=12,
-    textColor=colors.black,
-    spaceAfter=1.5
-)
-
-# Style pour le pied de page
-footer_style = ParagraphStyle(
-    name='FooterStyle',
-    fontSize=8,
-    textColor=colors.grey)
-
-# Style pour URL
-url_style = ParagraphStyle(
-    name = 'URLStyle',
-    fontSize=6,
-    textColor=colors.grey,
-    alignment=TA_CENTER,
-    leading=8,
-    spaceAfter=4
-)
-
-# Style pour les tableaux
-table_style = TableStyle([
-    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#ecf0f1')),
-    ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#bdc3c7')),
-    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-    ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
-    ('LEFTPADDING', (0, 0), (-1, -1), 2),
-    ('RIGHTPADDING', (0, 0), (-1, -1), 2),
-    ('TOPPADDING', (0, 0), (-1, -1), 1),
-    ('BOTTOMPADDING', (0, 0), (-1, -1), 1),
-])
-
-class TwoA5DocTemplate(BaseDocTemplate):
-    def __init__(self, filename, frames, samples=None, base_url=None, **kwargs):
-        BaseDocTemplate.__init__(self, filename, **kwargs)
-        self.samples = samples
-        self.base_url = base_url
-        self.addPageTemplates([
-            PageTemplate(id='TwoA5', frames=frames, onPage=self.draw_page)
-        ])
-
-    def draw_page(self, canvas, doc):
-        # 1. Ligne verticale entre les deux frames
-        x_position = 2.5*mm + 148*mm
-        canvas.setStrokeColor(colors.HexColor('#bdc3c7'))
-        canvas.setLineWidth(0.5)
-        canvas.line(x_position, 5*mm, x_position, 205*mm)
-        
-        # 2. Dessiner le QR code dans chaque frame (bas à droite)
-        if QRCODE_AVAILABLE and self.samples and self.base_url:    
-            # Générer le QR code (si base_url est fourni)
-            qr_image = None
-            sample = self.samples[canvas.getPageNumber()-1]
-            sample_url = urljoin(self.base_url, f"{sample.analysis_type}/sample/{sample.id}")
-            qr_image = ImageReader(generate_qr_code(sample_url, size=200))
-            qr_size = 25*mm
-            qr_y = 5*mm + 20*mm  # 20mm au-dessus du bas
-
-            # Frame de gauche
-            qr_x_left = 5*mm + 143*mm - qr_size - 3*mm
-            canvas.drawImage(
-                qr_image,
-                qr_x_left, qr_y,
-                width=qr_size,
-                height=qr_size,
-                mask='auto'
-            )
-
-            # Frame de droite
-            qr_x_right = 5*mm + 148*mm + 143*mm - qr_size - 3*mm
-            canvas.drawImage(
-                qr_image,
-                qr_x_right, qr_y,
-                width=qr_size,
-                height=qr_size,
-                mask='auto'
-            )
-
-def generate_qr_code(url: str, size: int = 100) -> io.BytesIO:
+def generate_qr_code(url: str, size: int = 200):
     """
     Génère un QR code comme image PNG dans un BytesIO
     """
@@ -182,285 +55,122 @@ def generate_qr_code(url: str, size: int = 100) -> io.BytesIO:
     img.save(buffer, format="PNG")
     buffer.seek(0)
     return buffer
-    
-def create_sheet_content(sample, upload_folder, services=None, logo_path=None):
-    """Cree le contenu d'une fiche individuelle
-    
-    upload_folder: racine des uploads (UPLOAD_FOLDER) ; le sous-dossier
-    <analysis_type>/structures est résolu ici, par échantillon.
-    services: dict app.config['SERVICES'] (résout nom/responsable/téléphone par type).
+
+
+def generate_qr_code_data_uri(url: str, size: int = 200):
+    """QR code directement utilisable comme src d'une <img> dans le template."""
+    buffer = generate_qr_code(url, size)
+    return _image_to_data_uri(buffer) if buffer else None
+
+
+def molecule_image_data_uri(smiles):
+    """Dessine la structure à partir du SMILES et renvoie une data URI PNG (ou None)."""
+    if not smiles:
+        return None
+    mol = mol_from_smiles(smiles)
+    if mol is None:
+        return None
+    return _image_to_data_uri(mol_to_img(mol))
+
+
+def logo_data_uri(logo_path):
+    """Encode le logo en data URI (évite à WeasyPrint de résoudre un chemin externe)."""
+    if not logo_path or not os.path.exists(logo_path):
+        return None
+    mime = "image/svg+xml" if logo_path.lower().endswith(".svg") else "image/png"
+    with open(logo_path, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode("ascii")
+    return f"data:{mime};base64,{encoded}"
+
+
+def build_sheet_context(sample, services=None, base_url=None) -> dict:
     """
-    
+    Prépare les données d'une fiche : champs communs, traductions, QR code,
+    structure chimique et bloc spécifique au type d'analyse (MS / NMR).
+    """
     service_infos = (services or {}).get(sample.analysis_type, {})
-    service_name = service_infos.get('name')
-    responsible_name = service_infos.get('responsible')
-    phone_number = service_infos.get('phone')
-    
-    hr = HRFlowable(
-        width="100%",
-        thickness=1,
-        color=colors.black,
-        spaceBefore=5,
-        spaceAfter=5,
-    )  
-    elements = []
 
-    if logo_path and os.path.exists(logo_path):
-        try:
-            img = ImageReader(logo_path)
-            iw, ih = img.getSize()
-            aspect = ih / float(iw)
-            width = 15*mm
-            img = Image(logo_path, width=width, height=(width*aspect))
-            img.hAlign = 'CENTER'
-            elements.append(img)
-            elements.append(Spacer(1, 2*mm))
-        except:
-            pass
+    context = {
+        "sample": sample,
+        "service_name": service_infos.get("name"),
+        "phone": service_infos.get("phone"),
+        "responsible": service_infos.get("responsible"),
+        "team": sample.team or _("Not specified"),
+        "reference": sample.reference or "N/A",
+        "quantity": f"{sample.quantity} mg" if sample.quantity else "N/A",
+        "notes": sample.notes or _("None"),
+        "created_at": format_datetime(sample.created_at) if sample.created_at else "N/A",
+        "formula_html": html_formula(sample.formula),
+        "qr_data_uri": None,
+        "has_structure": bool(sample.structure_file),
+        "structure_data_uri": None,
+        "nmr": None,
+        "ms": None,
+        "mass_label": None,
+        "mass_text": None,
+    }
 
-    # Titre avec informations du service
-    elements.append(Paragraph(service_name, title_style))
-    elements.append(Spacer(1, 1*mm))
+    if base_url:
+        sample_url = urljoin(base_url, f"{sample.analysis_type}/sample/{sample.id}")
+        context["qr_data_uri"] = generate_qr_code_data_uri(sample_url)
 
-    elements.append(Paragraph(f"{_('Phone')}: {phone_number} - {responsible_name}", title_style))
-    elements.append(hr)
-    
-    elements.append("{{placeholder}}")  # {{placeholder}} sera remplacé par le sous-titre de la fiche
-    elements.append(hr)
+    if sample.structure_file and sample.smiles:
+        context["structure_data_uri"] = molecule_image_data_uri(sample.smiles)
 
-    # INFORMATIONS PRINCIPALES
-    elements.append(Paragraph(_("MAIN INFORMATION"), subtitle_style))
-    elements.append(Spacer(1, 0.5*mm))
+    if sample.analysis_type == "nmr":
+        stability_map = {0: _("Unknown"), 1: _("Stable"), 2: _("Unstable"), 3: _("Very stable")}
+        experiments = sample.experiments.split(", ") if sample.experiments else []
+        if sample.other_experiment:
+            experiments.append(sample.other_experiment)
+        context["nmr"] = {
+            "stability": stability_map.get(sample.stability, _("Not specified")),
+            "solvent": sample.solvent or _("Not specified"),
+            "frequency": f"{sample.frequency} MHz" if sample.frequency else "N/A",
+            "experiments": ", ".join(experiments) if experiments else _("None"),
+        }
+        context["mass_label"] = _("Mass")
+        context["mass_text"] = str(round(sample.mass)) if sample.mass else "N/A"
+    elif sample.analysis_type == "ms":
+        solvents = sample.solvents.split(", ") if sample.solvents else []
+        if sample.other_solvent:
+            solvents.append(sample.other_solvent)
+        context["ms"] = {
+            "solvents": ", ".join(solvents) if solvents else _("None"),
+        }
+        context["mass_label"] = _("Exact mass")
+        context["mass_text"] = f"{sample.mass:.4f} Da" if sample.mass else "N/A"
 
-    # Tableau pour les informations de base
-    data = []
+    return context
 
-    # Champs communs a tous les echantillons
-    common_fields = [
-        (_("Team"), sample.team or _("Not specified")),
-        (_("Reference"), sample.reference or "N/A"),
-        (_("Quantity"), f"{sample.quantity} mg" if sample.quantity else "N/A"),
-        (_("Notes"), sample.notes or _("None")),
-        (_("Creation date"), format_datetime(sample.created_at) if sample.created_at else "N/A"),
-    ]
 
-    for label, value in common_fields:
-        data.append([
-            Paragraph(label, label_style),
-            Paragraph(escape(str(value)), value_style)
-        ])
-
-    # Créer le tableau
-    table = Table(data, colWidths=[40*mm, 55*mm])
-    table.setStyle(table_style)
-
-    elements.append(table)
-    elements.append(Spacer(1, 2*mm))
-    
-    # INFORMATIONS STRUCTURALES
-    elements.append(Paragraph(_("STRUCTURAL INFORMATION"), subtitle_style))
-    elements.append(Spacer(1, 0.5*mm))
-
-    # Tableau pour les informations de base
-    data = []
-
-    # Champs communs a tous les echantillons
-    structural_fields = [
-        (_("Formula"), html_formula(sample.formula) or _("Not specified")),
-    ]
-    match sample.analysis_type:
-        case 'nmr':
-            structural_fields.append(
-                (_("Mass"), escape(f"{round(sample.mass)}") if sample.mass else "N/A"),
-            )
-        case 'ms':
-            structural_fields.append(
-                (_("Exact mass"), escape(f"{sample.mass:.4f} Da") if sample.mass else "N/A"),
-            )
-
-    for label, value in structural_fields:
-        data.append([
-            Paragraph(label, label_style),
-            Paragraph(str(value), value_style)
-        ])
-
-    # Créer le tableau
-    table = Table(data, colWidths=[40*mm, 55*mm])
-    table.setStyle(table_style)
-
-    elements.append(table)
-    elements.append(Spacer(1, 2*mm))
-
-    # CHAMPS SPECIFIQUES PAR TYPE
-
-    # Pour les echantillons RMN
-    if hasattr(sample, 'solvent') and sample.analysis_type == 'nmr':
-        elements.append(Paragraph(_("NMR INFORMATION"), subtitle_style))
-        elements.append(Spacer(1, 0.5*mm))
-
-        nmr_data = []
-
-        # Stabilite
-        stability_map = {0: _("Unknown"), 1: _("Stable"), 2: _("Unstable"), 3: _("Very stable")} # TODO: get this from config
-        stability_text = stability_map.get(sample.stability, _("Not specified"))
-        nmr_data.append([Paragraph(_("Stability"), label_style), Paragraph(stability_text, value_style)])
-
-        # Solvant
-        nmr_data.append([Paragraph(_("Solvent"), label_style), Paragraph(escape(sample.solvent) or _("Not specified"), value_style)])
-
-        # Frequence
-        nmr_data.append([Paragraph(_("Frequency"), label_style), Paragraph(f"{escape(str(sample.frequency))} MHz", value_style)])
-
-        # Experiences
-        experiments = sample.experiments or ""
-        other_experiment = sample.other_experiment or ""
-        all_experiments = []
-        if experiments:
-            all_experiments.extend(experiments.split(', '))
-        if other_experiment:
-            all_experiments.append(other_experiment)
-        experiments_text = ", ".join(all_experiments) if all_experiments else _("None")
-        nmr_data.append([Paragraph(_("Experiments"), label_style), Paragraph(escape(experiments_text), value_style)])
-
-        nmr_table = Table(nmr_data, colWidths=[40*mm, 55*mm])
-        nmr_table.setStyle(table_style)
-        elements.append(nmr_table)
-        elements.append(Spacer(1, 2*mm))
-
-    # Pour les echantillons MS
-    elif hasattr(sample, 'solvents') and sample.analysis_type == 'ms':
-        elements.append(Paragraph(_("MS INFORMATION"), subtitle_style))
-        elements.append(Spacer(1, 0.5*mm))
-
-        ms_data = []
-
-        # Solvants
-        solvents = sample.solvents or ""
-        other_solvent = sample.other_solvent or ""
-        all_solvents = []
-        if solvents:
-            all_solvents.extend(solvents.split(', '))
-        if other_solvent:
-            all_solvents.append(other_solvent)
-        solvents_text = ", ".join(all_solvents) if all_solvents else _("None")
-        ms_data.append([Paragraph(_("Solvents"), label_style), Paragraph(escape(solvents_text), value_style)])
-
-        ms_table = Table(ms_data, colWidths=[40*mm, 55*mm])
-        ms_table.setStyle(table_style)
-        elements.append(ms_table)
-        elements.append(Spacer(1, 2*mm))
-
-    # STRUCTURE CHIMIQUE
-    if sample.structure_file:
-        elements.append(Paragraph(_("CHEMICAL STRUCTURE"), subtitle_style))
-
-        # Chemin complet du fichier
-        file_path = os.path.join(upload_folder, sample.analysis_type, 'structures', sample.structure_file)
-
-        # Generer l'image de la structure
-        mol = mol_from_smiles(sample.smiles)
-
-        if mol:
-            elements.append(Image(mol_to_img(mol), width=50*mm, height=50*mm))
-            elements.append(Spacer(1, 1*mm))
-        else:
-            elements.append(Paragraph(_("Structure: unable to load the structure"), value_style))
-
-        elements.append(Spacer(1, 1*mm))
-
-    # Pied de page
-    elements.append(Spacer(1, 0.5*mm))
-    elements.append(Paragraph(_('Generated on %(date)s', date=format_datetime(datetime.now())), footer_style))
-
-    return elements
-
-def create_analysis_sheet_pdf(samples: list[Sample], upload_folder: str, services=None, logo_path=None, base_url=None):
+def create_analysis_sheet_pdf(samples: list, upload_folder: str, services=None, logo_path=None, base_url=None) -> io.BytesIO:
     """
-    Créer une fiche d'analyse PDF pour un echantillon avec deux copies A5 sur une page A4 landscape
+    Crée un PDF de fiches d'analyse avec WeasyPrint : une page A4 paysage par
+    échantillon, contenant deux copies A5 côte à côte (fiche + « Sheet to keep »),
+    chacune avec son QR code.
 
     Args:
         samples: Liste d'objets Sample, MSSample ou NMRSample
-        upload_folder: Dossier ou sont stockes les fichiers uploades
-        service_name: Nom du service d'analyse (optionnel)
-        responsible_name: Nom du responsable (optionnel)
-        phone_number: Numero de telephone du responsable (optionnel)
-        base_url: URL de base de l'application (ex: "http://localhost:5000")
+        upload_folder: conservé pour compatibilité de signature (les structures
+            sont rendues depuis le SMILES, pas depuis le fichier uploadé)
+        services: dict app.config['SERVICES'] (résout nom/responsable/téléphone par type)
+        logo_path: chemin du logo (encodé en data URI dans le HTML)
+        base_url: URL de base de l'application (ex: "http://localhost:5000/") pour les QR codes
 
     Returns:
         BytesIO: Contenu du PDF
     """
+    sheets = [build_sheet_context(s, services=services, base_url=base_url) for s in samples]
 
-    # Créer un buffer pour le PDF
-    buffer = io.BytesIO()
+    title = _("Analysis sheet - %(ref)s", ref=samples[0].reference) if len(samples) == 1 else _("Analysis sheets")
 
-    # Créer deux Frames pour les deux copies A5
-    # A5: 148mm x 210mm
-    # A4 landscape: 297mm x 210mm
-
-    # Frame gauche (premiere copie A5)
-    frame_left = Frame(
-        x1=5*mm,
-        y1=5*mm,
-        width=143*mm,
-        height=200*mm,
-        leftPadding=15*mm,
-        bottomPadding=0,
-        rightPadding=10*mm,
-        topPadding=20*mm,
-        id='left'
-    )
-
-    # Frame droite (deuxieme copie A5)
-    frame_right = Frame(
-        x1=frame_left.x1 + 148*mm,  # Position apres la premiere A5
-        y1=frame_left.y1,
-        width=frame_left.width,
-        height=frame_left.height,
-        leftPadding=frame_left.rightPadding,
-        bottomPadding=frame_left.bottomPadding,
-        rightPadding=frame_left.leftPadding,
-        topPadding=frame_left.topPadding,
-        id='right'
-    )
-
-    # Configuration du document en A4 landscape
-    title = _('Analysis sheet - %(ref)s', ref=samples[0].reference) if len(samples) == 1 else _('Analysis sheets')
-    doc = TwoA5DocTemplate(
-        buffer,
-        pagesize=landscape(A4),
-        rightMargin=0,
-        leftMargin=0,
-        topMargin=0,
-        bottomMargin=0,
+    html = render_template(
+        "pdf/analysis_sheet.html",
         title=title,
-        frames=[frame_left, frame_right],
-        samples=samples,
-        base_url=base_url
+        sheets=sheets,
+        logo_data_uri=logo_data_uri(logo_path),
+        generated_on=format_datetime(datetime.now()),
     )
-    
-    all_elements = []
-    for sample in samples:
-        # Créer le contenu pour une seule fiche
-        sheet_content = create_sheet_content(
-            sample, upload_folder, services=services, logo_path=logo_path
-        )
-        
-        # Construire le PDF avec FrameBreak
-        # Chaque frame va recevoir son propre contenu
-        lr_elements = []
-        
-        left_sheet_content = [element if element != "{{placeholder}}" else Paragraph(_("Analysis sheet"), title_style) for element in sheet_content]
-        lr_elements.extend(left_sheet_content)
-        lr_elements.append(FrameBreak())
-        right_sheet_content = [element if element != "{{placeholder}}" else Paragraph(_("Sheet to keep"), title_style) for element in sheet_content]
-        lr_elements.extend(right_sheet_content)
 
-        all_elements.extend(lr_elements)
-        all_elements.append(PageBreak())
-
-    doc.build(all_elements)
-
-    # Remonter au debut du buffer
-    buffer.seek(0)
-
-    return buffer
+    pdf_bytes = HTML(string=html, base_url=base_url or "").write_pdf()
+    return io.BytesIO(pdf_bytes)
