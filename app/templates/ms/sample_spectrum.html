@@ -22,47 +22,52 @@
             padding: 0 .25rem;
             cursor: pointer;
         }
+		
+		#annotations-list { max-height: 60vh; overflow-y: auto; }
     </style>
 {% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-lg-6 col-12">
-            <h5 class="text-center">{{ _('Positive mode') }}</h5>
-            {% if spectrum_pos %}
-				<div class="chart-wrap">
-                    <div id="mschart-pos" style="height: 400px"></div>
-                </div>
-            {% else %}
-                <p class="text-center text-muted my-5">{{ _('No data available for this polarity.') }}</p>
-            {% endif %}
-        </div>
-        <div class="col-lg-6 col-12">
-            <h5 class="text-center">{{ _('Negative mode') }}</h5>
-            {% if spectrum_neg %}
-                <div class="chart-wrap">
-                    <div id="mschart-neg" style="height: 400px"></div>
-                </div>
-            {% else %}
-                <p class="text-center text-muted my-5">{{ _('No data available for this polarity.') }}</p>
-            {% endif %}
-        </div>
-    </div>
-	
-	<div class="row">
-		<div class="col-12">
-			<div class="card sticky-top" style="top: 1rem;">
-                <div class="card-header">
-                    <i class="fas fa-tags"></i> {{ _('Adduct assignment') }}
-                </div>
-                <div class="card-body">
-                    <p class="text-muted small">{{ _('Click a peak: a window opens next to it to assign an adduct.') }}</p>
-                    <hr>
-                    <h3 class="h6">{{ _('Saved annotations') }}</h3>
-                    <ul id="annotations-list" class="list-group list-group-flush"></ul>
-                    <p id="no-annotations" class="text-muted small mb-0">{{ _('No annotation yet.') }}</p>
-                </div>
-            </div>
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-8 col-12">
+				<div class="row">
+					<div class="col-12">
+						<h5 class="text-center">{{ _('Positive mode') }}</h5>
+						{% if spectrum_pos %}
+							<div class="chart-wrap">
+								<div id="mschart-pos" style="height: 400px"></div>
+							</div>
+						{% else %}
+							<p class="text-center text-muted my-5">{{ _('No data available for this polarity.') }}</p>
+						{% endif %}
+					</div>
+					<div class="col-12">
+						<h5 class="text-center">{{ _('Negative mode') }}</h5>
+						{% if spectrum_neg %}
+							<div class="chart-wrap">
+								<div id="mschart-neg" style="height: 400px"></div>
+							</div>
+						{% else %}
+							<p class="text-center text-muted my-5">{{ _('No data available for this polarity.') }}</p>
+						{% endif %}
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-4 col-12">
+				<div class="card sticky-top" style="top: 1rem;">
+					<div class="card-header">
+						<i class="fas fa-tags"></i> {{ _('Adduct assignment') }}
+					</div>
+					<div class="card-body">
+						<p class="text-muted small">{{ _('Click a peak: a window opens next to it to assign an adduct.') }}</p>
+						<hr>
+						<h3 class="h6">{{ _('Saved annotations') }}</h3>
+						<ul id="annotations-list" class="list-group list-group-flush"></ul>
+						<p id="no-annotations" class="text-muted small mb-0">{{ _('No annotation yet.') }}</p>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 {% endblock %}
@@ -171,6 +176,7 @@
                     li.className = 'list-group-item d-flex justify-content-between align-items-center py-1 px-0';
 
                     const text = document.createElement('span');
+					text.className = 'ann-text';
                     const pol = document.createElement('span');
                     pol.className = 'badge bg-secondary me-1';
                     pol.textContent = a.polarity === 'positive' ? '+' : '−';
