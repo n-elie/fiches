@@ -271,7 +271,7 @@ def peak_picking(scan: mspy.scan) -> mspy.scan:
     scan.labelscan(
         pickingHeight=1.,
         absThreshold=1e4,
-        relThreshold=.01,
+        relThreshold=.001,
         snThreshold=25.,
         baselineWindow=0.1,
         baselineOffset=.25,

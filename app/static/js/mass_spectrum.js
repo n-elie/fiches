@@ -198,7 +198,7 @@
                 },
 
                 toolbox: {
-					orient: 'vertical',
+					orient: 'horizontal',
 					left: 'right',
 					top: 'top',
                     feature: {
