@@ -83,7 +83,7 @@ def unifi_to_openms(spectra: list[Spectrum], channel: SpectrumInfos) -> oms.Expe
     exp.updateRanges()
     return exp
 
-def openms_to_mspy(exp: oms.Experiment) -> mspy.scan:
+def openms_to_mspy(exp: oms.MSExperiment) -> mspy.scan:
     '''Converts an OpenMS Experiment to a mspy scan object
     
     Args:
@@ -251,10 +251,10 @@ def lock_mass_correct(scan: mspy.scan, ls_scan: mpy.scan, ionisation_mode: str) 
     if ls_peak is None or ls_peak.sn <= 50:
         raise ValueError("Lock Spray mass was not found")
     
+    # Lock Mass Correction
     for peak in scan.peaklist.peaks:
-        # Lock Mass Correction
-        peak.mz = peak.mz - ls_peak.mz + ls_th_mz
-        
+        peak.mz += ls_th_mz - ls_peak.mz
+    scan.profile[:,0] += ls_th_mz - ls_peak.mz
     return scan
     
 def peak_picking(scan: mspy.scan) -> mspy.scan:
@@ -310,7 +310,7 @@ def peak_picking(scan: mspy.scan) -> mspy.scan:
     
     # Filter out very small peaks
     # The thresholds were very low a labelscan step to include isotopes and be able to determine charge
-    scan.remthreshold(absThreshold=1e5, relThreshold=0.1, snThreshold=100.)
+    #scan.remthreshold(absThreshold=1e5, relThreshold=0.1, snThreshold=100.)
     
     return scan
             

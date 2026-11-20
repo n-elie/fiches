@@ -6,6 +6,7 @@ from sqlalchemy import desc
 import os
 import io
 import zipfile
+import numpy as np
 from datetime import datetime
 import pandas as pd
 import pyopenms as oms
@@ -44,7 +45,27 @@ def _detect_import_filetype(filename: str, data: bytes) -> str:
     if ext == '.ods' and 'mimetype' not in names:
         raise ValueError(_('The file is not a valid .ods document'))
     return 'excel' if ext == '.xlsx' else 'ods'
+    
+MAX_RAW_POINTS = 10000  # plafond de points affichés pour le spectre brut (profilé) en fond
 
+def downsample_profile(peaks, max_points=MAX_RAW_POINTS):
+    """Limite le nombre de points d'un spectre profilé (intensité max par bac de m/z) pour alléger l'affichage."""
+    if len(peaks) <= max_points:
+        return peaks
+    x = np.array([p['x'] for p in peaks], dtype=float)
+    y = np.array([p['y'] for p in peaks], dtype=float)
+    order = np.argsort(x, kind='stable')
+    x, y = x[order], y[order]
+    x_min, x_max = x[0], x[-1]
+    if x_max <= x_min:
+        return [peaks[order[0]]]
+    
+    bins = np.minimum(((x - x_min) / (x_max - x_min) * max_points).astype(np.int64), max_points - 1)
+    by_bin = np.lexsort((y, bins))                        # tri par bac, puis par intensité croissante
+    sorted_bins = bins[by_bin]
+    keep = np.append(sorted_bins[1:] != sorted_bins[:-1], True)  # dernier point de chaque bac = intensité max
+    return [peaks[i] for i in order[by_bin[keep]]]    
+    
 @ms_bp.route('/sample/submit', methods=['GET', 'POST'])
 @login_required
 def submit_sample():
@@ -203,6 +224,7 @@ def sample_spectrum(sample_id):
         return redirect(url_for('main.index'))
     
     spectrum_pos, spectrum_neg = [], []
+    spectrum_pos_raw, spectrum_neg_raw = [], []
     mzml_file = os.path.join(current_app.config['UPLOAD_FOLDER'], 'ms', 'spectra', f'{sample.id}.mzML')
     if os.path.exists(mzml_file):
         try:
@@ -210,10 +232,9 @@ def sample_spectrum(sample_id):
             oms.MzMLFile().load(mzml_file, exp)
 
             spectra = {'positive': [], 'negative': []}
+            spectra_raw = {'positive': [], 'negative': []}
             for spec in exp.getSpectra():
                 if spec.getMSLevel() != 1:
-                    continue
-                if spec.getType() != oms.SpectrumSettings.SpectrumType.CENTROID:
                     continue
                 polarity = spec.getInstrumentSettings().getPolarity()
                 if polarity == oms.IonSource.Polarity.POSITIVE:
@@ -223,29 +244,36 @@ def sample_spectrum(sample_id):
                 else:
                     continue
                 mz_array, intensity_array = spec.get_peaks()
-                spectra[key].extend(
-                    {'x': float(mz), 'y': float(inten)}
-                    for mz, inten in zip(mz_array, intensity_array)
-                )
+                peaks = [{'x': float(mz), 'y': float(inten)} for mz, inten in zip(mz_array, intensity_array)]
+                if spec.getType() == oms.SpectrumSettings.SpectrumType.CENTROID:
+                    spectra[key].extend(peaks)
+                elif spec.getType() == oms.SpectrumSettings.SpectrumType.PROFILE:
+                    spectra_raw[key].extend(peaks)
 
             for key in spectra:
-                peaks = spectra[key]
-                if peaks:
-                    max_inten = max(p['y'] for p in peaks)
-                    if max_inten > 0:
-                        for p in peaks:
-                            p['y'] = p['y'] / max_inten * 100.0
+                for peaks in (spectra[key], spectra_raw[key]):
+                    if peaks:
+                        max_inten = max(p['y'] for p in peaks)
+                        if max_inten > 0:
+                            for p in peaks:
+                                p['y'] = p['y'] / max_inten * 100.0
+                spectra_raw[key] = downsample_profile(spectra_raw[key])
 
             spectrum_pos = spectra['positive']
             spectrum_neg = spectra['negative']
+            spectrum_pos_raw = spectra_raw['positive']
+            spectrum_neg_raw = spectra_raw['negative']
         except Exception as e:
             log_error(e, f"Reading mzML file {mzml_file}")
             flash(_('The spectrum could not be read.'), 'error')
+            return redirect(url_for('main.index'))
 
     return render_template('ms/sample_spectrum.html',
                            sample=sample,
                            spectrum_pos=spectrum_pos,
                            spectrum_neg=spectrum_neg,
+                           spectrum_pos_raw=spectrum_pos_raw,
+                           spectrum_neg_raw=spectrum_neg_raw,
                            adducts=ADDUCTS)
                            
 @ms_bp.route('/sample/<int:sample_id>/spectrum/annotations')

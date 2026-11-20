@@ -5,10 +5,13 @@ import pyopenms as oms
 import os
 import redis
 import logging
+import requests
+import urllib3
 
-from ..models import db, Analysis, Sample, SampleStatus
+from ..models import db, Analysis, Sample, SampleStatus, PeakAnnotation
 from ..utils.data_processing import UNIFIAPI, extract_trace_name, get_data, peak_picking, lock_mass_correct, mspy_to_openms, RTRange
-from ..utils.errors import sanitize_log
+from ..utils.errors import sanitize_log, log_error
+from ..utils.peak_annotation import annotate_peaks
 from .celery_app import celery
 
 LOCK_KEY = 'lock:download_spectra'
@@ -49,56 +52,90 @@ def download_spectra(self):
             if os.path.exists(mzml_file):
                 logger.info(f"Skipped spectra downloading for {sanitize_log(sample.reference)} as mzML file already exists.")
                 continue
+            try:
+                api.connect(unifi_config['username'], unifi_config['password'])
             
-            api.connect(unifi_config['username'], unifi_config['password'])
-        
-            data_folder = api.get_folder_by_path(unifi_config['data_folder'])
+                data_folder = api.get_folder_by_path(unifi_config['data_folder'])
+                    
+                sample_items = [item for item in data_folder.items() if item.type == "SampleResult" and item.name == sample.reference]
                 
-            sample_items = [item for item in data_folder.items() if item.type == "SampleResult" and item.name == sample.reference]
-            
-            if not sample_items:
-                logger.warning(f"No samples items found for sample reference: {sanitize_log(sample.reference)}.")
-                continue
-            else:
-                logger.info(f"{len(sample_items)} samples items found for sample reference: {sanitize_log(sample.reference)}.")
-            
-            sample_items = sorted(sample_items, key=lambda item: item.createdAt, reverse=True)
-            sample_results = [item.convert() for item in sample_items]
-            
-            # Retrieve lock mass corrected data in both polarity
-            spectra = {}
-            for sr in sample_results:
-                specinfos = sr.spectruminfos()
-                specinfos = {extract_trace_name(trace.name): trace for trace in specinfos}
-                ionisation_mode = specinfos['DDA TOF MS'].analyticalTechnique.ionisationMode
-                
-                if ionisation_mode in spectra.keys():
+                if not sample_items:
+                    logger.warning(f"No samples items found for sample reference: {sanitize_log(sample.reference)}.")
                     continue
+                else:
+                    logger.info(f"{len(sample_items)} samples items found for sample reference: {sanitize_log(sample.reference)}.")
                 
-                # Get data from server
-                ls_scan = get_data(specinfos['MS LockSpray Reference Data'])
-                data_scan = get_data(
-                    specinfos['DDA TOF MS'],
-                    rt_range=RTRange(0.1, 0.3)
-                )
+                sample_items = sorted(sample_items, key=lambda item: item.createdAt, reverse=True)
+                sample_results = [item.convert() for item in sample_items]
                 
-                # Apply peak picking and lock mass correction
-                data_scan = peak_picking(data_scan) 
-                if data_scan.peaklist:
-                    data_scan = lock_mass_correct(data_scan, ls_scan, ionisation_mode)
-                spectra[ionisation_mode] = data_scan
-                        
-                if {'+', '-'} <= spectra.keys():
-                    break
+                # Retrieve lock mass corrected data in both polarity
+                spectra = {}
+                for sr in sample_results:
+                    specinfos = sr.spectruminfos()
+                    specinfos = {extract_trace_name(trace.name): trace for trace in specinfos}
+                    ionisation_mode = specinfos['DDA TOF MS'].analyticalTechnique.ionisationMode
+                    
+                    if ionisation_mode in spectra.keys():
+                        continue
+                    
+                    # Get data from server
+                    ls_scan = get_data(specinfos['MS LockSpray Reference Data'])
+                    data_scan = get_data(
+                        specinfos['DDA TOF MS'],
+                        rt_range=RTRange(0.1, 0.3)
+                    )
+                    
+                    # Apply peak picking and lock mass correction
+                    data_scan = peak_picking(data_scan) 
+                    if data_scan.peaklist:
+                        data_scan = lock_mass_correct(data_scan, ls_scan, ionisation_mode)
+                    spectra[ionisation_mode] = data_scan
+                            
+                    if {'+', '-'} <= spectra.keys():
+                        break
+                
+                exp = mspy_to_openms(spectra.values())
+                opts = oms.PeakFileOptions()
+                opts.setZstdCompression(True)
+                mzml = oms.MzMLFile()
+                mzml.setOptions(opts)
+                mzml.store(mzml_file, exp)
+                sample.status = SampleStatus.analysed
+            except (requests.exceptions.ConnectTimeout, urllib3.exceptions.MaxRetryError) as e:
+                log_error(e, f"Connection to UNIFI server failed during download spectra for {sanitize_log(sample.reference)}")
+                continue
             
-            exp = mspy_to_openms(spectra.values())
-            opts = oms.PeakFileOptions()
-            opts.setZstdCompression(True)
-            mzml = oms.MzMLFile()
-            mzml.setOptions(opts)
-            mzml.store(mzml_file, exp)
-            sample.status = SampleStatus.analysed
-            
+            try:
+                peaks_by_polarity = {}
+                for ionisation_mode, scan in spectra.items():
+                    polarity = {'+': 'positive', '-': 'negative'}.get(ionisation_mode)
+                    if polarity is not None and scan.peaklist:
+                        peaks_by_polarity[polarity] = [peak.mz for peak in scan.peaklist.peaks]
+                annotations = annotate_peaks(peaks_by_polarity, sample.mass)
+            except Exception as e:
+                log_error(e, f"Automatic peak annotation failed for {sanitize_log(sample.reference)}")
+                annotations = []
+            for annotation in annotations:
+                row = db.session.scalars(db.select(PeakAnnotation).where(
+                    PeakAnnotation.sample_id == sample.id,
+                    PeakAnnotation.charge == annotation['charge'],
+                    PeakAnnotation.mz == annotation['mz']
+                )).first()
+                if row:
+                    row.adduct = annotation['adduct']
+                    row.neutral_mass = annotation['neutral_mass']
+                else:
+                    db.session.add(PeakAnnotation(
+                        sample_id=sample.id,
+                        charge=annotation['charge'],
+                        mz=annotation['mz'],
+                        adduct=annotation['adduct'],
+                        neutral_mass=annotation['neutral_mass'],
+                        user_id=sample.user_id,
+                    ))
+            if annotations:
+                logger.info(f"{len(annotations)} peaks automatically annotated for {sanitize_log(sample.reference)}.")       
+
             try:
                 db.session.commit()
                 num_spectra = len(spectra)

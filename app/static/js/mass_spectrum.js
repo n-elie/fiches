@@ -92,9 +92,12 @@
             const containerEl = typeof container === 'string' ? document.querySelector(container) : container;
 
 			spectrum = Array.isArray(spectrum) ? spectrum : [];
-			const xMinOrig = spectrum.length ? Math.min(...spectrum.map(p => p.x)) - 5 : 0;
-			const xMaxOrig = spectrum.length ? Math.max(...spectrum.map(p => p.x)) + 5 : 100;
+			const rawSpectrum = Array.isArray(options.rawSpectrum) ? options.rawSpectrum : [];
+			const allPoints = spectrum.concat(rawSpectrum);
+			const xMinOrig = allPoints.length ? Math.min(...allPoints.map(p => p.x)) - 5 : 0;
+			const xMaxOrig = allPoints.length ? Math.max(...allPoints.map(p => p.x)) + 5 : 100;
 			const yMaxOrig = spectrum.length ? Math.max(10, Math.ceil(Math.max(...spectrum.map(p => p.y)) * 1.1)) : 100;
+			const centroidData = spectrum.map(p => [p.x, p.y]);
 
             const chart = echarts.init(containerEl, null, {
                 renderer: 'svg', locale: locale
@@ -125,6 +128,17 @@
                         itemPayload: {
                             annotations: annotMap || {}
                         }
+                    }]
+                });
+            }
+			
+			let centroidVisible = true;
+            function setCentroidVisible(visible) {
+                centroidVisible = visible;
+                if (!visible) setSelected(new Set());
+                chart.setOption({
+                    series: [{
+                        data: visible ? centroidData : []
                     }]
                 });
             }
@@ -225,6 +239,14 @@
                                 setSelected(new Set());
                             }
                         },
+                        myToggleCentroid: {
+                            show: true,
+                            title: i18n.toggleCentroid || 'Show/hide centroided peaks',
+                            icon: 'path://M20 75h14V45H20zM43 75h14V25H43zM66 75h14V55H66z',
+                            onclick: function() {
+                                setCentroidVisible(!centroidVisible);
+                            }
+                         },
                         mySpacer2: {
                             show: true,
                             title: ' ',
@@ -253,7 +275,7 @@
                 series: [{
                     type: 'custom',
                     renderItem: 'massSpectrum',
-                    data: spectrum.map(p => [p.x, p.y]),
+                    data: centroidData,
                     encode: {
                         x: 0,
                         y: 1
@@ -268,6 +290,31 @@
                     }
                 }]
             };
+			
+            // spectre brut (profilé) en fond : silent => aucune interaction (ni tooltip, ni clic, ni sélection)
+            if (rawSpectrum.length) {
+                option.series.push({
+                    type: 'line',
+                    name: 'raw',
+                    data: rawSpectrum.map(p => [p.x, p.y]),
+                    encode: {
+                        x: 0,
+                        y: 1
+                    },
+                    showSymbol: false,
+                    silent: true,
+                    z: 1,
+                    animation: false,
+                    lineStyle: {
+                        color: '#9e9e9e',
+                        width: 1,
+                        opacity: 0.6
+                    },
+                    areaStyle: {
+                        color: 'rgba(158, 158, 158, 0.12)'
+                    }
+                });
+            }
 
             chart.setOption(option);
             chart.dispatchAction({
@@ -339,6 +386,7 @@
 			
 			chart.getSelectedIndexes = getSelectedIndexes;
             chart.setAnnotations = setAnnotations;
+			chart.setCentroidVisible = setCentroidVisible;
 
             return chart;
         }

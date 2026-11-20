@@ -34,7 +34,7 @@
 				<div class="row">
 					<div class="col-12">
 						<h5 class="text-center">{{ _('Positive mode') }}</h5>
-						{% if spectrum_pos %}
+						{% if spectrum_pos or spectrum_pos_raw %}
 							<div class="chart-wrap">
 								<div id="mschart-pos" style="height: 400px"></div>
 							</div>
@@ -44,7 +44,7 @@
 					</div>
 					<div class="col-12">
 						<h5 class="text-center">{{ _('Negative mode') }}</h5>
-						{% if spectrum_neg %}
+						{% if spectrum_neg or spectrum_neg_raw %}
 							<div class="chart-wrap">
 								<div id="mschart-neg" style="height: 400px"></div>
 							</div>
@@ -80,6 +80,8 @@
 
             const spectrumPos = {{ spectrum_pos | tojson }};
             const spectrumNeg = {{ spectrum_neg | tojson }};
+			const spectrumPosRaw = {{ spectrum_pos_raw | tojson }};
+            const spectrumNegRaw = {{ spectrum_neg_raw | tojson }};
             const reference = '{{ sample.reference }}';
             const sampleId = {{ sample.id }};
             const adducts = {{ adducts | tojson }};
@@ -89,29 +91,32 @@
                 intensity: {{ _('Relative intensity (%%)') | tojson }},
                 restoreZoom: {{ _('Restore zoom') | tojson }},
                 selectAll: {{ _('Select all') | tojson }},
-                clearSelection: {{ _('Clear selection') | tojson }}
+                clearSelection: {{ _('Clear selection') | tojson }},
+                toggleCentroid: {{ _('Show/hide centroided peaks') | tojson }}
             };
 
             const chartInfos = [];
-            if (spectrumPos && spectrumPos.length) {
+            if (spectrumPos && (spectrumPos.length || spectrumPosRaw.length)) {
                 chartInfos.push({
                     polarity: 'positive',
                     spectrum: spectrumPos,
                     chart: MassSpectrum.create('#mschart-pos', spectrumPos, {
                         title: reference + ' (+)',
                         i18n: i18n,
-                        locale: {{ get_locale() | upper | tojson }}
+                        locale: {{ get_locale() | upper | tojson }},
+						rawSpectrum: spectrumPosRaw
                     })
                 });
             }
-            if (spectrumNeg && spectrumNeg.length) {
+            if (spectrumNeg && (spectrumNeg.length || spectrumNegRaw.length)) {
                 chartInfos.push({
                     polarity: 'negative',
                     spectrum: spectrumNeg,
                     chart: MassSpectrum.create('#mschart-neg', spectrumNeg, {
                         title: reference + ' (—)',
                         i18n: i18n,
-                        locale: {{ get_locale() | upper | tojson }}
+                        locale: {{ get_locale() | upper | tojson }},
+						rawSpectrum: spectrumNegRaw
                     })
                 });
             }
