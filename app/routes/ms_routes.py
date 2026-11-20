@@ -223,8 +223,6 @@ def sample_spectrum(sample_id):
         flash(_('Access denied'), 'error')
         return redirect(url_for('main.index'))
     
-    spectrum_pos, spectrum_neg = [], []
-    spectrum_pos_raw, spectrum_neg_raw = [], []
     mzml_file = os.path.join(current_app.config['UPLOAD_FOLDER'], 'ms', 'spectra', f'{sample.id}.mzML')
     if os.path.exists(mzml_file):
         try:
@@ -233,6 +231,7 @@ def sample_spectrum(sample_id):
 
             spectra = {'positive': [], 'negative': []}
             spectra_raw = {'positive': [], 'negative': []}
+            tic = {'positive': None, 'negative': None}
             for spec in exp.getSpectra():
                 if spec.getMSLevel() != 1:
                     continue
@@ -249,6 +248,9 @@ def sample_spectrum(sample_id):
                     spectra[key].extend(peaks)
                 elif spec.getType() == oms.SpectrumSettings.SpectrumType.PROFILE:
                     spectra_raw[key].extend(peaks)
+                    if spec.metaValueExists("total ion current"):
+                        value = float(spec.getMetaValue("total ion current"))
+                        tic[key] = value if tic[key] is None else max(tic[key], value)
 
             for key in spectra:
                 for peaks in (spectra[key], spectra_raw[key]):
@@ -258,11 +260,6 @@ def sample_spectrum(sample_id):
                             for p in peaks:
                                 p['y'] = p['y'] / max_inten * 100.0
                 spectra_raw[key] = downsample_profile(spectra_raw[key])
-
-            spectrum_pos = spectra['positive']
-            spectrum_neg = spectra['negative']
-            spectrum_pos_raw = spectra_raw['positive']
-            spectrum_neg_raw = spectra_raw['negative']
         except Exception as e:
             log_error(e, f"Reading mzML file {mzml_file}")
             flash(_('The spectrum could not be read.'), 'error')
@@ -270,10 +267,12 @@ def sample_spectrum(sample_id):
 
     return render_template('ms/sample_spectrum.html',
                            sample=sample,
-                           spectrum_pos=spectrum_pos,
-                           spectrum_neg=spectrum_neg,
-                           spectrum_pos_raw=spectrum_pos_raw,
-                           spectrum_neg_raw=spectrum_neg_raw,
+                           spectrum_pos=spectra['positive'],
+                           spectrum_neg=spectra['negative'],
+                           spectrum_pos_raw=spectra_raw['positive'],
+                           spectrum_neg_raw=spectra['negative'],
+                           tic_pos=tic['positive'],
+                           tic_neg=tic['negative'],
                            adducts=ADDUCTS)
                            
 @ms_bp.route('/sample/<int:sample_id>/spectrum/annotations')

@@ -2,6 +2,10 @@
 
 {% block css %}
     <style>
+		#mschart-pos, #mschart-neg {
+			height: 300px;
+		}
+		
         .chart-wrap { position: relative; }
         /* fenêtre flottante d'assignation d'adduit, ancrée au pic sélectionné */
         .adduct-popover {
@@ -35,8 +39,11 @@
 					<div class="col-12">
 						<h5 class="text-center">{{ _('Positive mode') }}</h5>
 						{% if spectrum_pos or spectrum_pos_raw %}
+							{% if tic_pos is not none %}
+								<p class="text-center text-muted small mb-1">{{ _('Total ion current') }} : {{ '%.3e' % tic_pos }}</p>
+							{% endif %}
 							<div class="chart-wrap">
-								<div id="mschart-pos" style="height: 400px"></div>
+								<div id="mschart-pos"></div>
 							</div>
 						{% else %}
 							<p class="text-center text-muted my-5">{{ _('No data available for this polarity.') }}</p>
@@ -45,8 +52,11 @@
 					<div class="col-12">
 						<h5 class="text-center">{{ _('Negative mode') }}</h5>
 						{% if spectrum_neg or spectrum_neg_raw %}
+							{% if tic_neg is not none %}
+								<p class="text-center text-muted small mb-1">{{ _('Total ion current') }} : {{ '%.3e' % tic_neg }}</p>
+							{% endif %}
 							<div class="chart-wrap">
-								<div id="mschart-neg" style="height: 400px"></div>
+								<div id="mschart-neg"></div>
 							</div>
 						{% else %}
 							<p class="text-center text-muted my-5">{{ _('No data available for this polarity.') }}</p>

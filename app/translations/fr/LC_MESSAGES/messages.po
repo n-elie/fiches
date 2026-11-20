@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2026-11-13 19:44+0100\n"
-"PO-Revision-Date: 2026-11-20 14:37+0100\n"
+"PO-Revision-Date: 2026-11-20 15:18+0100\n"
 "Last-Translator: \n"
 "Language-Team: fr <LL@li.org>\n"
 "Language: fr\n"
@@ -1615,6 +1615,10 @@ msgstr "Fiche à conserver"
 #: app/templates/ms/sample_spectrum.html:34
 msgid "Show/hide centroided peaks"
 msgstr "Afficher/masquer les pics centroidés"
+
+#: app/templates/ms/sample_spectrum.html:38 app/templates/ms/sample_spectrum.html:48
+msgid "Total ion current"
+msgstr "Courant d'ions total"
 
 #~ msgid "Error while generating the batch PDF: %(err)s"
 #~ msgstr "Erreur lors de la génération du PDF par lot : %(err)s"
