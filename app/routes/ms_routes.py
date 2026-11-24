@@ -13,7 +13,7 @@ import pandas as pd
 import pyopenms as oms
 import logging
 
-from ..models import db, MSSample, STATUS_NAMES, PeakAnnotation
+from ..models import db, MSSample, STATUS_NAMES, PeakAnnotation, PeakFormula
 from .main_routes import allowed_file
 from ..tasks import compute_spectrum_formulas
 from ..utils.mol import read_mol, mol_from_smiles, mol_to_smiles, mol_to_formula, formula_to_mass
@@ -348,7 +348,34 @@ def spectrum_formulas_status(sample_id, task_id):
             return jsonify({'error': _('Invalid task result')}), 403
         if not payload.get('ok'):
             return jsonify({'ok': False, 'state': result.state, 'error': payload.get('error', _('Task failed'))})
-        return jsonify({'ok': True, 'state': result.state, 'results': payload.get('results', [])})
+        # Les formules sont persistées en base par la tâche : lecture depuis la BDD
+        stmt = (
+            db.select(PeakFormula, PeakAnnotation)
+            .join(PeakAnnotation, PeakFormula.annotation_id == PeakAnnotation.id)
+            .where(PeakAnnotation.sample_id == sample_id)
+            .order_by(PeakAnnotation.charge.desc(), PeakAnnotation.mz, PeakFormula.id)
+        )
+        results = []
+        for formula, ann in db.session.execute(stmt):
+            polarity = '+' if ann.charge > 0 else '-'
+            adduct = find_adduct(polarity, ann.adduct) or {}
+            results.append({
+                'annotation_id': ann.id,
+                'polarity': polarity,
+                'adduct': ann.adduct,
+                'adduct_label': adduct.get('label', ann.adduct),
+                'mz': ann.mz,
+                'formula': formula.formula,
+                'neutral_mass': formula.neutral_mass,
+                'mz_exp': formula.mz_exp,
+                'mz_theo': formula.mz_theo,
+                'delta_ppm': formula.delta_ppm,
+                'delta_mda': formula.delta_mda,
+                'hc': formula.hc,
+                'rdbe': formula.rdbe,
+                'rms': formula.rms,
+            })
+        return jsonify({'ok': True, 'state': result.state, 'results': results})
     if result.state in ('FAILURE', 'REVOKED'):
         return jsonify({'ok': False, 'state': result.state, 'error': _('Task failed')})
     return jsonify({'ok': True, 'state': result.state}), 202

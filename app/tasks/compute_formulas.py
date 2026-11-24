@@ -4,7 +4,7 @@ import json
 import logging
 import os
 
-from ..models import db, MSSample, PeakAnnotation
+from ..models import db, MSSample, PeakAnnotation, PeakFormula
 from ..utils.adducts import find_adduct
 from ..utils.data_processing import load_mzml_spectra
 from ..utils.errors import log_error, sanitize_log
@@ -87,33 +87,37 @@ def compute_spectrum_formulas(self, sample_id):
             log_error(e, f"Reading json file {json_file}")
             return {'ok': False, 'error': 'Data could not be read.'}
 
-        results = []
+        num_results = 0
         for ann in annotations:
             polarity = '+' if ann.charge > 0 else '-'
             adduct = find_adduct(polarity, ann.adduct) or {}
             scan = spectra.get(polarity, {}).get('scan')
             isotopes_pol = isotopes.get(polarity, None)
+            # Remplacer les formules déjà persistées pour cette annotation
+            for old in db.session.scalars(
+                db.select(PeakFormula).where(PeakFormula.annotation_id == ann.id)
+            ).all():
+                db.session.delete(old)
             for candidate in compute_formulas(scan, ann.mz, ann.neutral_mass, ann.charge, get_closest(isotopes_pol, ann.mz)):
-                results.append({
-                    'annotation_id': ann.id,
-                    'polarity': polarity,
-                    'adduct': ann.adduct,
-                    'adduct_label': adduct.get('label', ann.adduct),
-                    'mz': ann.mz,
-                    'formula': candidate.get('formula'),
-                    'neutral_mass': candidate.get('neutral_mass'),
-                    'mz_exp': candidate.get('mz_exp', ann.mz),
-                    'mz_theo': candidate.get('mz_theo'),
-                    'delta_ppm': candidate.get('delta_ppm'),
-                    'delta_mda': candidate.get('delta_mda'),
-                    'hc': candidate.get('hc'),
-                    'rdbe': candidate.get('rdbe'),
-                    'rms': candidate.get('rms'),
-                })
+                db.session.add(PeakFormula(
+                    annotation_id=ann.id,
+                    formula=candidate.get('formula'),
+                    neutral_mass=candidate.get('neutral_mass'),
+                    mz_exp=candidate.get('mz_exp', ann.mz),
+                    mz_theo=candidate.get('mz_theo'),
+                    delta_ppm=candidate.get('delta_ppm'),
+                    delta_mda=candidate.get('delta_mda'),
+                    hc=candidate.get('hc'),
+                    rdbe=candidate.get('rdbe'),
+                    rms=candidate.get('rms'),
+                ))
+                num_results += 1
+        db.session.commit()
 
-        logger.info(f"{len(results)} formula(s) computed for sample {sanitize_log(sample.reference)} (ID={sample.id})")
-        return {'ok': True, 'sample_id': sample_id, 'results': results}
+        logger.info(f"{num_results} formula(s) computed for sample {sanitize_log(sample.reference)} (ID={sample.id})")
+        return {'ok': True, 'sample_id': sample_id}
 
     except Exception as e:
+        db.session.rollback()
         log_error(e, f"Formula computation for sample {sample_id}")
         return {'ok': False, 'error': 'Formula computation failed.'}

@@ -172,3 +172,26 @@ class PeakAnnotation(db.Model):
 
     def __repr__(self):
         return f'<PeakAnnotation {self.adduct} @ {self.mz} (sample {self.sample_id}, z={self.charge})>'
+        
+class PeakFormula(db.Model):
+    """Formule brute calculée pour un pic annoté (résultat de compute_formulas)"""
+
+    __tablename__ = 'peak_formulas'
+
+    id = db.Column(db.Integer, primary_key=True)
+    annotation_id = db.Column(db.Integer, db.ForeignKey('peak_annotations.id'), nullable=False, index=True)
+    formula = db.Column(db.String(100), nullable=False)
+    neutral_mass = db.Column(db.Float, nullable=True)
+    mz_exp = db.Column(db.Float, nullable=True)
+    mz_theo = db.Column(db.Float, nullable=True)
+    delta_ppm = db.Column(db.Float, nullable=True)
+    delta_mda = db.Column(db.Float, nullable=True)
+    hc = db.Column(db.Float, nullable=True)
+    rdbe = db.Column(db.Float, nullable=True)
+    rms = db.Column(db.Float, nullable=True)
+    computed_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    annotation = db.relationship('PeakAnnotation', backref='formulas')
+
+    def __repr__(self):
+        return f'<PeakFormula {self.formula} (annotation {self.annotation_id})>'

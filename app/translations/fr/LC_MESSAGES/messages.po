@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2026-11-13 19:44+0100\n"
-"PO-Revision-Date: 2026-11-24 14:08+0100\n"
+"PO-Revision-Date: 2026-11-24 16:18+0100\n"
 "Last-Translator: \n"
 "Language-Team: fr <LL@li.org>\n"
 "Language: fr\n"
@@ -1639,6 +1639,10 @@ msgstr "Calcul des formules en cours..."
 #: app/templates/ms/sample_spectrum.html:393
 msgid "Formula computation failed."
 msgstr "Échec du calcul des formules."
+
+#: app/templates/ms/sample_spectrum.html:100
+msgid "Polarity"
+msgstr "Polarité"
 
 #~ msgid "Error while generating the batch PDF: %(err)s"
 #~ msgstr "Erreur lors de la génération du PDF par lot : %(err)s"
