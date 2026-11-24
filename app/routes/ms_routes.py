@@ -232,6 +232,7 @@ def sample_spectrum(sample_id):
 
     return render_template('ms/sample_spectrum.html',
                            sample=sample,
+                           user=current_user,
                            spectrum_pos=spectra['+']['centroid'],
                            spectrum_neg=spectra['-']['centroid'],
                            spectrum_pos_raw=spectra['+']['profile'],
@@ -319,8 +320,7 @@ def delete_annotation(sample_id, annotation_id):
     db.session.delete(row)
     db.session.commit()
     return jsonify({'ok': True})
-    
-    
+
 @ms_bp.route('/sample/<int:sample_id>/spectrum/formulas', methods=['POST'])
 @login_required
 def spectrum_formulas(sample_id):
@@ -329,7 +329,7 @@ def spectrum_formulas(sample_id):
     if sample.user_id != current_user.id and not current_user.is_admin:
         return jsonify({'error': _('Access denied')}), 403
 
-    # Le traitement lourd (compute_formulae) est délégué à une tâche Celery
+    # Le traitement lourd (compute_formulas) est délégué à une tâche Celery
     task = compute_spectrum_formulas.delay(sample_id)
     return jsonify({'ok': True, 'task_id': task.id}), 202
 
