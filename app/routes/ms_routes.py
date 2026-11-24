@@ -19,7 +19,7 @@ from ..utils.check_data import is_valid_reference, is_valid_formula
 from ..utils.errors import log_error, report_error
 from ..utils.adducts import ADDUCTS, find_adduct, neutral_mass
 from ..utils.data_processing import openms_to_mspy, load_mzml_spectra
-from ..utils.peak_composition import compute_formulae
+from ..utils.peak_composition import compute_formulas
 
 ms_bp = Blueprint('ms', __name__, url_prefix='/ms')
 
@@ -386,7 +386,7 @@ def spectrum_formulas(sample_id):
         adduct = find_adduct(polarity, ann.adduct) or {}
         scan = spectra.get(polarity, {}).get('scan')
         isotopes_pol = isotopes.get(polarity, None)
-        for candidate in compute_formulae(scan, ann.mz, ann.neutral_mass, ann.charge, get_closest(isotopes_pol, ann.mz)):
+        for candidate in compute_formulas(scan, ann.mz, ann.neutral_mass, ann.charge, get_closest(isotopes_pol, ann.mz)):
             results.append({
                 'annotation_id': ann.id,
                 'polarity': polarity,
