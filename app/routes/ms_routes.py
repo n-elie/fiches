@@ -6,10 +6,11 @@ from sqlalchemy import desc
 import os
 import io
 import zipfile
-import numpy as np
 from datetime import datetime
 import pandas as pd
 import pyopenms as oms
+import json
+import logging
 
 from ..models import db, MSSample, STATUS_NAMES, PeakAnnotation
 from .main_routes import allowed_file
@@ -17,8 +18,34 @@ from ..utils.mol import read_mol, mol_from_smiles, mol_to_smiles, mol_to_formula
 from ..utils.check_data import is_valid_reference, is_valid_formula
 from ..utils.errors import log_error, report_error
 from ..utils.adducts import ADDUCTS, find_adduct, neutral_mass
+from ..utils.data_processing import openms_to_mspy, load_mzml_spectra
+from ..utils.peak_composition import compute_formulae
 
 ms_bp = Blueprint('ms', __name__, url_prefix='/ms')
+
+logger = logging.getLogger(__name__)
+
+def parse_float_keys(pairs):
+    """Object pairs hook to read dict with float keys from json"""
+    
+    result = {}
+    for k, v in pairs:
+        try:
+            k = float(k)
+        except ValueError:
+            pass
+        result[k] = v
+    return result
+
+def get_closest(data, target, max_diff=1e-6):
+    """Trouver la clé la plus proche dans un dict avec des clés float"""
+    
+    if not data:
+        return None
+    closest_key = min(data.keys(), key=lambda k: abs(k - target))
+    if abs(closest_key - target) > max_diff:
+        return None
+    return data[closest_key]
 
 IMPORT_EXTENSIONS = {'.xlsx', '.ods', '.csv'}
 ZIP_MAGIC = b'PK\x03\x04'  # .xlsx et .ods sont des conteneurs ZIP
@@ -45,26 +72,6 @@ def _detect_import_filetype(filename: str, data: bytes) -> str:
     if ext == '.ods' and 'mimetype' not in names:
         raise ValueError(_('The file is not a valid .ods document'))
     return 'excel' if ext == '.xlsx' else 'ods'
-    
-MAX_RAW_POINTS = 10000  # plafond de points affichés pour le spectre brut (profilé) en fond
-
-def downsample_profile(peaks, max_points=MAX_RAW_POINTS):
-    """Limite le nombre de points d'un spectre profilé (intensité max par bac de m/z) pour alléger l'affichage."""
-    if len(peaks) <= max_points:
-        return peaks
-    x = np.array([p['x'] for p in peaks], dtype=float)
-    y = np.array([p['y'] for p in peaks], dtype=float)
-    order = np.argsort(x, kind='stable')
-    x, y = x[order], y[order]
-    x_min, x_max = x[0], x[-1]
-    if x_max <= x_min:
-        return [peaks[order[0]]]
-    
-    bins = np.minimum(((x - x_min) / (x_max - x_min) * max_points).astype(np.int64), max_points - 1)
-    by_bin = np.lexsort((y, bins))                        # tri par bac, puis par intensité croissante
-    sorted_bins = bins[by_bin]
-    keep = np.append(sorted_bins[1:] != sorted_bins[:-1], True)  # dernier point de chaque bac = intensité max
-    return [peaks[i] for i in order[by_bin[keep]]]    
     
 @ms_bp.route('/sample/submit', methods=['GET', 'POST'])
 @login_required
@@ -226,53 +233,32 @@ def sample_spectrum(sample_id):
     mzml_file = os.path.join(current_app.config['UPLOAD_FOLDER'], 'ms', 'spectra', f'{sample.id}.mzML')
     if os.path.exists(mzml_file):
         try:
-            exp = oms.MSExperiment()
-            oms.MzMLFile().load(mzml_file, exp)
-
-            spectra = {'positive': [], 'negative': []}
-            spectra_raw = {'positive': [], 'negative': []}
-            tic = {'positive': None, 'negative': None}
-            for spec in exp.getSpectra():
-                if spec.getMSLevel() != 1:
-                    continue
-                polarity = spec.getInstrumentSettings().getPolarity()
-                if polarity == oms.IonSource.Polarity.POSITIVE:
-                    key = 'positive'
-                elif polarity == oms.IonSource.Polarity.NEGATIVE:
-                    key = 'negative'
-                else:
-                    continue
-                mz_array, intensity_array = spec.get_peaks()
-                peaks = [{'x': float(mz), 'y': float(inten)} for mz, inten in zip(mz_array, intensity_array)]
-                if spec.getType() == oms.SpectrumSettings.SpectrumType.CENTROID:
-                    spectra[key].extend(peaks)
-                elif spec.getType() == oms.SpectrumSettings.SpectrumType.PROFILE:
-                    spectra_raw[key].extend(peaks)
-                    if spec.metaValueExists("total ion current"):
-                        value = float(spec.getMetaValue("total ion current"))
-                        tic[key] = value if tic[key] is None else max(tic[key], value)
+            spectra = load_mzml_spectra(mzml_file)
 
             for key in spectra:
-                for peaks in (spectra[key], spectra_raw[key]):
+                for peaks in (spectra[key]['centroid'], spectra[key]['profile']):
                     if peaks:
                         max_inten = max(p['y'] for p in peaks)
                         if max_inten > 0:
                             for p in peaks:
                                 p['y'] = p['y'] / max_inten * 100.0
-                spectra_raw[key] = downsample_profile(spectra_raw[key])
         except Exception as e:
             log_error(e, f"Reading mzML file {mzml_file}")
             flash(_('The spectrum could not be read.'), 'error')
             return redirect(url_for('main.index'))
+    else:
+        logger.error(f"MzML file {mzml_file} doest not exist.")
+        flash(_('The spectrum file doest not exist.'), 'error')
+        return redirect(url_for('main.index'))
 
     return render_template('ms/sample_spectrum.html',
                            sample=sample,
-                           spectrum_pos=spectra['positive'],
-                           spectrum_neg=spectra['negative'],
-                           spectrum_pos_raw=spectra_raw['positive'],
-                           spectrum_neg_raw=spectra['negative'],
-                           tic_pos=tic['positive'],
-                           tic_neg=tic['negative'],
+                           spectrum_pos=spectra['+']['centroid'],
+                           spectrum_neg=spectra['-']['centroid'],
+                           spectrum_pos_raw=spectra['+']['profile'],
+                           spectrum_neg_raw=spectra['-']['profile'],
+                           tic_pos=spectra['+']['tic'],
+                           tic_neg=spectra['-']['tic'],
                            adducts=ADDUCTS)
                            
 @ms_bp.route('/sample/<int:sample_id>/spectrum/annotations')
@@ -289,10 +275,10 @@ def spectrum_annotations(sample_id):
     ).all()
     return jsonify([{
         'id': r.id,
-        'polarity': 'positive' if r.charge > 0 else 'negative',
+        'polarity': '+' if r.charge > 0 else '-',
         'mz': r.mz,
         'adduct': r.adduct,  # code stable stocké en base (ex. 'M+H')
-        'adduct_label': (find_adduct('positive' if r.charge > 0 else 'negative', r.adduct) or {}).get('label', r.adduct),
+        'adduct_label': (find_adduct('+' if r.charge > 0 else '-', r.adduct) or {}).get('label', r.adduct),
         'neutral_mass': r.neutral_mass,
         'created_at': r.created_at.isoformat() if r.created_at else None,
     } for r in rows])
@@ -306,8 +292,8 @@ def save_annotation(sample_id):
         return jsonify({'error': _('Access denied')}), 403
 
     data = request.get_json(force=True, silent=True) or {}
-    polarity = data.get('polarity')  # 'positive' | 'negative' (contrat API, inchangé)
-    key = data.get('adduct')  # code de l'adduit (ex. 'M+H') ; un label est accepté en secours
+    polarity = data.get('polarity')  # '+' | '-'
+    key = data.get('adduct')  # code de l'adduit (ex. 'M+H')
     try:
         mz = float(data.get('mz'))
     except (TypeError, ValueError):
@@ -354,6 +340,70 @@ def delete_annotation(sample_id, annotation_id):
     db.session.delete(row)
     db.session.commit()
     return jsonify({'ok': True})
+    
+    
+@ms_bp.route('/sample/<int:sample_id>/spectrum/formulas', methods=['POST'])
+@login_required
+def spectrum_formulas(sample_id):
+    """Formules brutes des pics annotés d'un spectre (JSON)."""
+    sample = db.get_or_404(MSSample, sample_id)
+    if sample.user_id != current_user.id and not current_user.is_admin:
+        return jsonify({'error': _('Access denied')}), 403
+
+    annotations = db.session.scalars(
+        db.select(PeakAnnotation)
+        .where(PeakAnnotation.sample_id == sample_id)
+        .order_by(PeakAnnotation.charge.desc(), PeakAnnotation.mz)
+    ).all()
+
+    # Lecture du spectre depuis le mzML
+    mzml_file = os.path.join(current_app.config['UPLOAD_FOLDER'], 'ms', 'spectra', f'{sample.id}.mzML')
+    scans = {}
+    if os.path.exists(mzml_file):
+        try:
+            spectra = load_mzml_spectra(mzml_file)
+        except Exception as e:
+            log_error(e, f"Reading mzML file {mzml_file}")
+            return jsonify({'error': _('The spectrum could not be read.')}), 500
+    else:
+        return jsonify({'error': _('Spectrum file doest not exist.')}), 500
+
+    # Charger les spectres données depuis le json (ratio isotopiques)
+    json_file = os.path.join(current_app.config['UPLOAD_FOLDER'], 'ms', 'spectra', f'{sample.id}.json')
+    if os.path.exists(json_file):
+        try:
+            with open(json_file, "r") as f:
+                isotopes = json.load(f, object_pairs_hook=parse_float_keys)
+        except Exception as e:
+            log_error(e, f"Reading json file {json_file}")
+            return jsonify({'error': _('Data could not be read.')}), 500
+    else:
+        return jsonify({'error': _('Data file doest not exist.')}), 500
+
+    results = []
+    for ann in annotations:
+        polarity = '+' if ann.charge > 0 else '-'
+        adduct = find_adduct(polarity, ann.adduct) or {}
+        scan = spectra.get(polarity, {}).get('scan')
+        isotopes_pol = isotopes.get(polarity, None)
+        for candidate in compute_formulae(scan, ann.mz, ann.neutral_mass, ann.charge, get_closest(isotopes_pol, ann.mz)):
+            results.append({
+                'annotation_id': ann.id,
+                'polarity': polarity,
+                'adduct': ann.adduct,
+                'adduct_label': adduct.get('label', ann.adduct),
+                'mz': ann.mz,
+                'formula': candidate.get('formula'),
+                'neutral_mass': candidate.get('neutral_mass'),
+                'mz_exp': candidate.get('mz_exp', ann.mz),
+                'mz_theo': candidate.get('mz_theo'),
+                'delta_ppm': candidate.get('delta_ppm'),
+                'delta_mda': candidate.get('delta_mda'),
+                'hc': candidate.get('hc'),
+                'rdbe': candidate.get('rdbe'),
+                'rms': candidate.get('rms'),
+            })
+    return jsonify({'ok': True, 'results': results})
 
     
 @ms_bp.route('/sample/<int:sample_id>/edit', methods=['GET', 'POST'])

@@ -5,7 +5,7 @@ Formule : m/z = (n * M + mass) / |z|   =>   M = (|z| * m/z - mass) / n
 """
 
 ADDUCTS = {
-    "positive": [
+    "+": [
         {"code": "M+H",         "label": "[M+H]⁺",       "mass": 1.007276,  "z": 1},
         {"code": "M+NH4",       "label": "[M+NH4]⁺",     "mass": 18.033823, "z": 1},
         {"code": "M+Na",        "label": "[M+Na]⁺",      "mass": 22.989218, "z": 1},
@@ -15,7 +15,7 @@ ADDUCTS = {
         {"code": "2M+H",        "label": "[2M+H]⁺",      "mass": 1.007276,  "z": 1, "n": 2},
         {"code": "2M+Na",       "label": "[2M+Na]⁺",     "mass": 22.989218, "z": 1, "n": 2},
     ],
-    "negative": [
+    "-": [
         {"code": "M-H",         "label": "[M-H]⁻",       "mass": -1.007276,  "z": -1},
         {"code": "M+HCOO",      "label": "[M+HCOO]⁻",    "mass": 44.998201,  "z": -1},   # acide formique
         {"code": "M+Cl",        "label": "[M+Cl]⁻",      "mass": 34.969402,  "z": -1},

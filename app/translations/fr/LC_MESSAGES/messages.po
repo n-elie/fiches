@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2026-11-13 19:44+0100\n"
-"PO-Revision-Date: 2026-11-20 15:18+0100\n"
+"PO-Revision-Date: 2026-11-20 17:04+0100\n"
 "Last-Translator: \n"
 "Language-Team: fr <LL@li.org>\n"
 "Language: fr\n"
@@ -1619,6 +1619,18 @@ msgstr "Afficher/masquer les pics centroidés"
 #: app/templates/ms/sample_spectrum.html:38 app/templates/ms/sample_spectrum.html:48
 msgid "Total ion current"
 msgstr "Courant d'ions total"
+
+#: app/templates/ms/sample_spectrum.html:59
+msgid "Determine brute formulas of annotated peaks"
+msgstr "Déterminer les formules brutes des pics annotés"
+
+#: app/templates/ms/sample_spectrum.html:66
+msgid "Adduct"
+msgstr "Adduit"
+
+#: app/templates/ms/sample_spectrum.html:80
+msgid "No formula found."
+msgstr "Aucune formule trouvée."
 
 #~ msgid "Error while generating the batch PDF: %(err)s"
 #~ msgstr "Erreur lors de la génération du PDF par lot : %(err)s"

@@ -81,6 +81,33 @@
 				</div>
 			</div>
 		</div>
+		<div class="row">
+			<div class="col-12 mt-3">
+				<button type="button" id="btn-formulas" class="btn btn-outline-primary btn-sm">
+					<i class="fas fa-flask"></i> {{ _('Determine brute formulas of annotated peaks') }}
+				</button>
+				<div id="formulas-wrap" class="table-responsive mt-2" style="display: none;">
+					<table class="table table-sm table-striped mb-0" id="formulas-table">
+						<thead>
+							<tr>
+								<th><i>m/z</i></th>
+								<th>{{ _('Adduct') }}</th>
+								<th>{{ _('Formula') }}</th>
+								<th>M</th>
+								<th><i>m/z</i> th</th>
+								<th>Δ ppm</th>
+								<th>Δ mDa</th>
+								<th>H/C</th>
+								<th>RDBE</th>
+								<th>RMS</th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+					<p id="no-formulas" class="text-muted small mb-0" style="display: none;">{{ _('No formula found.') }}</p>
+				</div>
+			</div>
+		</div>
 	</div>
 {% endblock %}
 
@@ -110,7 +137,7 @@
             const chartInfos = [];
             if (spectrumPos && (spectrumPos.length || spectrumPosRaw.length)) {
                 chartInfos.push({
-                    polarity: 'positive',
+                    polarity: '+',
                     spectrum: spectrumPos,
                     chart: MassSpectrum.create('#mschart-pos', spectrumPos, {
                         i18n: i18n,
@@ -121,7 +148,7 @@
             }
             if (spectrumNeg && (spectrumNeg.length || spectrumNegRaw.length)) {
                 chartInfos.push({
-                    polarity: 'negative',
+                    polarity: '-',
                     spectrum: spectrumNeg,
                     chart: MassSpectrum.create('#mschart-neg', spectrumNeg, {
                         i18n: i18n,
@@ -194,7 +221,7 @@
 					text.className = 'ann-text';
                     const pol = document.createElement('span');
                     pol.className = 'badge bg-secondary me-1';
-                    pol.textContent = a.polarity === 'positive' ? '+' : '−';
+                    pol.textContent = a.polarity;
                     const mzSpan = document.createElement('strong');
                     mzSpan.textContent = a.mz.toFixed(4);
 					mzTextSpan = document.createElement('i');
@@ -359,6 +386,52 @@
                     annotations = [];
                     renderAnnotationsList();
                 });
+
+            // ---------- Formules brutes des pics annotés ----------
+
+            const formulasUrl = {{ url_for('ms.spectrum_formulas', sample_id=sample.id) | tojson }};
+            const btnFormulas = document.getElementById('btn-formulas');
+            const formulasWrap = document.getElementById('formulas-wrap');
+            const formulasBody = document.querySelector('#formulas-table tbody');
+            const noFormulasEl = document.getElementById('no-formulas');
+
+            btnFormulas.addEventListener('click', function() {
+                btnFormulas.disabled = true;
+                fetchJSON(formulasUrl, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: '{}'
+                })
+                    .then(function(result) {
+                        formulasBody.textContent = '';
+                        const rows = result.ok && result.data ? result.data.results : [];
+                        rows.forEach(function(r) {
+                            const tr = document.createElement('tr');
+                            const cells = [
+                                r.mz != null ? r.mz.toFixed(4) : '',
+                                (r.adduct_label || r.adduct),
+                                r.formula || '',
+                                r.neutral_mass != null ? r.neutral_mass.toFixed(4) : '',
+                                r.mz_theo != null ? r.mz_theo.toFixed(4) : '',
+                                r.delta_ppm != null ? r.delta_ppm.toFixed(2) : '',
+                                r.delta_mda != null ? r.delta_mda.toFixed(3) : '',
+                                r.hc != null ? r.hc.toFixed(2) : '',
+                                r.rdbe != null ? r.rdbe.toFixed(1) : '',
+                                r.rms != null ? r.rms.toFixed(1) : ''
+                            ];
+                            cells.forEach(function(v) {
+                                const td = document.createElement('td');
+                                td.textContent = v;
+                                tr.append(td);
+                            });
+                            formulasBody.append(tr);
+                        });
+                        formulasWrap.style.display = 'block';
+                        noFormulasEl.style.display = rows.length ? 'none' : 'block';
+                    })
+                    .catch(function(err) { console.error(err); })
+                    .finally(function() { btnFormulas.disabled = false; });
+            });
         });
     </script>
 {% endblock %}
