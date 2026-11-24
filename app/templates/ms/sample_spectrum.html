@@ -122,6 +122,7 @@
 					<table class="table table-sm table-striped mb-0" id="formulas-table">
 						<thead class="table-dark">
 							<tr>
+								{{ sortable_th('polarity', _('Polarity')) }}
 								{{ sortable_th('mz', '<i>m/z</i>') }}
 								{{ sortable_th('adduct', _('Adduct')) }}
 								{{ sortable_th('formula', _('Formula')) }}
@@ -151,7 +152,7 @@
 
             const spectrumPos = {{ spectrum_pos | tojson }};
             const spectrumNeg = {{ spectrum_neg | tojson }};
-			const spectrumPosRaw = {{ spectrum_pos_raw | tojson }};
+            const spectrumPosRaw = {{ spectrum_pos_raw | tojson }};
             const spectrumNegRaw = {{ spectrum_neg_raw | tojson }};
             const reference = '{{ sample.reference }}';
             const sampleId = {{ sample.id }};
@@ -174,7 +175,7 @@
                     chart: MassSpectrum.create('#mschart-pos', spectrumPos, {
                         i18n: i18n,
                         locale: {{ get_locale() | upper | tojson }},
-						rawSpectrum: spectrumPosRaw
+                        rawSpectrum: spectrumPosRaw
                     })
                 });
             }
@@ -185,7 +186,7 @@
                     chart: MassSpectrum.create('#mschart-neg', spectrumNeg, {
                         i18n: i18n,
                         locale: {{ get_locale() | upper | tojson }},
-						rawSpectrum: spectrumNegRaw
+                        rawSpectrum: spectrumNegRaw
                     })
                 });
             }
@@ -250,15 +251,15 @@
                     li.className = 'list-group-item d-flex justify-content-between align-items-center py-1 px-0';
 
                     const text = document.createElement('span');
-					text.className = 'ann-text';
+                    text.className = 'ann-text';
                     const pol = document.createElement('span');
                     pol.className = 'badge bg-secondary me-1';
                     pol.textContent = a.polarity;
                     const mzSpan = document.createElement('strong');
                     mzSpan.textContent = a.mz.toFixed(4);
-					mzTextSpan = document.createElement('i');
-					mzTextSpan.textContent = 'm/z ';
-					mzSpan.prepend(mzTextSpan);
+                    mzTextSpan = document.createElement('i');
+                    mzTextSpan.textContent = 'm/z ';
+                    mzSpan.prepend(mzTextSpan);
                     const adductSpan = document.createElement('span');
                     adductSpan.className = 'ms-1';
                     adductSpan.textContent = a.adduct_label || a.adduct;
@@ -369,9 +370,9 @@
                 const existing = annotationFor(info.polarity, mz);
 
                 info.popMzSpan.textContent = mz.toFixed(4);
-				mzTextSpan = document.createElement('i');
-				mzTextSpan.textContent = 'm/z ';
-				info.popMzSpan.prepend(mzTextSpan);
+                mzTextSpan = document.createElement('i');
+                mzTextSpan.textContent = 'm/z ';
+                info.popMzSpan.prepend(mzTextSpan);
 
                 info.popSelect.textContent = '';
                 (adducts[info.polarity] || []).forEach(a => {
@@ -419,180 +420,162 @@
                     renderAnnotationsList();
                 });
 
-			// ---------- Formules brutes des pics annotés (calcul asynchrone via Celery) ----------
+            // ---------- Formules brutes des pics annotés (calcul asynchrone via Celery) ----------
 
-			const formulasUrl = {{ url_for('ms.spectrum_formulas', sample_id=sample.id) | tojson }};
-			const formulasStatusUrl = {{ url_for('ms.spectrum_formulas_status', sample_id=sample.id, task_id='TASK_ID') | tojson }};
-			const msgComputing = {{ _('Computing formulas...') | tojson }};
-			const msgFailed = {{ _('Formula computation failed.') | tojson }};
-			const btnFormulas = document.getElementById('btn-formulas');
-			const btnFormulasLabel = btnFormulas.innerHTML;
-			const formulasWrap = document.getElementById('formulas-wrap');
-			const formulasBody = document.querySelector('#formulas-table tbody');
-			const noFormulasEl = document.getElementById('no-formulas');
-			let formulasTimer = null;
+            const formulasUrl = {{ url_for('ms.spectrum_formulas', sample_id=sample.id) | tojson }};
+            const formulasStatusUrl = {{ url_for('ms.spectrum_formulas_status', sample_id=sample.id, task_id='TASK_ID') | tojson }};
+            const msgComputing = {{ _('Computing formulas...') | tojson }};
+            const msgFailed = {{ _('Formula computation failed.') | tojson }};
+            const btnFormulas = document.getElementById('btn-formulas');
+            const btnFormulasLabel = btnFormulas.innerHTML;
+            const formulasWrap = document.getElementById('formulas-wrap');
+            const formulasBody = document.querySelector('#formulas-table tbody');
+            const noFormulasEl = document.getElementById('no-formulas');
+            let formulasTimer = null;
+            let formulaRows = [];
+            let formulasSortCol = -1;
+            let formulasSortAsc = true;
 
-			function renderFormulaRows(rows) {
-				formulasBody.textContent = '';
-				rows.forEach(function(r) {
-					const tr = document.createElement('tr');
-					const cells = [
-						r.mz != null ? r.mz.toFixed(4) : '',
-						(r.adduct_label || r.adduct),
-						r.formula || '',
-						r.neutral_mass != null ? r.neutral_mass.toFixed(4) : '',
-						r.mz_theo != null ? r.mz_theo.toFixed(4) : '',
-						r.delta_ppm != null ? r.delta_ppm.toFixed(2) : '',
-						r.delta_mda != null ? r.delta_mda.toFixed(3) : '',
-						r.hc != null ? r.hc.toFixed(2) : '',
-						r.rdbe != null ? r.rdbe.toFixed(1) : '',
-						r.rms != null ? r.rms.toFixed(1) : ''
-					];
-					cells.forEach(function(v) {
-						const td = document.createElement('td');
-						td.textContent = v;
-						tr.append(td);
-					});
-					formulasBody.append(tr);
-				});
-				formulasWrap.style.display = 'block';
-				noFormulasEl.style.display = rows.length ? 'none' : 'block';
-			}
+            const formulaColumns = [
+			    {key: 'polarity', val: function(r) { return r.polarity || ''; }, fmt: function(r) { return r.polarity || ''; }, render: function(td, r) {
+					const badge = document.createElement('span');
+					badge.className = 'badge bg-secondary';
+					badge.textContent = r.polarity || '';
+					td.append(badge);
+				}},
+                {key: 'mz', val: function(r) { return r.mz; }, fmt: function(r) { return r.mz != null ? r.mz.toFixed(4) : ''; }},
+                {key: 'adduct', val: function(r) { return r.adduct_label || r.adduct || ''; }, fmt: function(r) { return r.adduct_label || r.adduct || ''; }},
+                {key: 'formula', val: function(r) { return r.formula || ''; }, fmt: function(r) { return r.formula || ''; }},
+                {key: 'neutral_mass', val: function(r) { return r.neutral_mass; }, fmt: function(r) { return r.neutral_mass != null ? r.neutral_mass.toFixed(4) : ''; }},
+                {key: 'mz_theo', val: function(r) { return r.mz_theo; }, fmt: function(r) { return r.mz_theo != null ? r.mz_theo.toFixed(4) : ''; }},
+                {key: 'delta_ppm', val: function(r) { return r.delta_ppm; }, fmt: function(r) { return r.delta_ppm != null ? r.delta_ppm.toFixed(2) : ''; }},
+                {key: 'delta_mda', val: function(r) { return r.delta_mda; }, fmt: function(r) { return r.delta_mda != null ? r.delta_mda.toFixed(3) : ''; }},
+                {key: 'hc', val: function(r) { return r.hc; }, fmt: function(r) { return r.hc != null ? r.hc.toFixed(2) : ''; }},
+                {key: 'rdbe', val: function(r) { return r.rdbe; }, fmt: function(r) { return r.rdbe != null ? r.rdbe.toFixed(1) : ''; }},
+                {key: 'rms', val: function(r) { return r.rms; }, fmt: function(r) { return r.rms != null ? r.rms.toFixed(1) : ''; }}
+            ];
 
-			function showFormulasError(message) {
-				formulasBody.textContent = '';
-				noFormulasEl.textContent = message || msgFailed;
-				formulasWrap.style.display = 'block';
-				noFormulasEl.style.display = 'block';
-			}
+            function compareFormulaRows(a, b, colIdx) {
+                const va = formulaColumns[colIdx].val(a);
+                const vb = formulaColumns[colIdx].val(b);
+                if (va == null && vb == null) return 0;
+                if (va == null) return 1;
+                if (vb == null) return -1;
+                if (typeof va === 'number' && typeof vb === 'number') return va - vb;
+                return String(va).localeCompare(String(vb));
+            }
 
-			function finishFormulasPolling() {
-				if (formulasTimer) { clearTimeout(formulasTimer); formulasTimer = null; }
-				btnFormulas.disabled = false;
-				btnFormulas.innerHTML = btnFormulasLabel;
-			}
+            function updateFormulasSortIcons() {
+                document.querySelectorAll('#formulas-table thead th.sortable').forEach(function(th) {
+                    const icon = th.querySelector('.sort-icon');
+                    if (!icon) return;
+                    const idx = formulaColumns.findIndex(function(c) { return c.key === th.getAttribute('data-col'); });
+                    icon.className = 'fas sort-icon ' + (idx === formulasSortCol ? (formulasSortAsc ? 'fa-sort-up' : 'fa-sort-down') : '');
+                });
+            }
 
-			function pollFormulasTask(taskId, attempts) {
-				const url = formulasStatusUrl.replace('TASK_ID', encodeURIComponent(taskId));
-				fetchJSON(url)
-					.then(function(result) {
-						const data = result.data || {};
-						if (data.state === 'SUCCESS' && data.ok) {
-							renderFormulaRows(data.results || []);
-							finishFormulasPolling();
-						} else if (data.state === 'SUCCESS' || data.state === 'FAILURE' || data.state === 'REVOKED' || attempts >= 150) {
-							showFormulasError(data.error);
-							finishFormulasPolling();
+            function renderFormulaRows(rows) {
+                formulaRows = rows;
+                let sorted = formulaRows;
+                if (formulasSortCol >= 0) {
+                    sorted = formulaRows.slice().sort(function(a, b) {
+                        const cmp = compareFormulaRows(a, b, formulasSortCol);
+                        return formulasSortAsc ? cmp : -cmp;
+                    });
+                }
+                formulasBody.textContent = '';
+                sorted.forEach(function(r) {
+                    const tr = document.createElement('tr');
+                    formulaColumns.forEach(function(c) {
+                        const td = document.createElement('td');
+						if (c.render) {
+							c.render(td, r);
 						} else {
-							formulasTimer = setTimeout(function() { pollFormulasTask(taskId, attempts + 1); }, 2000);
+							td.textContent = c.fmt(r);
 						}
-					})
-					.catch(function(err) {
-						console.error(err);
-						showFormulasError();
-						finishFormulasPolling();
-					});
-			}
+                        tr.append(td);
+                    });
+                    formulasBody.append(tr);
+                });
+                formulasWrap.style.display = 'block';
+                noFormulasEl.style.display = sorted.length ? 'none' : 'block';
+                updateFormulasSortIcons();
+            }
 
-			btnFormulas.addEventListener('click', function() {
-				btnFormulas.disabled = true;
-				if (formulasTimer) { clearTimeout(formulasTimer); formulasTimer = null; }
-				formulasBody.textContent = '';
-				formulasWrap.style.display = 'block';
-				noFormulasEl.textContent = msgComputing;
-				noFormulasEl.style.display = 'block';
-				btnFormulas.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + msgComputing;
-				fetchJSON(formulasUrl, {
-					method: 'POST',
-					headers: {'Content-Type': 'application/json'},
-					body: '{}'
-				})
-					.then(function(result) {
-						if (!result.ok || !result.data || !result.data.task_id) {
-							throw new Error('Formula task not started');
-						}
-						pollFormulasTask(result.data.task_id, 0);
-					})
-					.catch(function(err) {
-						console.error(err);
-						showFormulasError();
-						finishFormulasPolling();
-					});
-			});
-			
-			let formulaRows = [];
-			let formulasSortCol = -1;
-			let formulasSortAsc = true;
+            document.querySelectorAll('#formulas-table thead th.sortable').forEach(function(th) {
+                th.addEventListener('click', function() {
+                    const idx = formulaColumns.findIndex(function(c) { return c.key === th.getAttribute('data-col'); });
+                    if (idx < 0) return;
+                    if (formulasSortCol === idx) {
+                        formulasSortAsc = !formulasSortAsc;
+                    } else {
+                        formulasSortCol = idx;
+                        formulasSortAsc = true;
+                    }
+                    renderFormulaRows(formulaRows);
+                });
+            });
 
-			const formulaColumns = [
-				{key: 'mz', val: function(r) { return r.mz; }, fmt: function(r) { return r.mz != null ? r.mz.toFixed(4) : ''; }},
-				{key: 'adduct', val: function(r) { return r.adduct_label || r.adduct || ''; }, fmt: function(r) { return r.adduct_label || r.adduct || ''; }},
-				{key: 'formula', val: function(r) { return r.formula || ''; }, fmt: function(r) { return r.formula || ''; }},
-				{key: 'neutral_mass', val: function(r) { return r.neutral_mass; }, fmt: function(r) { return r.neutral_mass != null ? r.neutral_mass.toFixed(4) : ''; }},
-				{key: 'mz_theo', val: function(r) { return r.mz_theo; }, fmt: function(r) { return r.mz_theo != null ? r.mz_theo.toFixed(4) : ''; }},
-				{key: 'delta_ppm', val: function(r) { return r.delta_ppm; }, fmt: function(r) { return r.delta_ppm != null ? r.delta_ppm.toFixed(2) : ''; }},
-				{key: 'delta_mda', val: function(r) { return r.delta_mda; }, fmt: function(r) { return r.delta_mda != null ? r.delta_mda.toFixed(3) : ''; }},
-				{key: 'hc', val: function(r) { return r.hc; }, fmt: function(r) { return r.hc != null ? r.hc.toFixed(2) : ''; }},
-				{key: 'rdbe', val: function(r) { return r.rdbe; }, fmt: function(r) { return r.rdbe != null ? r.rdbe.toFixed(1) : ''; }},
-				{key: 'rms', val: function(r) { return r.rms; }, fmt: function(r) { return r.rms != null ? r.rms.toFixed(1) : ''; }}
-			];
+            function showFormulasError(message) {
+                formulasBody.textContent = '';
+                noFormulasEl.textContent = message || msgFailed;
+                formulasWrap.style.display = 'block';
+                noFormulasEl.style.display = 'block';
+            }
 
-			function compareFormulaRows(a, b, colIdx) {
-				const va = formulaColumns[colIdx].val(a);
-				const vb = formulaColumns[colIdx].val(b);
-				if (va == null && vb == null) return 0;
-				if (va == null) return 1;
-				if (vb == null) return -1;
-				if (typeof va === 'number' && typeof vb === 'number') return va - vb;
-				return String(va).localeCompare(String(vb));
-			}
+            function finishFormulasPolling() {
+                if (formulasTimer) { clearTimeout(formulasTimer); formulasTimer = null; }
+                btnFormulas.disabled = false;
+                btnFormulas.innerHTML = btnFormulasLabel;
+            }
 
-			function updateFormulasSortIcons() {
-				document.querySelectorAll('#formulas-table thead th.sortable').forEach(function(th) {
-					const icon = th.querySelector('.sort-icon');
-					if (!icon) return;
-					const idx = formulaColumns.findIndex(function(c) { return c.key === th.getAttribute('data-col'); });
-					icon.className = 'fas sort-icon ' + (idx === formulasSortCol ? (formulasSortAsc ? 'fa-sort-up' : 'fa-sort-down') : '');
-				});
-			}
+            function pollFormulasTask(taskId, attempts) {
+                const url = formulasStatusUrl.replace('TASK_ID', encodeURIComponent(taskId));
+                fetchJSON(url)
+                    .then(function(result) {
+                        const data = result.data || {};
+                        if (data.state === 'SUCCESS' && data.ok) {
+                            renderFormulaRows(data.results || []);
+                            finishFormulasPolling();
+                        } else if (data.state === 'SUCCESS' || data.state === 'FAILURE' || data.state === 'REVOKED' || attempts >= 150) {
+                            showFormulasError(data.error);
+                            finishFormulasPolling();
+                        } else {
+                            formulasTimer = setTimeout(function() { pollFormulasTask(taskId, attempts + 1); }, 2000);
+                        }
+                    })
+                    .catch(function(err) {
+                        console.error(err);
+                        showFormulasError();
+                        finishFormulasPolling();
+                    });
+            }
 
-			function renderFormulaRows(rows) {
-				formulaRows = rows;
-				let sorted = formulaRows;
-				if (formulasSortCol >= 0) {
-					sorted = formulaRows.slice().sort(function(a, b) {
-						const cmp = compareFormulaRows(a, b, formulasSortCol);
-						return formulasSortAsc ? cmp : -cmp;
-					});
-				}
-				formulasBody.textContent = '';
-				sorted.forEach(function(r) {
-					const tr = document.createElement('tr');
-					formulaColumns.forEach(function(c) {
-						const td = document.createElement('td');
-						td.textContent = c.fmt(r);
-						tr.append(td);
-					});
-					formulasBody.append(tr);
-				});
-				formulasWrap.style.display = 'block';
-				noFormulasEl.style.display = sorted.length ? 'none' : 'block';
-				updateFormulasSortIcons();
-			}
-
-			document.querySelectorAll('#formulas-table thead th.sortable').forEach(function(th) {
-				th.addEventListener('click', function() {
-					const idx = formulaColumns.findIndex(function(c) { return c.key === th.getAttribute('data-col'); });
-					if (idx < 0) return;
-					if (formulasSortCol === idx) {
-						formulasSortAsc = !formulasSortAsc;
-					} else {
-						formulasSortCol = idx;
-						formulasSortAsc = true;
-					}
-					renderFormulaRows(formulaRows);
-				});
-			});
+            btnFormulas.addEventListener('click', function() {
+                btnFormulas.disabled = true;
+                if (formulasTimer) { clearTimeout(formulasTimer); formulasTimer = null; }
+                formulasBody.textContent = '';
+                formulasWrap.style.display = 'block';
+                noFormulasEl.textContent = msgComputing;
+                noFormulasEl.style.display = 'block';
+                btnFormulas.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + msgComputing;
+                fetchJSON(formulasUrl, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: '{}'
+                })
+                    .then(function(result) {
+                        if (!result.ok || !result.data || !result.data.task_id) {
+                            throw new Error('Formula task not started');
+                        }
+                        pollFormulasTask(result.data.task_id, 0);
+                    })
+                    .catch(function(err) {
+                        console.error(err);
+                        showFormulasError();
+                        finishFormulasPolling();
+                    });
+            });
         });
     </script>
 {% endblock %}
