@@ -10,7 +10,7 @@ import urllib3
 import numpy as np
 import json
 
-from ..models import db, Analysis, Sample, SampleStatus, PeakAnnotation
+from ..models import db, Sample, SampleStatus, PeakAnnotation
 from ..utils.data_processing import UNIFIAPI, extract_trace_name, get_data, peak_picking, lock_mass_correct, mspy_to_openms, RTRange
 from ..utils.errors import sanitize_log, log_error
 from ..utils.peak_annotation import annotate_peaks

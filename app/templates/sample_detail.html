@@ -90,27 +90,6 @@
                                     </a>
                                 </div>
                             </div>
-
-                            {% if sample.celery_task_id %}
-                                <div class="col-md-auto">
-                                    <h4 class="h6">{{ _("Analysis status") }}</h4>
-                                    <p id="task-status" class="mb-1">{{ _("Checking...") }}</p>
-                                    <div id="task-result"></div>
-                                </div>
-                            {% endif %}
-
-                            <div class="col-md-auto">
-                                <form method="post"
-                                      action="{{ url_for('admin.start_analysis_task', sample_id=sample.id) }}">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <label class="form-label">{{ _("Automatic analysis") }}</label>
-                                    <div>
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-play"></i> {{ _("Start analysis") }}
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
                         </div>
                     </div>
                 {% endif %}
@@ -392,69 +371,4 @@
             </div>
         {% endif %}
     </div>
-{% endblock %}
-
-{% block scripts %}
-    {{ super() }}
-    {% if sample.celery_task_id %}
-        <script nonce="{{ csp_nonce }}">
-            document.addEventListener('DOMContentLoaded', function() {
-                const taskId = "{{ sample.celery_task_id }}";
-                const statusUrl = `/admin/analysis/task/${taskId}/status`;
-
-                const statusElement = document.getElementById('task-status');
-                const resultElement = document.getElementById('task-result');
-
-                function buildResultAlert(alertClass, iconClass, strongText, spanText) {
-                    const div = document.createElement('div');
-                    div.className = 'alert ' + alertClass + ' py-2 px-3 mb-0';
-                    const icon = document.createElement('i');
-                    icon.className = iconClass;
-                    const strong = document.createElement('strong');
-                    strong.textContent = strongText;
-                    const span = document.createElement('span');
-                    span.textContent = spanText;
-                    div.append(icon, ' ', strong, ' ', span);
-                    return div;
-                }
-
-				function checkTaskStatus() {
-					fetchJSON(statusUrl)
-						.then(function(result) {
-							if (!result.ok) {
-								throw new Error('HTTP ' + result.status);
-							}
-							const data = result.data;
-							statusElement.textContent = `{{ _('State') }}: ${data.state}`;
-
-							if (data.state === 'SUCCESS') {
-								resultElement.textContent = '';
-								resultElement.append(buildResultAlert(
-									'alert-success',
-									'fas fa-check-circle',
-									{{ _('Success!') | tojson }},
-									(data.result && data.result.sample_reference) || ''
-								));
-								clearInterval(intervalId);
-							} else if (data.state === 'FAILURE') {
-								resultElement.textContent = '';
-								resultElement.append(buildResultAlert(
-									'alert-danger',
-									'fas fa-exclamation-circle',
-									{{ _('Error:') | tojson }},
-									data.status || ''
-								));
-								clearInterval(intervalId);
-							}
-						})
-						.catch(function(err) {
-							console.error('Error:', err);
-						});
-				}
-
-                checkTaskStatus();
-                const intervalId = setInterval(checkTaskStatus, 2000);
-            });
-        </script>
-    {% endif %}
 {% endblock %}

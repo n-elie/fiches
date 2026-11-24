@@ -87,7 +87,6 @@ class Sample(db.Model):
     notes = db.Column(db.String(500), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    celery_task_id = db.Column(db.String(255), nullable=True)
 
     # Clé étrangère vers l'utilisateur
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -173,21 +172,3 @@ class PeakAnnotation(db.Model):
 
     def __repr__(self):
         return f'<PeakAnnotation {self.adduct} @ {self.mz} (sample {self.sample_id}, z={self.charge})>'
-
-class Analysis(db.Model):
-    """Modèle analyse pour stocker les résultats d'analyse"""
-    
-    __tablename__ = 'analyses'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    sample_id = db.Column(db.Integer, db.ForeignKey('samples.id'), nullable=False)
-    data_file = db.Column(db.String(500), nullable=True)
-    results_file = db.Column(db.String(500), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    # Relation avec l'échantillon
-    sample = db.relationship('Sample', backref='analyses')
-
-    def __repr__(self):
-        return f'<Analysis {self.id}>'

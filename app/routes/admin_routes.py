@@ -13,8 +13,7 @@ from sqlalchemy import desc
 
 import pandas as pd
 
-from ..models import db, Sample, SampleStatus, User, Analysis, MSSample, NMRSample
-from ..tasks import process_sample_analysis
+from ..models import db, Sample, SampleStatus, User, MSSample, NMRSample
 from ..utils.urls import safe_redirect_back
 
 admin_bp = Blueprint('admin', __name__)
@@ -483,81 +482,6 @@ def delete_user(user_id):
 
     flash(_('User %(username)s deleted successfully!', username=user.username), 'success')
     return redirect(url_for('admin.all_users'))
-    
-@admin_bp.route('/analysis/create', methods=['GET', 'POST'])
-@login_required
-def create_analysis():
-    """Créer une Analysis manuellement (synchronement)"""
-    if request.method == 'POST':
-        sample_id = request.form.get('sample_id')
-        results = request.form.get('results')
-
-        # Validation
-        if not sample_id:
-            flash(_('Sample ID is required'), 'error')
-            return redirect(url_for('admin.create_analysis'))
-
-        sample = db.session.get(Sample, sample_id)
-        if not sample:
-            flash(_('Sample not found'), 'error')
-            return redirect(url_for('admin.create_analysis'))
-
-        # Créer l'Analysis
-        analysis = Analysis(
-            sample_id=sample_id,
-            results_file=results
-        )
-
-        db.session.add(analysis)
-        db.session.commit()
-
-        flash(_('Analysis created successfully for %(ref)s', ref=sample.reference), 'success')
-        return redirect(url_for('admin.create_analysis', sample_id=sample_id))
-
-    # GET: Afficher le formulaire
-    samples = db.session.scalars(
-        db.select(Sample).order_by(Sample.created_at.desc())
-    ).all()
-    return render_template('admin/create_analysis.html', samples=samples)
-
-@admin_bp.route('/analysis/<int:sample_id>/process', methods=['POST'])
-@login_required
-def start_analysis_task(sample_id):
-    """
-    Lancer une tâche Celery pour traiter un échantillon.
-    Cette route déclenche le traitement ASYNCHRONE.
-    """
-    sample = db.get_or_404(Sample, sample_id)
-
-    # Lancer la tâche Celery
-    task = process_sample_analysis.delay(sample_id)
-    sample.celery_task_id = task.id
-    db.session.commit()
-
-    flash(_('Analysis task started for %(ref)s (ID: %(task_id)s)', ref=sample.reference, task_id=task.id), 'success')
-    return safe_redirect_back('admin.dashboard')
-
-@admin_bp.route('/analysis/task/<task_id>/status')
-@login_required
-def check_task_status(task_id):
-    """Vérifier l'état d'une tâche Celery"""
-    
-    task = AsyncResult(task_id)
-
-    if task.state == 'pending':
-        response = {'state': task.state, 'status': _('Pending...')}
-    elif task.state != 'failure':
-        response = {
-            'state': task.state,
-            'result': task.result
-        }
-    else:
-        response = {
-            'state': task.state,
-            'status': _('Task failed')
-        }
-
-    return jsonify(response)
     
 def delete_orphan_structure_files(dry_run: bool = False) -> list[str]:
     """Supprime les fichiers de structure présents sur disque mais référencés
