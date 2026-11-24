@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% macro sortable_th(column, label) -%}
+    <th class="sortable" data-col="{{ column }}">{{ label | safe }} <i class="sort-icon"></i></th>
+{%- endmacro %}
+
 {% block css %}
     <style>
 		#mschart-pos, #mschart-neg {
@@ -28,6 +32,9 @@
         }
 		
 		#annotations-list { max-height: 60vh; overflow-y: auto; }
+		
+		#formulas-table thead th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+		#formulas-table .sort-icon { color: #adb5bd; margin-left: .25rem; }
     </style>
 {% endblock %}
 
@@ -115,16 +122,16 @@
 					<table class="table table-sm table-striped mb-0" id="formulas-table">
 						<thead class="table-dark">
 							<tr>
-								<th><i>m/z</i></th>
-								<th>{{ _('Adduct') }}</th>
-								<th>{{ _('Formula') }}</th>
-								<th>M</th>
-								<th><i>m/z</i> th</th>
-								<th>Δ ppm</th>
-								<th>Δ mDa</th>
-								<th>H/C</th>
-								<th>RDBE</th>
-								<th>RMS</th>
+								{{ sortable_th('mz', '<i>m/z</i>') }}
+								{{ sortable_th('adduct', _('Adduct')) }}
+								{{ sortable_th('formula', _('Formula')) }}
+								{{ sortable_th('neutral_mass', 'M') }}
+								{{ sortable_th('mz_theo', '<i>m/z</i> th') }}
+								{{ sortable_th('delta_ppm', 'Δ ppm') }}
+								{{ sortable_th('delta_mda', 'Δ mDa') }}
+								{{ sortable_th('hc', 'H/C') }}
+								{{ sortable_th('rdbe', 'RDBE') }}
+								{{ sortable_th('rms', 'RMS') }}
 							</tr>
 						</thead>
 						<tbody></tbody>
@@ -511,6 +518,80 @@
 						showFormulasError();
 						finishFormulasPolling();
 					});
+			});
+			
+			let formulaRows = [];
+			let formulasSortCol = -1;
+			let formulasSortAsc = true;
+
+			const formulaColumns = [
+				{key: 'mz', val: function(r) { return r.mz; }, fmt: function(r) { return r.mz != null ? r.mz.toFixed(4) : ''; }},
+				{key: 'adduct', val: function(r) { return r.adduct_label || r.adduct || ''; }, fmt: function(r) { return r.adduct_label || r.adduct || ''; }},
+				{key: 'formula', val: function(r) { return r.formula || ''; }, fmt: function(r) { return r.formula || ''; }},
+				{key: 'neutral_mass', val: function(r) { return r.neutral_mass; }, fmt: function(r) { return r.neutral_mass != null ? r.neutral_mass.toFixed(4) : ''; }},
+				{key: 'mz_theo', val: function(r) { return r.mz_theo; }, fmt: function(r) { return r.mz_theo != null ? r.mz_theo.toFixed(4) : ''; }},
+				{key: 'delta_ppm', val: function(r) { return r.delta_ppm; }, fmt: function(r) { return r.delta_ppm != null ? r.delta_ppm.toFixed(2) : ''; }},
+				{key: 'delta_mda', val: function(r) { return r.delta_mda; }, fmt: function(r) { return r.delta_mda != null ? r.delta_mda.toFixed(3) : ''; }},
+				{key: 'hc', val: function(r) { return r.hc; }, fmt: function(r) { return r.hc != null ? r.hc.toFixed(2) : ''; }},
+				{key: 'rdbe', val: function(r) { return r.rdbe; }, fmt: function(r) { return r.rdbe != null ? r.rdbe.toFixed(1) : ''; }},
+				{key: 'rms', val: function(r) { return r.rms; }, fmt: function(r) { return r.rms != null ? r.rms.toFixed(1) : ''; }}
+			];
+
+			function compareFormulaRows(a, b, colIdx) {
+				const va = formulaColumns[colIdx].val(a);
+				const vb = formulaColumns[colIdx].val(b);
+				if (va == null && vb == null) return 0;
+				if (va == null) return 1;
+				if (vb == null) return -1;
+				if (typeof va === 'number' && typeof vb === 'number') return va - vb;
+				return String(va).localeCompare(String(vb));
+			}
+
+			function updateFormulasSortIcons() {
+				document.querySelectorAll('#formulas-table thead th.sortable').forEach(function(th) {
+					const icon = th.querySelector('.sort-icon');
+					if (!icon) return;
+					const idx = formulaColumns.findIndex(function(c) { return c.key === th.getAttribute('data-col'); });
+					icon.className = 'fas sort-icon ' + (idx === formulasSortCol ? (formulasSortAsc ? 'fa-sort-up' : 'fa-sort-down') : '');
+				});
+			}
+
+			function renderFormulaRows(rows) {
+				formulaRows = rows;
+				let sorted = formulaRows;
+				if (formulasSortCol >= 0) {
+					sorted = formulaRows.slice().sort(function(a, b) {
+						const cmp = compareFormulaRows(a, b, formulasSortCol);
+						return formulasSortAsc ? cmp : -cmp;
+					});
+				}
+				formulasBody.textContent = '';
+				sorted.forEach(function(r) {
+					const tr = document.createElement('tr');
+					formulaColumns.forEach(function(c) {
+						const td = document.createElement('td');
+						td.textContent = c.fmt(r);
+						tr.append(td);
+					});
+					formulasBody.append(tr);
+				});
+				formulasWrap.style.display = 'block';
+				noFormulasEl.style.display = sorted.length ? 'none' : 'block';
+				updateFormulasSortIcons();
+			}
+
+			document.querySelectorAll('#formulas-table thead th.sortable').forEach(function(th) {
+				th.addEventListener('click', function() {
+					const idx = formulaColumns.findIndex(function(c) { return c.key === th.getAttribute('data-col'); });
+					if (idx < 0) return;
+					if (formulasSortCol === idx) {
+						formulasSortAsc = !formulasSortAsc;
+					} else {
+						formulasSortCol = idx;
+						formulasSortAsc = true;
+					}
+					renderFormulaRows(formulaRows);
+				});
 			});
         });
     </script>
