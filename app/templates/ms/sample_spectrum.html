@@ -576,6 +576,16 @@
                         finishFormulasPolling();
                     });
             });
+			
+			// Afficher au chargement les formules déjà persistées en base
+			fetchJSON(formulasUrl)
+				.then(function(result) {
+					const rows = result.ok && result.data ? result.data.results : null;
+					if (rows && rows.length) {
+						renderFormulaRows(rows);
+					}
+				})
+				.catch(function(err) { console.error(err); });
         });
     </script>
 {% endblock %}

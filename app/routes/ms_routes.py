@@ -321,17 +321,51 @@ def delete_annotation(sample_id, annotation_id):
     db.session.commit()
     return jsonify({'ok': True})
 
-@ms_bp.route('/sample/<int:sample_id>/spectrum/formulas', methods=['POST'])
+def _saved_formulas_results(sample_id):
+    """Formules brutes persistées en base pour un échantillon, avec les infos de leur annotation."""
+    stmt = (
+        db.select(PeakFormula, PeakAnnotation)
+        .join(PeakAnnotation, PeakFormula.annotation_id == PeakAnnotation.id)
+        .where(PeakAnnotation.sample_id == sample_id)
+        .order_by(PeakAnnotation.charge.desc(), PeakAnnotation.mz, PeakFormula.id)
+    )
+    results = []
+    for formula, ann in db.session.execute(stmt):
+        polarity = '+' if ann.charge > 0 else '-'
+        adduct = find_adduct(polarity, ann.adduct) or {}
+        results.append({
+            'annotation_id': ann.id,
+            'polarity': polarity,
+            'adduct': ann.adduct,
+            'adduct_label': adduct.get('label', ann.adduct),
+            'mz': ann.mz,
+            'formula': formula.formula,
+            'neutral_mass': formula.neutral_mass,
+            'mz_exp': formula.mz_exp,
+            'mz_theo': formula.mz_theo,
+            'delta_ppm': formula.delta_ppm,
+            'delta_mda': formula.delta_mda,
+            'hc': formula.hc,
+            'rdbe': formula.rdbe,
+            'rms': formula.rms,
+        })
+    return results
+
+@ms_bp.route('/sample/<int:sample_id>/spectrum/formulas', methods=['GET', 'POST'])
 @login_required
 def spectrum_formulas(sample_id):
-    """Lance le calcul asynchrone des formules brutes des pics annotés (JSON : task_id)."""
+    """Formules brutes des pics annotés (JSON) : GET = formules persistées en base,
+    POST = lance le calcul asynchrone via Celery (task_id)."""
     sample = db.get_or_404(MSSample, sample_id)
     if sample.user_id != current_user.id and not current_user.is_admin:
         return jsonify({'error': _('Access denied')}), 403
 
-    # Le traitement lourd (compute_formulas) est délégué à une tâche Celery
-    task = compute_spectrum_formulas.delay(sample_id)
-    return jsonify({'ok': True, 'task_id': task.id}), 202
+    if request.method == 'POST':
+        # Le traitement lourd (compute_formulae) est délégué à une tâche Celery
+        task = compute_spectrum_formulas.delay(sample_id)
+        return jsonify({'ok': True, 'task_id': task.id}), 202
+
+    return jsonify({'ok': True, 'results': _saved_formulas_results(sample_id)})
 
 @ms_bp.route('/sample/<int:sample_id>/spectrum/formulas/<task_id>')
 @login_required
@@ -349,33 +383,7 @@ def spectrum_formulas_status(sample_id, task_id):
         if not payload.get('ok'):
             return jsonify({'ok': False, 'state': result.state, 'error': payload.get('error', _('Task failed'))})
         # Les formules sont persistées en base par la tâche : lecture depuis la BDD
-        stmt = (
-            db.select(PeakFormula, PeakAnnotation)
-            .join(PeakAnnotation, PeakFormula.annotation_id == PeakAnnotation.id)
-            .where(PeakAnnotation.sample_id == sample_id)
-            .order_by(PeakAnnotation.charge.desc(), PeakAnnotation.mz, PeakFormula.id)
-        )
-        results = []
-        for formula, ann in db.session.execute(stmt):
-            polarity = '+' if ann.charge > 0 else '-'
-            adduct = find_adduct(polarity, ann.adduct) or {}
-            results.append({
-                'annotation_id': ann.id,
-                'polarity': polarity,
-                'adduct': ann.adduct,
-                'adduct_label': adduct.get('label', ann.adduct),
-                'mz': ann.mz,
-                'formula': formula.formula,
-                'neutral_mass': formula.neutral_mass,
-                'mz_exp': formula.mz_exp,
-                'mz_theo': formula.mz_theo,
-                'delta_ppm': formula.delta_ppm,
-                'delta_mda': formula.delta_mda,
-                'hc': formula.hc,
-                'rdbe': formula.rdbe,
-                'rms': formula.rms,
-            })
-        return jsonify({'ok': True, 'state': result.state, 'results': results})
+        return jsonify({'ok': True, 'state': result.state, 'results': _saved_formulas_results(sample_id)})
     if result.state in ('FAILURE', 'REVOKED'):
         return jsonify({'ok': False, 'state': result.state, 'error': _('Task failed')})
     return jsonify({'ok': True, 'state': result.state}), 202
