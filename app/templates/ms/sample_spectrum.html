@@ -387,51 +387,106 @@
                     renderAnnotationsList();
                 });
 
-            // ---------- Formules brutes des pics annotés ----------
+			// ---------- Formules brutes des pics annotés (calcul asynchrone via Celery) ----------
 
-            const formulasUrl = {{ url_for('ms.spectrum_formulas', sample_id=sample.id) | tojson }};
-            const btnFormulas = document.getElementById('btn-formulas');
-            const formulasWrap = document.getElementById('formulas-wrap');
-            const formulasBody = document.querySelector('#formulas-table tbody');
-            const noFormulasEl = document.getElementById('no-formulas');
+			const formulasUrl = {{ url_for('ms.spectrum_formulas', sample_id=sample.id) | tojson }};
+			const formulasStatusUrl = {{ url_for('ms.spectrum_formulas_status', sample_id=sample.id, task_id='TASK_ID') | tojson }};
+			const msgComputing = {{ _('Computing formulas...') | tojson }};
+			const msgFailed = {{ _('Formula computation failed.') | tojson }};
+			const btnFormulas = document.getElementById('btn-formulas');
+			const btnFormulasLabel = btnFormulas.innerHTML;
+			const formulasWrap = document.getElementById('formulas-wrap');
+			const formulasBody = document.querySelector('#formulas-table tbody');
+			const noFormulasEl = document.getElementById('no-formulas');
+			let formulasTimer = null;
 
-            btnFormulas.addEventListener('click', function() {
-                btnFormulas.disabled = true;
-                fetchJSON(formulasUrl, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: '{}'
-                })
-                    .then(function(result) {
-                        formulasBody.textContent = '';
-                        const rows = result.ok && result.data ? result.data.results : [];
-                        rows.forEach(function(r) {
-                            const tr = document.createElement('tr');
-                            const cells = [
-                                r.mz != null ? r.mz.toFixed(4) : '',
-                                (r.adduct_label || r.adduct),
-                                r.formula || '',
-                                r.neutral_mass != null ? r.neutral_mass.toFixed(4) : '',
-                                r.mz_theo != null ? r.mz_theo.toFixed(4) : '',
-                                r.delta_ppm != null ? r.delta_ppm.toFixed(2) : '',
-                                r.delta_mda != null ? r.delta_mda.toFixed(3) : '',
-                                r.hc != null ? r.hc.toFixed(2) : '',
-                                r.rdbe != null ? r.rdbe.toFixed(1) : '',
-                                r.rms != null ? r.rms.toFixed(1) : ''
-                            ];
-                            cells.forEach(function(v) {
-                                const td = document.createElement('td');
-                                td.textContent = v;
-                                tr.append(td);
-                            });
-                            formulasBody.append(tr);
-                        });
-                        formulasWrap.style.display = 'block';
-                        noFormulasEl.style.display = rows.length ? 'none' : 'block';
-                    })
-                    .catch(function(err) { console.error(err); })
-                    .finally(function() { btnFormulas.disabled = false; });
-            });
+			function renderFormulaRows(rows) {
+				formulasBody.textContent = '';
+				rows.forEach(function(r) {
+					const tr = document.createElement('tr');
+					const cells = [
+						r.mz != null ? r.mz.toFixed(4) : '',
+						(r.adduct_label || r.adduct),
+						r.formula || '',
+						r.neutral_mass != null ? r.neutral_mass.toFixed(4) : '',
+						r.mz_theo != null ? r.mz_theo.toFixed(4) : '',
+						r.delta_ppm != null ? r.delta_ppm.toFixed(2) : '',
+						r.delta_mda != null ? r.delta_mda.toFixed(3) : '',
+						r.hc != null ? r.hc.toFixed(2) : '',
+						r.rdbe != null ? r.rdbe.toFixed(1) : '',
+						r.rms != null ? r.rms.toFixed(1) : ''
+					];
+					cells.forEach(function(v) {
+						const td = document.createElement('td');
+						td.textContent = v;
+						tr.append(td);
+					});
+					formulasBody.append(tr);
+				});
+				formulasWrap.style.display = 'block';
+				noFormulasEl.style.display = rows.length ? 'none' : 'block';
+			}
+
+			function showFormulasError(message) {
+				formulasBody.textContent = '';
+				noFormulasEl.textContent = message || msgFailed;
+				formulasWrap.style.display = 'block';
+				noFormulasEl.style.display = 'block';
+			}
+
+			function finishFormulasPolling() {
+				if (formulasTimer) { clearTimeout(formulasTimer); formulasTimer = null; }
+				btnFormulas.disabled = false;
+				btnFormulas.innerHTML = btnFormulasLabel;
+			}
+
+			function pollFormulasTask(taskId, attempts) {
+				const url = formulasStatusUrl.replace('TASK_ID', encodeURIComponent(taskId));
+				fetchJSON(url)
+					.then(function(result) {
+						const data = result.data || {};
+						if (data.state === 'SUCCESS' && data.ok) {
+							renderFormulaRows(data.results || []);
+							finishFormulasPolling();
+						} else if (data.state === 'SUCCESS' || data.state === 'FAILURE' || data.state === 'REVOKED' || attempts >= 150) {
+							showFormulasError(data.error);
+							finishFormulasPolling();
+						} else {
+							formulasTimer = setTimeout(function() { pollFormulasTask(taskId, attempts + 1); }, 2000);
+						}
+					})
+					.catch(function(err) {
+						console.error(err);
+						showFormulasError();
+						finishFormulasPolling();
+					});
+			}
+
+			btnFormulas.addEventListener('click', function() {
+				btnFormulas.disabled = true;
+				if (formulasTimer) { clearTimeout(formulasTimer); formulasTimer = null; }
+				formulasBody.textContent = '';
+				formulasWrap.style.display = 'block';
+				noFormulasEl.textContent = msgComputing;
+				noFormulasEl.style.display = 'block';
+				btnFormulas.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + msgComputing;
+				fetchJSON(formulasUrl, {
+					method: 'POST',
+					headers: {'Content-Type': 'application/json'},
+					body: '{}'
+				})
+					.then(function(result) {
+						if (!result.ok || !result.data || !result.data.task_id) {
+							throw new Error('Formula task not started');
+						}
+						pollFormulasTask(result.data.task_id, 0);
+					})
+					.catch(function(err) {
+						console.error(err);
+						showFormulasError();
+						finishFormulasPolling();
+					});
+			});
         });
     </script>
 {% endblock %}

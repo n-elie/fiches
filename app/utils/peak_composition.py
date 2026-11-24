@@ -50,7 +50,7 @@ def estimate_halogens_sulfur_composition(isotopes, nC_tolerance=5):
     
     return composition
     
-def compute_formulae(scan: mspy.scan, mz: float, neutral_mass: float, charge: int, isotopes: dict,
+def compute_formulas(scan: mspy.scan, mz: float, neutral_mass: float, charge: int, isotopes: dict,
                      tolerance:int=5, tolerance_unit:str="ppm",
                      agentFormula:str="H", agentCharge:int=1,
                      custom_composition:dict={}, limit:int=1000):

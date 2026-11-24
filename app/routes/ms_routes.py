@@ -3,49 +3,28 @@ from flask_babel import gettext as _, ngettext
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from sqlalchemy import desc
+from celery.result import AsyncResult
+
 import os
 import io
 import zipfile
 from datetime import datetime
 import pandas as pd
 import pyopenms as oms
-import json
 import logging
 
 from ..models import db, MSSample, STATUS_NAMES, PeakAnnotation
 from .main_routes import allowed_file
+from ..tasks import compute_spectrum_formulas
 from ..utils.mol import read_mol, mol_from_smiles, mol_to_smiles, mol_to_formula, formula_to_mass
 from ..utils.check_data import is_valid_reference, is_valid_formula
 from ..utils.errors import log_error, report_error
 from ..utils.adducts import ADDUCTS, find_adduct, neutral_mass
 from ..utils.data_processing import openms_to_mspy, load_mzml_spectra
-from ..utils.peak_composition import compute_formulas
 
 ms_bp = Blueprint('ms', __name__, url_prefix='/ms')
 
 logger = logging.getLogger(__name__)
-
-def parse_float_keys(pairs):
-    """Object pairs hook to read dict with float keys from json"""
-    
-    result = {}
-    for k, v in pairs:
-        try:
-            k = float(k)
-        except ValueError:
-            pass
-        result[k] = v
-    return result
-
-def get_closest(data, target, max_diff=1e-6):
-    """Trouver la clé la plus proche dans un dict avec des clés float"""
-    
-    if not data:
-        return None
-    closest_key = min(data.keys(), key=lambda k: abs(k - target))
-    if abs(closest_key - target) > max_diff:
-        return None
-    return data[closest_key]
 
 IMPORT_EXTENSIONS = {'.xlsx', '.ods', '.csv'}
 ZIP_MAGIC = b'PK\x03\x04'  # .xlsx et .ods sont des conteneurs ZIP
@@ -345,66 +324,34 @@ def delete_annotation(sample_id, annotation_id):
 @ms_bp.route('/sample/<int:sample_id>/spectrum/formulas', methods=['POST'])
 @login_required
 def spectrum_formulas(sample_id):
-    """Formules brutes des pics annotés d'un spectre (JSON)."""
+    """Lance le calcul asynchrone des formules brutes des pics annotés (JSON : task_id)."""
     sample = db.get_or_404(MSSample, sample_id)
     if sample.user_id != current_user.id and not current_user.is_admin:
         return jsonify({'error': _('Access denied')}), 403
 
-    annotations = db.session.scalars(
-        db.select(PeakAnnotation)
-        .where(PeakAnnotation.sample_id == sample_id)
-        .order_by(PeakAnnotation.charge.desc(), PeakAnnotation.mz)
-    ).all()
+    # Le traitement lourd (compute_formulae) est délégué à une tâche Celery
+    task = compute_spectrum_formulas.delay(sample_id)
+    return jsonify({'ok': True, 'task_id': task.id}), 202
 
-    # Lecture du spectre depuis le mzML
-    mzml_file = os.path.join(current_app.config['UPLOAD_FOLDER'], 'ms', 'spectra', f'{sample.id}.mzML')
-    scans = {}
-    if os.path.exists(mzml_file):
-        try:
-            spectra = load_mzml_spectra(mzml_file)
-        except Exception as e:
-            log_error(e, f"Reading mzML file {mzml_file}")
-            return jsonify({'error': _('The spectrum could not be read.')}), 500
-    else:
-        return jsonify({'error': _('Spectrum file doest not exist.')}), 500
+@ms_bp.route('/sample/<int:sample_id>/spectrum/formulas/<task_id>')
+@login_required
+def spectrum_formulas_status(sample_id, task_id):
+    """État et résultat de la tâche Celery de calcul des formules brutes (JSON)."""
+    sample = db.get_or_404(MSSample, sample_id)
+    if sample.user_id != current_user.id and not current_user.is_admin:
+        return jsonify({'error': _('Access denied')}), 403
 
-    # Charger les spectres données depuis le json (ratio isotopiques)
-    json_file = os.path.join(current_app.config['UPLOAD_FOLDER'], 'ms', 'spectra', f'{sample.id}.json')
-    if os.path.exists(json_file):
-        try:
-            with open(json_file, "r") as f:
-                isotopes = json.load(f, object_pairs_hook=parse_float_keys)
-        except Exception as e:
-            log_error(e, f"Reading json file {json_file}")
-            return jsonify({'error': _('Data could not be read.')}), 500
-    else:
-        return jsonify({'error': _('Data file doest not exist.')}), 500
-
-    results = []
-    for ann in annotations:
-        polarity = '+' if ann.charge > 0 else '-'
-        adduct = find_adduct(polarity, ann.adduct) or {}
-        scan = spectra.get(polarity, {}).get('scan')
-        isotopes_pol = isotopes.get(polarity, None)
-        for candidate in compute_formulas(scan, ann.mz, ann.neutral_mass, ann.charge, get_closest(isotopes_pol, ann.mz)):
-            results.append({
-                'annotation_id': ann.id,
-                'polarity': polarity,
-                'adduct': ann.adduct,
-                'adduct_label': adduct.get('label', ann.adduct),
-                'mz': ann.mz,
-                'formula': candidate.get('formula'),
-                'neutral_mass': candidate.get('neutral_mass'),
-                'mz_exp': candidate.get('mz_exp', ann.mz),
-                'mz_theo': candidate.get('mz_theo'),
-                'delta_ppm': candidate.get('delta_ppm'),
-                'delta_mda': candidate.get('delta_mda'),
-                'hc': candidate.get('hc'),
-                'rdbe': candidate.get('rdbe'),
-                'rms': candidate.get('rms'),
-            })
-    return jsonify({'ok': True, 'results': results})
-
+    result = AsyncResult(task_id)
+    if result.state == 'SUCCESS':
+        payload = result.result if isinstance(result.result, dict) else {}
+        if payload.get('sample_id') != sample_id:
+            return jsonify({'error': _('Invalid task result')}), 403
+        if not payload.get('ok'):
+            return jsonify({'ok': False, 'state': result.state, 'error': payload.get('error', _('Task failed'))})
+        return jsonify({'ok': True, 'state': result.state, 'results': payload.get('results', [])})
+    if result.state in ('FAILURE', 'REVOKED'):
+        return jsonify({'ok': False, 'state': result.state, 'error': _('Task failed')})
+    return jsonify({'ok': True, 'state': result.state}), 202
     
 @ms_bp.route('/sample/<int:sample_id>/edit', methods=['GET', 'POST'])
 @login_required
