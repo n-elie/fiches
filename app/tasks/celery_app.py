@@ -28,7 +28,7 @@ def init_celery(app):
             'task': 'app.tasks.download_spectra.download_spectra',
             'schedule': 3600,
         },
-        # Remove orphan structure file once per week
+        # Remove orphan files (structures, spectra mzML/json) once per week
         'cleanup_orphan_files': {
             'task': 'app.tasks.cleanup.cleanup_orphan_files_task',
             'schedule': 604800,  # 7 days

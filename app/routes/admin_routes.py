@@ -504,13 +504,37 @@ def delete_orphan_structure_files(dry_run: bool = False) -> list[str]:
                 removed.append(path)
     return removed
 
+def delete_orphan_spectra_files(dry_run: bool = False) -> list[str]:
+    """Supprime les fichiers de spectres (mzML/json) dont l'échantillon n'existe plus en base."""
+
+    removed = []
+    upload = current_app.config['UPLOAD_FOLDER']
+    for atype, cls in (('ms', MSSample), ('nmr', NMRSample)):
+        folder = os.path.join(upload, atype, 'spectra')
+        if not os.path.isdir(folder):
+            continue
+        referenced = set(db.session.scalars(db.select(cls.id)))
+        for fname in os.listdir(folder):
+            stem, ext = os.path.splitext(fname)
+            if ext.lower() not in ('.mzml', '.json') or not stem.isdigit():
+                continue
+            path = os.path.join(folder, fname)
+            if os.path.isfile(path) and int(stem) not in referenced:
+                if not dry_run:
+                    os.remove(path)
+                removed.append(path)
+    return removed
+
+def delete_orphan_files(dry_run: bool = False) -> list[str]:
+    """Supprime tous les fichiers orphelins (structures, spectres mzML/json)."""
+    return delete_orphan_structure_files(dry_run=dry_run) + delete_orphan_spectra_files(dry_run=dry_run)
 
 @admin_bp.route('/cleanup-orphans', methods=['POST'])
 @login_required
 def cleanup_orphans():
     """Nettoie les fichiers uploadés non référencés par un échantillon (admin only)"""
     
-    removed = delete_orphan_structure_files(dry_run=False)
+    removed = delete_orphan_files(dry_run=False)
     flash(ngettext('%(num)s orphan file deleted', '%(num)s orphan files deleted',
                    len(removed)), 'success' if removed else 'info')
     return redirect(url_for('admin.dashboard'))
