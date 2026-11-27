@@ -2,7 +2,7 @@ from rdkit import Chem as rdChem
 from rdkit.Chem import Draw as rdDraw
 from rdkit.Chem.rdMolDescriptors import CalcMolFormula
 
-import molmass
+import pyopenms as oms
 
 import os
 import io
@@ -117,7 +117,7 @@ def formula_to_mass(formula: str) -> float:
         masse exacte de la molécule (float)
     """
     
-    return molmass.Formula(formula).monoisotopic_mass
+    return oms.EmpiricalFormula(formula).getMonoWeight()
 
 # From https://github.com/molshape/ChemFormula
 # LICENSE: MIT
@@ -139,7 +139,7 @@ def html_formula(formula: str):
     if formula is None:
         return '-'
     html_formula = html.escape(formula)     # start with original formula
-    html_charge = text_charge(molmass.Formula(formula).charge)  # start with original text_charge
+    html_charge = text_charge(oms.EmpiricalFormula(formula).getCharge())  # start with original text_charge
     # replace all numbers (0 - 9) by subscript numbers (for elemental frequencies)
     # and superscript numbers (for charge information)
     for number in range(0, 10):

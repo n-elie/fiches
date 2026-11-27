@@ -11,33 +11,16 @@ import numpy as np
 import json
 
 from ..models import db, Sample, SampleStatus, PeakAnnotation
-from ..utils.data_processing import UNIFIAPI, extract_trace_name, get_data, peak_picking, lock_mass_correct, mspy_to_openms, RTRange
+from ..utils.data_processing import (UNIFIAPI, extract_trace_name, download_spectra_to_openms,
+                                     centroid_and_lock_mass_correct, average_spectrum, RTRange,
+                                     downsample_profile, filter_centroid_peaks)
 from ..utils.errors import sanitize_log, log_error
 from ..utils.peak_annotation import annotate_peaks
 from .celery_app import celery
 
 LOCK_KEY = 'lock:download_spectra'
-MAX_RAW_POINTS = 10000  # plafond de points affichés pour le spectre brut (profilé) en fond
 
 logger = logging.getLogger(__name__)
-
-def downsample_profile(profile, max_points=MAX_RAW_POINTS):
-    """Limite le nombre de points d'un spectre profilé (intensité max par bac de m/z) pour alléger l'affichage."""
-    
-    if len(profile) <= max_points:
-        return profile
-    x, y = profile.T
-    order = np.argsort(x, kind='stable')
-    x, y = x[order], y[order]
-    x_min, x_max = x[0], x[-1]
-    if x_max <= x_min:
-        return [profile[order[0]]]
-    
-    bins = np.minimum(((x - x_min) / (x_max - x_min) * max_points).astype(np.int64), max_points - 1)
-    by_bin = np.lexsort((y, bins))                        # tri par bac, puis par intensité croissante
-    sorted_bins = bins[by_bin]
-    keep = np.append(sorted_bins[1:] != sorted_bins[:-1], True)  # dernier point de chaque bac = intensité max
-    return np.asarray([profile[i] for i in order[by_bin[keep]]])
 
 def round_floats(obj, precision=2):
     if isinstance(obj, float):
@@ -100,7 +83,7 @@ def download_spectra(self):
                 sample_results = [item.convert() for item in sample_items]
                 
                 # Retrieve lock mass corrected data in both polarity
-                spectra, isotopes = {}, {}
+                spectra = {}
                 for sr in sample_results:
                     specinfos = sr.spectruminfos()
                     specinfos = {extract_trace_name(trace.name): trace for trace in specinfos}
@@ -110,24 +93,28 @@ def download_spectra(self):
                         continue
                     
                     # Get data from server
-                    ls_scan = get_data(specinfos['MS LockSpray Reference Data'])
-                    data_scan = get_data(
-                        specinfos['DDA TOF MS'],
-                        rt_range=RTRange(0.1, 0.3)
-                    )
+                    lock_exp = download_spectra_to_openms(specinfos['MS LockSpray Reference Data'])
+                    data_exp = download_spectra_to_openms(specinfos['DDA TOF MS'])
                     
-                    # Apply peak picking and lock mass correction
-                    data_scan = peak_picking(data_scan) 
-                    if data_scan.peaklist:
-                        data_scan = lock_mass_correct(data_scan, ls_scan, ionisation_mode)
-                    data_scan.profile = downsample_profile(data_scan.profile)
-                    spectra[ionisation_mode] = data_scan
-                    isotopes[ionisation_mode] = {round(p.mz, 5): round_floats(p.attributes.get('envelope', {}).get('isotopes', {}), precision=5) for p in data_scan.peaklist.peaks}
-                            
+                    # Centroid and Lock mass correct spectra
+                    data_corrected_centroid_exp, data_corrected_profile_exp = centroid_and_lock_mass_correct(data_exp, lock_exp)
+                    
+                    # Average spectra
+                    average_centroid_spec = average_spectrum(data_corrected_centroid_exp, rt_range=RTRange(0.1, 0.3))
+                    average_profile_spec = average_spectrum(data_corrected_profile_exp, rt_range=RTRange(0.1, 0.3))
+                    
+                    # Filter peaks below threshold, deisotope and remove uncharge peaks
+                    average_centroid_spec = filter_centroid_peaks(average_centroid_spec)
+
+                    spectra[ionisation_mode] = {'centroid': average_centroid_spec, 'profile': downsample_profile(average_profile_spec)}
+
                     if {'+', '-'} <= spectra.keys():
                         break
                 
-                exp = mspy_to_openms(spectra.values())
+                exp = oms.MSExperiment()
+                for data in spectra.values():
+                    exp.addSpectrum(data['centroid'])
+                    exp.addSpectrum(data['profile'])
                 opts = oms.PeakFileOptions()
                 opts.setZstdCompression(True)
                 opts.setMz32Bit(False)        # m/z en 32 bits (gain d'espace)
@@ -135,8 +122,7 @@ def download_spectra(self):
                 mzml = oms.MzMLFile()
                 mzml.setOptions(opts)
                 mzml.store(mzml_file, exp)
-                with open(json_file, 'w') as f:
-                    json.dump(isotopes, f)
+                
                 sample.status = SampleStatus.analysed
             except (requests.exceptions.ConnectTimeout, urllib3.exceptions.MaxRetryError) as e:
                 log_error(e, f"Connection to UNIFI server failed during download spectra for {sanitize_log(sample.reference)}")
@@ -144,9 +130,9 @@ def download_spectra(self):
             
             try:
                 peaks_by_polarity = {}
-                for ionisation_mode, scan in spectra.items():
-                    if ionisation_mode is not None and scan.peaklist:
-                        peaks_by_polarity[ionisation_mode] = [peak.mz for peak in scan.peaklist.peaks]
+                for ionisation_mode, data in spectra.items():
+                    if ionisation_mode is not None:
+                        peaks_by_polarity[ionisation_mode] = [mz for mz in data['centroid'].get_peaks()[0]]
                 annotations = annotate_peaks(peaks_by_polarity, sample.mass)
             except Exception as e:
                 log_error(e, f"Automatic peak annotation failed for {sanitize_log(sample.reference)}")

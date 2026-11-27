@@ -452,7 +452,7 @@
                 {key: 'delta_mda', val: function(r) { return r.delta_mda; }, fmt: function(r) { return r.delta_mda != null ? r.delta_mda.toFixed(3) : ''; }},
                 {key: 'hc', val: function(r) { return r.hc; }, fmt: function(r) { return r.hc != null ? r.hc.toFixed(2) : ''; }},
                 {key: 'rdbe', val: function(r) { return r.rdbe; }, fmt: function(r) { return r.rdbe != null ? r.rdbe.toFixed(1) : ''; }},
-                {key: 'rms', val: function(r) { return r.rms; }, fmt: function(r) { return r.rms != null ? r.rms.toFixed(1) : ''; }}
+                {key: 'rms', val: function(r) { return r.rms; }, fmt: function(r) { return r.rms != null ? `${r.rms.toFixed(1)} %` : ''; }}
             ];
 
             function compareFormulaRows(a, b, colIdx) {

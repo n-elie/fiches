@@ -20,7 +20,7 @@ from ..utils.mol import read_mol, mol_from_smiles, mol_to_smiles, mol_to_formula
 from ..utils.check_data import is_valid_reference, is_valid_formula
 from ..utils.errors import log_error, report_error
 from ..utils.adducts import ADDUCTS, find_adduct, neutral_mass
-from ..utils.data_processing import openms_to_mspy, load_mzml_spectra
+from ..utils.data_processing import load_mzml_spectra
 
 ms_bp = Blueprint('ms', __name__, url_prefix='/ms')
 
@@ -212,7 +212,7 @@ def sample_spectrum(sample_id):
     mzml_file = os.path.join(current_app.config['UPLOAD_FOLDER'], 'ms', 'spectra', f'{sample.id}.mzML')
     if os.path.exists(mzml_file):
         try:
-            spectra = load_mzml_spectra(mzml_file)
+            spectra = load_mzml_spectra(mzml_file, return_scan=False, return_data=True)
 
             for key in spectra:
                 for peaks in (spectra[key]['centroid'], spectra[key]['profile']):
@@ -361,7 +361,7 @@ def spectrum_formulas(sample_id):
         return jsonify({'error': _('Access denied')}), 403
 
     if request.method == 'POST':
-        # Le traitement lourd (compute_formulae) est délégué à une tâche Celery
+        # Le traitement lourd (compute_formulas) est délégué à une tâche Celery
         task = compute_spectrum_formulas.delay(sample_id)
         return jsonify({'ok': True, 'task_id': task.id}), 202
 

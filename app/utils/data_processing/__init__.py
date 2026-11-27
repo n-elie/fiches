@@ -6,18 +6,13 @@ from dataclasses import dataclass
 import pandas as pd
 import numpy as np
 import pyopenms as oms
+from pyopenms.Constants import PROTON_MASS_U
 
 from .unifiapi import Spectrum, SpectrumInfos, UNIFIAPI
-import mspy
 
 LOCKSPRAY_FORMULA = "C28H37N5O7"
+MAX_RAW_POINTS = 10000  # plafond de points affichés pour le spectre brut (profilé) en fond
 TRACE_NAME_RE = re.compile(r"[0-9:\s]*([A-Za-z\s]+)(\([\d\-]+\)[0-9A-Z\+\-])?")
-OPENMS_POLARITY_TO_MSPY = {
-    oms.IonSource.Polarity.NEGATIVE: -1,
-    oms.IonSource.Polarity.POLNULL: 0,
-    oms.IonSource.Polarity.POSITIVE: 1
-}
-MPSY_POLARITY_TO_OPENMS = {v: k for k, v in OPENMS_POLARITY_TO_MSPY.items()}
 
 @dataclass
 class RTRange:
@@ -26,16 +21,17 @@ class RTRange:
     low: float
     high: float
 
-def unifi_to_openms(spectra: list[Spectrum], channel: SpectrumInfos) -> oms.Experiment:
-    '''Converts a list of unifiapi Spectrum objects to an OpenMS experiment
+def download_spectra_to_openms(channel: SpectrumInfos) -> oms.Experiment:
+    '''Download spectra from UNIFI channel and store them in an OpenMS experiment
     
     Args:
-        spectra: list of Spectrum objects
         channel: SpectrumInfos object relative to where the spectra were extracted
         
     Returns:
-        oms.Experiment containing the data extracted from the list of Spectrum
+        oms.Experiment containing the downloaded spectra
     '''
+    
+    spectra = channel.data(stream=True)
     
     exp = oms.MSExperiment()
     
@@ -53,6 +49,7 @@ def unifi_to_openms(spectra: list[Spectrum], channel: SpectrumInfos) -> oms.Expe
         spectrum.setMetaValue("base peak m/z", bpi_mz.astype(float))
         spectrum.setMetaValue("lowest observed m/z", peaks[0].min())
         spectrum.setMetaValue("highest observed m/z", peaks[0].max())
+        spectrum.setType(oms.SpectrumSettings.SpectrumType.PROFILE)
         
         settings = spectrum.getInstrumentSettings()
         match channel.analyticalTechnique.ionisationMode:
@@ -71,89 +68,13 @@ def unifi_to_openms(spectra: list[Spectrum], channel: SpectrumInfos) -> oms.Expe
         instrument.setModel('Vion')
         instrument.setVendor('Waters')
         exp.setInstrument(instrument)
-
-        # analyzer = oms.MassAnalyzer()
-
-        # # Iterate over mass analyzers
-        # for analyzer in instrument.getMassAnalyzers():
-        #   print("Mass Analyzer Type:", analyzer.getType())
         
         exp.addSpectrum(spectrum)
         
     exp.updateRanges()
     return exp
 
-def openms_to_mspy(exp: oms.MSExperiment) -> mspy.scan:
-    '''Converts an OpenMS Experiment to a mspy scan object
-    
-    Args:
-        exp: the OpenMS experiment to get the data from
-        
-    Returns:
-        mspy.scan object containing the data
-    '''
-    
-    spectrum = exp.getSpectra()[0]
-    peaks = spectrum.get_peaks()
-    scan = mspy.scan(profile=list(zip(*peaks)))
-    scan.retentionTime = spectrum.getRT()
-    scan.polarity = OPENMS_POLARITY_TO_MSPY.get(spectrum.getInstrumentSettings().getPolarity(), 0)
-    return scan
-    
-def mspy_to_openms(scans: list[mspy.scan]):
-    '''Converts a list of mspy.scan objects to an OpenMS experiment
-    
-    Args:
-        scan: mspy.scan object containing the data
-        
-    Returns:
-        oms.Experiment containing the data extracted from the mspy scans
-    '''
-    
-    exp = oms.MSExperiment()
-
-    def add_spectrum(exp, data):
-        spectrum = oms.MSSpectrum()
-        spectrum.setMSLevel(1)
-        
-        if isinstance(data, mspy.peaklist):
-            spectrum.set_peaks(list(zip(*[(peak.mz, peak.intensity) for peak in scan.peaklist])))
-            spectrum.setType(oms.SpectrumSettings.SpectrumType.CENTROID)
-        elif isinstance(data, np.ndarray):
-            spectrum.set_peaks(scan.profile.T.tolist())
-            spectrum.setType(oms.SpectrumSettings.SpectrumType.PROFILE)
-
-        if scan.retentionTime:
-            spectrum.setRT(scan.retentionTime)
-            
-        if scan.polarity:
-            insset = spectrum.getInstrumentSettings()
-            insset.setPolarity(MPSY_POLARITY_TO_OPENMS.get(scan.polarity, 0))
-            spectrum.setInstrumentSettings(insset)
-            
-        peaks = spectrum.get_peaks()
-        if not peaks:
-            return
-        tic = peaks[1].sum()
-        spectrum.setMetaValue("total ion current", tic.astype(float))
-        bpi = peaks[1].max()
-        spectrum.setMetaValue("base peak intensity", bpi.astype(float))
-        bpi_mz = peaks[0][peaks[1]==bpi][0]
-        spectrum.setMetaValue("base peak m/z", bpi_mz.astype(float))
-        spectrum.setMetaValue("lowest observed m/z", peaks[0].min())
-        spectrum.setMetaValue("highest observed m/z", peaks[0].max())
-        exp.addSpectrum(spectrum)
-
-    for scan in scans:
-        if scan.peaklist:
-            add_spectrum(exp, scan.peaklist)
-        add_spectrum(exp, scan.profile)
-
-    exp.updateRanges()
-    
-    return exp
-
-def average_spectrum(exp: oms.Experiment, rt_range: RTRange = None) -> oms.Experiment:
+def average_spectrum(exp: oms.Experiment, rt_range: RTRange = None) -> oms.MSSpectrum:
     '''Compute the average spectrum from all the spectra inside the experiment or a subset
     if an Retention Time range is provided.
     
@@ -162,7 +83,7 @@ def average_spectrum(exp: oms.Experiment, rt_range: RTRange = None) -> oms.Exper
         rt_range: Retention Time range to use to filter spectra
         
     Returns:
-        oms.Experiment with only one spectrum: the computed average spectrum
+        oms.MSSpectrum: the computed average spectrum
     '''
     
     average_exp = oms.MSExperiment(exp)
@@ -179,136 +100,137 @@ def average_spectrum(exp: oms.Experiment, rt_range: RTRange = None) -> oms.Exper
     merger.setParameters(param)
     merger.mergeSpectraBlockWise(average_exp)
     
-    return average_exp
+    return average_exp.getSpectra()[0]
+    
+def centroid_experiment(exp: oms.MSExperiment, signal_to_noise: float = 1.0) -> oms.MSExperiment:
+    '''Centroid all MS1 profile spectra of an experiment with PeakPickerHiRes
 
-def get_data(channel: SpectrumInfos, rt_range: RTRange = None, output_filename: str = None) -> mspy.scan:
-    '''
-    Get spectra from server, save the spectra to mzML (if a filename is provided),
-    average the spectra inside the Retention Time range (if provided, else in entire scan),
-    and return the average spectrum in an mspy.scan object
-    
     Args:
-        channel: SpectrumInfos object of the channel we want to extract data
-        rt_range: Retention Time range to use to filter spectra
-        output_filename: filename where to save mzML data
-        
+        exp: MSExperiment containing profile spectra
+        signal_to_noise: signal-to-noise threshold used by the peak picker
+
     Returns:
-        mspy.scan object of the average spectrum
+        New MSExperiment with centroided spectra
     '''
-    
-    # Get data from server
-    spectra = channel.data(stream=True)
-    
-    # Create OpenMS experiment
-    exp = unifi_to_openms(spectra, channel)
-    
-    # Save OpenMS experiment if needed
-    if output_filename is not None:
-        oms.MzMLFile().store(output_filename + ".mzML", exp)
-    
-    # Average all spectra into one spectrum (in an OpenMS experiment)
-    avg_exp = average_spectrum(exp, rt_range=rt_range)
-    
-    # Convert to mspy scan
-    scan = openms_to_mspy(avg_exp)
-    
-    assert(scan.hasprofile())
-    
-    return scan
-    
-def lock_mass_correct(scan: mspy.scan, ls_scan: mpy.scan, ionisation_mode: str) -> mspy.scan:
-    '''Apply lock mass correction on the peaklist of an mspy scan object
-    
+    picker = oms.PeakPickerHiRes()
+    params = picker.getParameters()
+    params.setValue("signal_to_noise", signal_to_noise)
+    params.setValue("ms_levels", [1])
+    picker.setParameters(params)
+    return picker.pickExperiment(exp, True)
+
+def centroid_and_lock_mass_correct(analyte_exp: oms.MSExperiment, lockmass_exp: oms.MSExperiment,
+                                   ionisation_mode: str = None, tol_ppm: float = 20.0,
+                                   signal_to_noise: float = 1.0) -> tuple[oms.MSExperiment, oms.MSExperiment]:
+    '''Centroid both experiments, then recalibrate the analyte spectra using the lock spray
+    reference channel (Waters) with pyopenms InternalCalibration.
+
     Args:
-        scan: mspy scan to apply correction on
-        ls_scan: lock spray scan to look for lock mass in
-        formula: crude formula of lockmass
-        ionisation_mode: polarity of the scan ('+' for positive, '-' for negative)
-        
+        analyte_exp: MSExperiment with profile spectra of the analyte data
+        lockmass_exp: MSExperiment with profile spectra of the lock spray channel
+        ionisation_mode: '+' or '-' (read from the spectra polarity if None)
+        tol_ppm: tolerance (ppm) used to find the lock mass in the lock spray spectra
+        signal_to_noise: signal-to-noise threshold for peak picking
+
     Returns:
-        scan object with peaklist lockmass corrected
+        (analyte_centroided, analyte_profile): two MSExperiments with the analyte data,
+        the first centroided and calibrated, the second calibrated but kept in profile mode
+
+    Raises:
+        ValueError: if the lock mass is not found in the lock spray experiment
     '''
+    if ionisation_mode is None:
+        polarity = analyte_exp.getSpectra()[0].getInstrumentSettings().getPolarity()
+        ionisation_mode = '+' if polarity == oms.IonSource.Polarity.POSITIVE else '-'
+    z = 1 if ionisation_mode == '+' else -1
+    th_mz = oms.EmpiricalFormula(LOCKSPRAY_FORMULA).getMonoWeight() + z * PROTON_MASS_U
+
+    lockmass_cent = centroid_experiment(lockmass_exp, signal_to_noise)
+    analyte_cent = centroid_experiment(analyte_exp, signal_to_noise)
+
+    ic = oms.InternalCalibration()
+    n_found, _ = ic.fillCalibrants(
+        lockmass_cent,
+        [oms.InternalCalibration_LockMass(th_mz, 1, 1)],
+        tol_ppm, True, False, False
+    )
+    if not n_found:
+        raise ValueError("Lock mass was not found in the lock spray experiment")
+
+    calibrants = ic.getCalibrationPoints()
+    ppm_err = float(np.mean([
+        (calibrants.getMZ(i) - calibrants.getRefMZ(i)) / calibrants.getRefMZ(i) * 1e6
+        for i in range(calibrants.size())
+    ]))
+
+    trafo = oms.MZTrafoModel()
+    trafo.setCoefficients(ppm_err, 0.0, 0.0)
+
+    analyte_profile = oms.MSExperiment(analyte_exp)
+    ic.applyTransformation(analyte_cent, [1], trafo)
+    ic.applyTransformation(analyte_profile, [1], trafo)
+    return analyte_cent, analyte_profile    
+
+def filter_centroid_peaks(spectrum: oms.MSSpecctrum, abs_threshold: int=1e4, rel_threshold:float=.01):
+    """
+    Remove peaks below theshold, deisotope and remove uncharged ions
+    """
     
-    # Smooth Lock Spray scan
-    ls_scan.smooth(method="SG", window=1., cycles=3)
-        
-    # Calculate theoretical m/z of lock mass
-    ls_th_mz = mspy.mz(
-        mspy.compound(LOCKSPRAY_FORMULA).mass(0),
-        charge=-1 if ionisation_mode == '-' else 1,
-        agentFormula='H',
-        agentCharge=1
+    # Threshold filtering
+    peaks = list(spectrum.get_peaks())
+    threshold_filter = peaks[1] > max(spectrum.get_base_peak()[1]*rel_threshold, abs_threshold)
+    peaks[0] = peaks[0][threshold_filter]
+    peaks[1] = peaks[1][threshold_filter]
+    spectrum.set_peaks(peaks, metadata='clear')
+    
+    # Deisotope
+    spectrum.sortByPosition()
+    oms.Deisotoper.deisotopeWithAveragineModel(
+        spectrum,
+        fragment_tolerance=20.0,   # tolerance value
+        fragment_unit_ppm=True,    # True for ppm, False for m/z (Da)
+        number_of_final_peaks=5000,
+        min_charge=1,
+        max_charge=3,
+        keep_only_deisotoped=False,
+        min_isopeaks=2,
+        max_isopeaks=10,
+        make_single_charged=True,
+        annotate_charge=True,
+        annotate_iso_peak_count=False,
+        add_up_intensity=False,
     )
     
-    # Find lock mass peak
-    ls_peak = mspy.labelpeak(
-        signal=ls_scan.profile,
-        mz=ls_th_mz,
-        pickingHeight=1.0,
-        baseline=ls_scan.baseline(window=0.01, offset=.25),
-    )
+    # Remove uncharged peaks
+    peaks = list(spectrum.get_peaks())
+    for data_array in spectrum.getIntegerDataArrays():
+        if data_array.getName() == 'charge':
+            charges = data_array.get_data()
+            peaks[0] = peaks[0][charges.astype(bool)]
+            peaks[1] = peaks[1][charges.astype(bool)]
+            spectrum.set_peaks(peaks, metadata='clear')
     
-    if ls_peak is None or ls_peak.sn <= 50:
-        raise ValueError("Lock Spray mass was not found")
+    return spectrum
+
+def downsample_profile(spectrum: oms.MSSpectrum, max_points=MAX_RAW_POINTS):
+    """Limite le nombre de points d'un spectre profilé (intensité max par bac de m/z) pour alléger l'affichage."""
+
+    x, y = spectrum.get_peaks()
     
-    # Lock Mass Correction
-    for peak in scan.peaklist.peaks:
-        peak.mz += ls_th_mz - ls_peak.mz
-    scan.profile[:,0] += ls_th_mz - ls_peak.mz
-    return scan
+    if x.size <= max_points:
+        return spectrum
+    order = np.argsort(x, kind='stable')
+    x, y = x[order], y[order]
+    x_min, x_max = x[0], x[-1]
+    if x_max <= x_min:
+        return [profile[order[0]]]
     
-def peak_picking(scan: mspy.scan) -> mspy.scan:
-    '''Apply peak picking to scan object
-    
-    Args:
-        scan: scan object to apply peak picking one
-        
-    Returns:
-        Same scan object with peaklist populated
-    '''
-    
-    # Find peaks in data and populate scan.peaklist
-    scan.labelscan(
-        pickingHeight=1.,
-        absThreshold=1e4,
-        relThreshold=.001,
-        snThreshold=25.,
-        baselineWindow=0.1,
-        baselineOffset=.25,
-        smoothMethod=None,
-        smoothWindow=.15,
-        smoothCycles=5,
-    )
-    
-    # Remove isotopes in peaklist
-    scan.deisotope(
-        maxCharge=3,
-        mzTolerance=0.005, # 0.02
-        intTolerance=0.5,  # 0.85
-        isotopeShift=0.,
-        averagineType="lipid",
-    )
-    
-    # Label envelopes (group isotopes)
-    scan.labelenvelopes(
-        label="monoisotope",
-        intensity="maximum",
-        mzTolerance=0.005,  # 0.02
-        isotopeShift=0.,
-        nonIdeality=0.4,
-        averagineType="lipid",
-        refinePattern=True,
-        preserveSeeds=True,
-        relaxed=True,
-    )
-    
-    # Remove isotopes
-    scan.remisotopes()
-    
-    # Remove peaks where charge can't be determined
-    scan.remuncharged()
-    
-    return scan
+    bins = np.minimum(((x - x_min) / (x_max - x_min) * max_points).astype(np.int64), max_points - 1)
+    by_bin = np.lexsort((y, bins))                        # tri par bac, puis par intensité croissante
+    sorted_bins = bins[by_bin]
+    keep = np.append(sorted_bins[1:] != sorted_bins[:-1], True)  # dernier point de chaque bac = intensité max
+    spectrum.set_peaks([x[i] for i in order[by_bin[keep]]], [y[i] for i in order[by_bin[keep]]])
+    return spectrum
             
 def extract_trace_name(trace_name: str) -> str:
     '''Remove unwanted information from trace name'''
@@ -316,19 +238,21 @@ def extract_trace_name(trace_name: str) -> str:
     match = TRACE_NAME_RE.match(trace_name)
     return match.group(1).strip()
 
-def load_mzml_spectra(mzml_file: str) -> dict:
+def load_mzml_spectra(mzml_file: str, return_scan:bool=True, return_data:bool=True) -> dict:
     '''
     Load the MS1 spectra of a mzML file, organized by polarity.
 
     Args:
         mzml_file: path of the mzML file to load
+        return_scan: whether to return the oms.MSSpectrum object
+        return_data: whether to return centroid, profile and tic data
 
     Returns:
         dict {'positive': entry, 'negative': entry} where each entry has:
         - 'centroid': list of peaks {'x', 'y'} from the centroid spectra
         - 'profile': list of peaks {'x', 'y'} from the profile spectra (raw data)
         - 'tic': max "total ion current" meta value of the profile spectra (None if absent)
-        - 'scan': mspy.scan of the spectrum (profile spectrum preferred over centroid)
+        - 'scan': oms.MSSpectrum containing the spectrum (profile spectrum preferred over centroid)
     '''
     exp = oms.MSExperiment()
     oms.MzMLFile().load(mzml_file, exp)
@@ -347,19 +271,20 @@ def load_mzml_spectra(mzml_file: str) -> dict:
             key = '-'
         else:
             continue
-        mz_array, intensity_array = spec.get_peaks()
-        peaks = [{'x': float(mz), 'y': float(inten)} for mz, inten in zip(mz_array, intensity_array)]
+            
         entry = spectra[key]
         spec_type = spec.getType()
-        if spec_type == oms.SpectrumSettings.SpectrumType.CENTROID:
-            entry['centroid'].extend(peaks)
-        elif spec_type == oms.SpectrumSettings.SpectrumType.PROFILE:
-            entry['profile'].extend(peaks)
-            if spec.metaValueExists("total ion current"):
-                value = float(spec.getMetaValue("total ion current"))
-                entry['tic'] = value if entry['tic'] is None else max(entry['tic'], value)
-        if entry['scan'] is None or spec_type == oms.SpectrumSettings.SpectrumType.PROFILE:
-            sub = oms.MSExperiment()
-            sub.addSpectrum(spec)
-            entry['scan'] = openms_to_mspy(sub)
+        
+        if return_data:
+            mz_array, intensity_array = spec.get_peaks()
+            peaks = [{'x': float(mz), 'y': float(inten)} for mz, inten in zip(mz_array, intensity_array)]
+            if spec_type == oms.SpectrumSettings.SpectrumType.CENTROID:
+                entry['centroid'].extend(peaks)
+            elif spec_type == oms.SpectrumSettings.SpectrumType.PROFILE:
+                entry['profile'].extend(peaks)
+                if spec.metaValueExists("total ion current"):
+                    value = float(spec.getMetaValue("total ion current"))
+                    entry['tic'] = value if entry['tic'] is None else max(entry['tic'], value)
+        if return_scan and (entry['scan'] is None or spec_type == oms.SpectrumSettings.SpectrumType.PROFILE):
+            entry['scan'] = spec
     return spectra

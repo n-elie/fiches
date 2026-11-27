@@ -516,7 +516,7 @@ def delete_orphan_spectra_files(dry_run: bool = False) -> list[str]:
         referenced = set(db.session.scalars(db.select(cls.id)))
         for fname in os.listdir(folder):
             stem, ext = os.path.splitext(fname)
-            if ext.lower() not in ('.mzml', '.json') or not stem.isdigit():
+            if ext.lower() == '.mzml' or not stem.isdigit():
                 continue
             path = os.path.join(folder, fname)
             if os.path.isfile(path) and int(stem) not in referenced:

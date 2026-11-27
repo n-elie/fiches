@@ -25,9 +25,17 @@ ADDUCTS = {
 
 def neutral_mass(mz: float, adduct: dict) -> float:
     """Masse neutre M correspondant à un pic m/z attribué à un adduit."""
+    
     z = abs(adduct.get("z", 1))
     n = adduct.get("n", 1)
     return (z * mz - adduct["mass"]) / n
+    
+def mz(neutral_mass: float, adduct: dict) -> float:
+    """Calcule le rapport m/z à partir de la masse neutre M et de l'adduit"""
+    
+    z = abs(adduct.get("z", 1))
+    n = adduct.get("n", 1)
+    return (neutral_mass * n + adduct["mass"]) / z
 
 def find_adduct(polarity, key):
     """Match par code ('M+H')"""

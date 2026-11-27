@@ -1,5 +1,5 @@
 import re
-from molmass import Formula, FormulaError
+import pyopenms as oms
 
 REFERENCE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._\- ]{0,99}$")
 
@@ -19,9 +19,9 @@ def is_valid_formula(formula_str: str) -> bool:
     if not FORMULA_RE.fullmatch(formula_str):
         return False
 
-    # 3. Chemical validation: Check if molmass can parse it cleanly
+    # 3. Chemical validation: Check if openms can parse it cleanly
     try:
-        Formula(formula_str)
+        oms.EmpiricalFormula(formula_str)
         return True
-    except FormulaError:
+    except RuntimeError:
         return False
