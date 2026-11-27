@@ -115,9 +115,52 @@
 		</div>
 		<div class="row">
 			<div class="col-12 mt-3">
-				<button type="button" id="btn-formulas" class="btn btn-outline-primary btn-sm">
-					<i class="fas fa-flask"></i> {{ _('Determine brute formulas of annotated peaks') }}
-				</button>
+				<div class="d-flex flex-wrap align-items-start gap-3">
+					<div id="formulas-params" class="border rounded p-2">
+						<div class="d-flex flex-wrap align-items-end gap-3">
+							<div>
+								<label class="form-label small mb-1" for="formula-tolerance">{{ _('Tolerance (ppm)') }}</label>
+								<input type="number" class="form-control form-control-sm" id="formula-tolerance" value="5" min="0" step="0.1" style="width: 6rem;">
+							</div>
+							<div>
+								<span class="form-label small d-block mb-1">{{ _('Rules') }}</span>
+								<div class="d-flex flex-wrap gap-2">
+									<div class="form-check form-check-inline mb-0">
+										<input class="form-check-input formula-rule" type="checkbox" id="rule-hc" value="hc" checked>
+										<label class="form-check-label small" for="rule-hc">H/C</label>
+									</div>
+									<div class="form-check form-check-inline mb-0">
+										<input class="form-check-input formula-rule" type="checkbox" id="rule-nops-c" value="nops_c" checked>
+										<label class="form-check-label small" for="rule-nops-c">NOPS/C</label>
+									</div>
+									<div class="form-check form-check-inline mb-0">
+										<input class="form-check-input formula-rule" type="checkbox" id="rule-nops" value="nops" checked>
+										<label class="form-check-label small" for="rule-nops">NOPS</label>
+									</div>
+									<div class="form-check form-check-inline mb-0">
+										<input class="form-check-input formula-rule" type="checkbox" id="rule-rdbe" value="rdbe" checked>
+										<label class="form-check-label small" for="rule-rdbe">RDBE</label>
+									</div>
+									<div class="form-check form-check-inline mb-0">
+										<input class="form-check-input formula-rule" type="checkbox" id="rule-integer-rdbe" value="integer_rdbe" checked>
+										<label class="form-check-label small" for="rule-integer-rdbe">{{ _('Integer RDBE') }}</label>
+									</div>
+								</div>
+							</div>
+							<div>
+								<label class="form-label small mb-1" for="formula-min">{{ _('Min formula') }}</label>
+								<input type="text" class="form-control form-control-sm" id="formula-min" placeholder="C1H1" style="width: 8rem;">
+							</div>
+							<div>
+								<label class="form-label small mb-1" for="formula-max">{{ _('Max formula') }}</label>
+								<input type="text" class="form-control form-control-sm" id="formula-max" placeholder="C100H200N20O20" style="width: 11rem;">
+							</div>
+						</div>
+					</div>
+					<button type="button" id="btn-formulas" class="btn btn-outline-primary btn-sm">
+						<i class="fas fa-flask"></i> {{ _('Determine brute formulas of annotated peaks') }}
+					</button>
+				</div>
 				<div id="formulas-wrap" class="table-responsive mt-2" style="display: none;">
 					<table class="table table-sm table-striped mb-0" id="formulas-table">
 						<thead class="table-dark">
@@ -562,7 +605,7 @@
                 fetchJSON(formulasUrl, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: '{}'
+                    body: JSON.stringify(collectFormulaParams())
                 })
                     .then(function(result) {
                         if (!result.ok || !result.data || !result.data.task_id) {
@@ -586,6 +629,19 @@
 					}
 				})
 				.catch(function(err) { console.error(err); });
+				
+			// Paramètres de détermination de formule brute
+			function collectFormulaParams() {
+				const tol = parseFloat(document.getElementById('formula-tolerance').value);
+				const minF = document.getElementById('formula-min').value.trim();
+				const maxF = document.getElementById('formula-max').value.trim();
+				return {
+					tolerance_ppm: (isNaN(tol) || tol <= 0) ? 5 : tol,
+					rules: Array.from(document.querySelectorAll('.formula-rule:checked')).map(function(cb) { return cb.value; }),
+					min_formula: minF || null,
+					max_formula: maxF || null
+				};
+			}
         });
     </script>
 {% endblock %}

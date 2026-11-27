@@ -14,7 +14,7 @@ from .celery_app import celery
 logger = logging.getLogger(__name__)
 
 @celery.task(bind=True)
-def compute_spectrum_formulas(self, sample_id):
+def compute_spectrum_formulas(self, sample_id, params=None):
     """
     Tâche Celery pour calculer les formules brutes des pics annotés d'un spectre MS.
 
@@ -28,6 +28,8 @@ def compute_spectrum_formulas(self, sample_id):
         dict: {'ok': True, 'sample_id': ..., 'results': [...]} en cas de succès,
               {'ok': False, 'error': ...} sinon
     """
+    params = params or {}
+    
     try:
         sample = db.session.get(MSSample, sample_id)
         if not sample:
@@ -63,7 +65,12 @@ def compute_spectrum_formulas(self, sample_id):
                 db.select(PeakFormula).where(PeakFormula.annotation_id == ann.id)
             ).all():
                 db.session.delete(old)
-            for candidate in compute_formulas(spectrum, ann.mz, ann.neutral_mass, ann.charge):
+            for candidate in compute_formulas(spectrum, ann.mz, ann.neutral_mass, ann.charge,
+                                              tolerance=params.get('tolerance_ppm', 5),
+                                              tolerance_unit='ppm',
+                                              rules=params.get('rules'),
+                                              min_formula=params.get('min_formula'),
+                                              max_formula=params.get('max_formula')):
                 db.session.add(PeakFormula(
                     annotation_id=ann.id,
                     formula=candidate.get('formula'),

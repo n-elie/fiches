@@ -21,6 +21,7 @@ from ..utils.check_data import is_valid_reference, is_valid_formula
 from ..utils.errors import log_error, report_error
 from ..utils.adducts import ADDUCTS, find_adduct, neutral_mass
 from ..utils.data_processing import load_mzml_spectra
+from ..utils.peak_composition import FORMULA_RULES
 
 ms_bp = Blueprint('ms', __name__, url_prefix='/ms')
 
@@ -351,6 +352,39 @@ def _saved_formulas_results(sample_id):
         })
     return results
 
+def _formula_task_params(payload):
+    """Valide le payload JSON du POST /spectrum/formulas et construit les paramètres
+    passés à la tâche Celery (compute_formulas). Retourne None si invalide."""
+    if not isinstance(payload, dict):
+        return None
+    try:
+        tol = float(payload.get('tolerance_ppm', 5))
+    except (TypeError, ValueError):
+        return None
+    if not (0 < tol <= 1000):
+        return None
+    rules = payload.get('rules')
+    if rules is None:
+        rules = list(FORMULA_RULES)
+    elif isinstance(rules, (list, tuple)):
+        rules = [r for r in rules if r in FORMULA_RULES]
+    else:
+        return None
+    params = {'tolerance_ppm': tol, 'rules': rules, 'min_formula': None, 'max_formula': None}
+    for key in ('min_formula', 'max_formula'):
+        val = payload.get(key)
+        if val is None:
+            continue
+        if not isinstance(val, str):
+            return None
+        val = val.strip()
+        if not val:
+            continue
+        if not is_valid_formula(val):
+            return None
+        params[key] = val
+    return params
+
 @ms_bp.route('/sample/<int:sample_id>/spectrum/formulas', methods=['GET', 'POST'])
 @login_required
 def spectrum_formulas(sample_id):
@@ -361,8 +395,11 @@ def spectrum_formulas(sample_id):
         return jsonify({'error': _('Access denied')}), 403
 
     if request.method == 'POST':
+        params = _formula_task_params(request.get_json(silent=True))
+        if params is None:
+            return jsonify({'error': _('Invalid formula parameters')}), 400
         # Le traitement lourd (compute_formulas) est délégué à une tâche Celery
-        task = compute_spectrum_formulas.delay(sample_id)
+        task = compute_spectrum_formulas.delay(sample_id, params)
         return jsonify({'ok': True, 'task_id': task.id}), 202
 
     return jsonify({'ok': True, 'results': _saved_formulas_results(sample_id)})

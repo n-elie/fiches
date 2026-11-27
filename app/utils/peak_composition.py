@@ -3,6 +3,9 @@ import math
 import numpy as np
 import pyopenms as oms
 
+FORMULA_RULES = ('hc', 'nops_c', 'nops', 'rdbe', 'integer_rdbe')
+DEFAULT_RULES = frozenset(FORMULA_RULES)
+
 ELEMENT_DB = oms.ElementDB.getInstance()
 SUPPORTED_ELEMENTS = ('C', 'H', 'N', 'O', 'P', 'S', 'F', 'Cl', 'Br')
 ISOTOPE_SPACING = 1.00335  # écart de masse 13C-12C (Da)
@@ -27,12 +30,14 @@ def default_max_counts(mass: float) -> dict:
     return caps
 
 
-def enumerate_formula_counts(mass: float, tol_da: float, max_counts: dict):
+def enumerate_formula_counts(mass: float, tol_da: float, max_counts: dict, min_counts: dict = None):
     '''Énumère toutes les compositions élémentaires dont la masse est à tol_da près de mass.
 
     Parcours récursif des éléments triés par masse décroissante (H en dernier, résolu
     directement), avec élagage sur la masse restante. Retourne (liste des comptages,
     liste des symboles dans le même ordre).'''
+    min_counts = min_counts or {}
+    
     order = sorted(max_counts, key=lambda s: ELEMENT_DB.getElement(s).getMonoWeight(), reverse=True)
     order = [s for s in order if s != 'H'] + ['H']
     els = [(s, ELEMENT_DB.getElement(s).getMonoWeight(), int(max_counts[s])) for s in order]
@@ -46,13 +51,13 @@ def enumerate_formula_counts(mass: float, tol_da: float, max_counts: dict):
     def rec(i, rem):
         if i == n - 1:
             nh = int(round(rem / els[i][1]))
-            if 0 <= nh <= els[i][2] and abs(rem - nh * els[i][1]) <= tol_da:
+            if min_counts.get(els[i][0], 0) <= nh <= els[i][2] and abs(rem - nh * els[i][1]) <= tol_da:
                 counts[i] = nh
                 out.append(list(counts))
             return
         _, em, cap = els[i]
         kmax = min(cap, int((rem + tol_da) / em))
-        kmin = max(0, math.ceil((rem - tol_da - max_fill[i + 1]) / em))
+        kmin = max(min_counts.get(els[i][0], 0), max(0, math.ceil((rem - tol_da - max_fill[i + 1]) / em)))
         for k in range(kmin, kmax + 1):
             rem2 = rem - k * em
             if rem2 < -tol_da:
@@ -65,7 +70,8 @@ def enumerate_formula_counts(mass: float, tol_da: float, max_counts: dict):
     return out, [e[0] for e in els]
 
 def golden_rules_filter(counts: dict, target_mass: float, tol_ppm: float = 5.0,
-                        hc_range=(0.1, 3.0), rdbe_range=(-1, 40), max_hetero_ratios=None):
+                        hc_range=(0.1, 3.0), rdbe_range=(-1, 40), max_hetero_ratios=None,
+                        rules=None):
     '''Filtre une composition élémentaire selon les Seven Golden Rules de Fiehn :
     erreur ppm max, ratio H/C, ratios hétéroatomes X/C, RDBE dans sa plage, et RDBE
     entier (règle LEWIS/SENIOR : H + halogènes + N + P doit être pair).
@@ -81,12 +87,17 @@ def golden_rules_filter(counts: dict, target_mass: float, tol_ppm: float = 5.0,
     Returns:
         dict {'formula', 'exact_mass',  'delta_mda', 'delta_ppm', 'rdbe', 'hc', 'counts'}, ou None si rejetée
     '''
+    if rules is None:
+        rules = DEFAULT_RULES
+    rules = set(rules)
     if max_hetero_ratios is None:
         max_hetero_ratios = {'N': 4, 'O': 3, 'P': 2, 'S': 3}
     C = counts.get('C', 0)
     H = counts.get('H', 0)
     N = counts.get('N', 0)
+    O = counts.get('O', 0)
     P = counts.get('P', 0)
+    S = counts.get('S', 0)
     X = counts.get('F', 0) + counts.get('Cl', 0) + counts.get('Br', 0)
     formula_str = ''.join(f'{s}{counts[s]}' for s in SUPPORTED_ELEMENTS if counts.get(s))
     if not formula_str:
@@ -97,30 +108,67 @@ def golden_rules_filter(counts: dict, target_mass: float, tol_ppm: float = 5.0,
     delta_ppm = delta_da / target_mass * 1e6
     if abs(delta_ppm) > tol_ppm:
         return None
+        
+    hc = H / C if C else float('inf')
     if C > 0:
-        hc = H / C
-        if not (hc_range[0] <= hc <= hc_range[1]):
+        # check H/C rule
+        if 'hc' in rules and not (hc_range[0] <= hc <= hc_range[1]):
             return None
-        for el, max_ratio in max_hetero_ratios.items():
-            if counts.get(el, 0) / C > max_ratio:
+        
+        # check NOPS/C rule
+        if 'nops_c' in rules:
+            for el, max_ratio in max_hetero_ratios.items():
+                if counts.get(el, 0) / C > max_ratio:
+                    return None
+    
+    # check NOPS rule
+    if 'nops' in rules:
+        # check NOPS all > 1 rule
+        if (N > 1 and O > 1 and P > 1 and S > 1):
+            if N >= 10 or O >= 20 or P >= 4 or S >= 3:
                 return None
+
+        # check NOP all > 3 rule
+        if (N > 3 and O > 3 and P > 3):
+            if N >= 11 or O >= 22 or P >= 6:
+                return None
+
+        # check NOS all > 1 rule
+        if (N > 1 and O > 1 and S > 1):
+            if N >= 19 or O >= 14 or S >= 8:
+                return None
+
+        # check NPS all > 1 rule
+        if (N > 1 and P > 1 and S > 1):
+            if N >= 3 or P >= 3 or S >= 3:
+                return None
+
+        # check OPS all > 1 rule
+        if (O > 1 and P > 1 and S > 1):
+            if O >= 14 or P >= 3 or S >= 3:
+                return None
+    
+    # Check RDBE rule
     rdbe = 1 + C + (N + P) / 2 - (H + X) / 2
-    if not (rdbe_range[0] <= rdbe <= rdbe_range[1]):
+    if 'rdbe' in rules and not (rdbe_range[0] <= rdbe <= rdbe_range[1]):
         return None
-    if (H + X + N + P) % 2 != 0:
+        
+    # Check integer RDBE rule
+    if 'integer_rdbe' in rules and (H + X + N + P) % 2 != 0:
         return None
+    
     return {
         'formula': ef.toString(),
         'neutral_mass': exact,
         'delta_ppm': delta_ppm,
         'delta_mda': delta_da * 1000,
         'rdbe': rdbe,
-        'hc': (H / C) if C else None,
+        'hc': hc,
         'counts': dict(counts),
     }
 
 def possible_formulas(mass: float, tolerance_ppm: float = 5.0, max_counts: dict = None,
-                      limit: int = 1000, **rule_kwargs) -> list:
+                      min_counts: dict = None, limit: int = 1000, rules=None, **rule_kwargs) -> list:
     '''Formules brutes possibles pour une masse exacte (Da, monoisotopique, neutre),
     filtrées par les Seven Golden Rules de Fiehn (voir golden_rules_filter).
 
@@ -138,11 +186,11 @@ def possible_formulas(mass: float, tolerance_ppm: float = 5.0, max_counts: dict 
     tol_da = mass * tolerance_ppm * 1e-6
     if max_counts is None:
         max_counts = default_max_counts(mass)
-    raw, symbols = enumerate_formula_counts(mass, tol_da, max_counts)
+    raw, symbols = enumerate_formula_counts(mass, tol_da, max_counts, min_counts)
     results = []
     for counts in raw:
         cd = {s: c for s, c in zip(symbols, counts) if c > 0}
-        r = golden_rules_filter(cd, mass, tolerance_ppm, **rule_kwargs)
+        r = golden_rules_filter(cd, mass, tolerance_ppm, rules=rules, **rule_kwargs)
         if r is not None:
             results.append(r)
     results.sort(key=lambda r: abs(r['delta_ppm']))
@@ -312,8 +360,8 @@ def estimate_halogens_sulfur_from_m2(ratio_m2_m: float, ratio_m1_m: float = None
 def compute_formulas(spectrum: oms.MSSpectrum, mz: float,
                      neutral_mass: float, charge: int,
                      tolerance:int=5, tolerance_unit:str="ppm",
-                     agentFormula:str="H", agentCharge:int=1,
-                     custom_composition:dict={}, limit:int=1000):
+                     custom_composition:dict={}, limit:int=1000,
+                     rules=None, min_formula:str=None, max_formula:str=None):
     # Estimate Cl/Br/S from isotopic ratios
     isotopes_int = experimental_isotope_pattern(spectrum, mz, charge=charge)
     ratio_m2_m = isotopes_int[2] / isotopes_int[0]
@@ -322,9 +370,24 @@ def compute_formulas(spectrum: oms.MSSpectrum, mz: float,
     max_counts = default_max_counts(neutral_mass)
     for el in ('Cl', 'Br', 'S'):
         max_counts[el] = estimated_counts[el]
+
+    # Bornes de formules brutes min/max (comparaison élément par élément)
+    min_counts = oms.EmpiricalFormula(min_formula).getElementalComposition() if min_formula else None
+    if max_formula:
+        max_formula_counts = oms.EmpiricalFormula(max_formula).getElementalComposition()
+        for el in list(max_counts):
+            max_counts[el] = min(max_counts[el], max_formula_counts.get(el, 0))
+       
+    # Tolérance de masse : ppm par défaut, Da converti en ppm sinon
+    if str(tolerance_unit).lower() == "ppm":
+        tol_ppm = float(tolerance)
+    else:
+        tol_ppm = float(tolerance) / neutral_mass * 1e6 if neutral_mass else 5.0
     
     # Get possibles candidates
-    candidates = possible_formulas(neutral_mass, max_counts=max_counts)
+    candidates = possible_formulas(neutral_mass, tolerance_ppm=tol_ppm,
+                                   max_counts=max_counts, min_counts=min_counts,
+                                   limit=limit, rules=rules)
     
     # Rank formula by RMS
     ranked = match_formulas_isotopes(candidates, spectrum, mz=mz, charge=charge)
